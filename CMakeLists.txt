@@ -535,6 +535,14 @@ if(EIGEN_BUILD_BTL)
   add_subdirectory(bench/btl EXCLUDE_FROM_ALL)
 endif()
 
+find_package(CLANG_FORMAT 9 EXACT)
+if(CLANG_FORMAT_FOUND)
+    file(GLOB_RECURSE FORMAT_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp ${CMAKE_CURRENT_SOURCE_DIR}/*.hpp)
+  add_custom_target(format
+    COMMAND ${CLANG_FORMAT_EXECUTABLE} -i -style=file ${FORMAT_SOURCES}
+    DEPENDS ${FORMAT_SOURCES})
+endif()
+
 if(NOT WIN32)
   add_subdirectory(bench/spbench EXCLUDE_FROM_ALL)
 endif()
@@ -571,6 +579,9 @@ message(STATUS "doc      | Generate the API documentation, requires Doxygen & La
 if(BUILD_TESTING)
   message(STATUS "check    | Build and run the unit-tests. Read this page:")
   message(STATUS "         |   http://eigen.tuxfamily.org/index.php?title=Tests")
+endif()
+if(CLANG_FORMAT_FOUND)
+  message(STATUS "format   | Formats the source code according to .clang-format file")
 endif()
 message(STATUS "blas     | Build BLAS library (not the same thing as Eigen)")
 message(STATUS "uninstall| Remove files installed by the install target")
