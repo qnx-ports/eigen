@@ -63,7 +63,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <mutex>
 #endif
 
-#ifndef POCKETFFT_NO_MULTITHREADING
+#ifdef POCKETFFT_MULTITHREADING
 #include <mutex>
 #include <condition_variable>
 #include <thread>
@@ -477,11 +477,7 @@ struct util // hack to avoid duplicate symbols
     if (axis>=shape.size()) throw std::invalid_argument("bad axis number");
     }
 
-#ifdef POCKETFFT_NO_MULTITHREADING
-  static size_t thread_count (size_t /*nthreads*/, const shape_t &/*shape*/,
-    size_t /*axis*/, size_t /*vlen*/)
-    { return 1; }
-#else
+#ifdef POCKETFFT_MULTITHREADING
   static size_t thread_count (size_t nthreads, const shape_t &shape,
     size_t axis, size_t vlen)
     {
@@ -494,21 +490,16 @@ struct util // hack to avoid duplicate symbols
       std::thread::hardware_concurrency() : nthreads;
     return std::max(size_t(1), std::min(parallel, max_threads));
     }
+#else
+  static size_t thread_count (size_t /*nthreads*/, const shape_t &/*shape*/,
+    size_t /*axis*/, size_t /*vlen*/)
+    { return 1; }    
 #endif
   };
 
 namespace threading {
 
-#ifdef POCKETFFT_NO_MULTITHREADING
-
-constexpr inline size_t thread_id() { return 0; }
-constexpr inline size_t num_threads() { return 1; }
-
-template <typename Func>
-void thread_map(size_t /* nthreads */, Func f)
-  { f(); }
-
-#else
+#ifdef POCKETFFT_MULTITHREADING
 
 inline size_t &thread_id()
   {
@@ -700,6 +691,14 @@ void thread_map(size_t nthreads, Func f)
   if (ex)
     std::rethrow_exception(ex);
   }
+
+#else
+constexpr inline size_t thread_id() { return 0; }
+constexpr inline size_t num_threads() { return 1; }
+
+template <typename Func>
+void thread_map(size_t /* nthreads */, Func f)
+  { f(); }
 
 #endif
 
