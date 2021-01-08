@@ -85,13 +85,19 @@
    namespace Eigen {
      template <typename T> struct default_fft_impl : public internal::imklfft_impl {};
    }
-#else
+#elif defined EIGEN_KISSFFT_DEFAULT
 // internal::kissfft_impl:  small, free, reasonably efficient default, derived from kissfft
 //
 # include "src/FFT/ei_kissfft_impl.h"
   namespace Eigen {
      template <typename T> 
        struct default_fft_impl : public internal::kissfft_impl<T> {};
+  }
+#else 
+#   include"src/FFT/ei_pocketfft_impl.h"
+  namespace Eigen {
+     template <typename T>
+      struct default_fft_impl : public internal::pocket_fft_impl<T> {};
   }
 #endif
 
