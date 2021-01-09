@@ -537,7 +537,12 @@ endif()
 
 find_package(CLANG_FORMAT 9 EXACT)
 if(CLANG_FORMAT_FOUND)
-    file(GLOB_RECURSE FORMAT_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp ${CMAKE_CURRENT_SOURCE_DIR}/*.hpp ${CMAKE_CURRENT_SOURCE_DIR}/*.h)
+set(FORMAT_SOURCES)
+foreach(DIR blas bench demos doc Eigen include lapack scripts share unsupported test failtest)
+    set(ABS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../${DIR})
+    file(GLOB_RECURSE ${DIR}_SOURCES ${ABS_DIR}/*.cc ${ABS_DIR}/*.h ${ABS_DIR}/*.cpp ${ABS_DIR}/*.hpp ${ABS_DIR}/*.c)
+    list(APPEND FORMAT_SOURCES ${${DIR}_SOURCES})
+  endforeach()
     file(GLOB FORMAT_SOURCES_WITHOUTENDING LIST_DIRECTORIES false ${CMAKE_CURRENT_SOURCE_DIR}/Eigen/* ${CMAKE_CURRENT_SOURCE_DIR}/Eigen/CXX11/* ${CMAKE_CURRENT_SOURCE_DIR}/unsupported/Eigen/* ${CMAKE_CURRENT_SOURCE_DIR}/unsupported/Eigen/CXX11/*)
     list (APPEND FORMAT_SOURCES ${FORMAT_SOURCES_WITHOUTENDING})
     add_custom_target(format
