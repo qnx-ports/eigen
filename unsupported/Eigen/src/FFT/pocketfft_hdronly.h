@@ -1340,14 +1340,14 @@ template<bool fwd, typename T> void pass_all(T c[], T0 fct) const
     }
   if (p1!=c)
     {
-    if (fct!=1.)
+    if (fct!=static_cast<T0>(1.))
       for (size_t i=0; i<length; ++i)
         c[i] = ch[i]*fct;
     else
       memcpy (c,p1,length*sizeof(T));
     }
   else
-    if (fct!=1.)
+    if (fct!=static_cast<T0>(1.))
       for (size_t i=0; i<length; ++i)
         c[i] *= fct;
   }
@@ -2096,14 +2096,14 @@ template<typename T> void radbg(size_t ido, size_t ip, size_t l1,
       {
       if (p1!=c)
         {
-        if (fct!=1.)
+        if (fct!=static_cast<T0>(1.))
           for (size_t i=0; i<n; ++i)
             c[i] = fct*p1[i];
         else
           memcpy (c,p1,n*sizeof(T));
         }
       else
-        if (fct!=1.)
+        if (fct!=static_cast<T0>(1.))
           for (size_t i=0; i<n; ++i)
             c[i] *= fct;
       }
