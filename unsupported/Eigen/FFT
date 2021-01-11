@@ -28,7 +28,7 @@
   *
   * The default implementation is based on pocketfft. 
   * It is a heavily modified implementation of FFTPack, with the following advantages:
-  * 1.strictly C99 compliant
+  * 1.strictly C++11 compliant
   * 2.more accurate twiddle factor computation
   * 3.very fast plan generation
   * 4.worst case complexity for transform sizes with large prime factors is
