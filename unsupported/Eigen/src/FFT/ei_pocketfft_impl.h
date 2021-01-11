@@ -14,7 +14,7 @@ namespace Eigen {
 namespace internal {
 
 template<typename _Scalar>
-struct pocket_fft_impl
+struct pocketfft_impl
 {
   typedef _Scalar Scalar;
   typedef std::complex<Scalar> Complex;
