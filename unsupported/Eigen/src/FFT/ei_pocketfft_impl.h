@@ -49,6 +49,20 @@ struct pocketfft_impl
     c2r(shape_, stride_in, stride_out, axes_, BACKWARD, src, dst, static_cast<Scalar>(1));
   }
 
+  inline void fwd2(Complex* dst, const Complex* src, int nfft0, int nfft1){
+    const shape_t  shape_{ static_cast<size_t>(nfft0), static_cast<size_t>(nfft1) };
+    const shape_t  axes_{ 0, 1 };
+    const stride_t stride_{ static_cast<ptrdiff_t>(sizeof(Complex)*nfft1), static_cast<ptrdiff_t>(sizeof(Complex)) };
+    c2c(shape_, stride_, stride_, axes_, FORWARD, src, dst, static_cast<Scalar>(1));
+  }
+
+  inline void inv2(Complex* dst, const Complex* src, int nfft0, int nfft1){
+    const shape_t  shape_{ static_cast<size_t>(nfft0), static_cast<size_t>(nfft1) };
+    const shape_t  axes_{ 0, 1 };
+    const stride_t stride_{ static_cast<ptrdiff_t>(sizeof(Complex)*nfft1), static_cast<ptrdiff_t>(sizeof(Complex)) };
+    c2c(shape_, stride_, stride_, axes_, BACKWARD, src, dst, static_cast<Scalar>(1));
+  }
+  
 };
 
 } // namespace internal
