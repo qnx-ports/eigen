@@ -5,7 +5,6 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "pocketfft_hdronly.h"
 using namespace pocketfft;
 using namespace pocketfft::detail;
 
@@ -62,7 +61,7 @@ struct pocketfft_impl
     const stride_t stride_{ static_cast<ptrdiff_t>(sizeof(Complex)*nfft1), static_cast<ptrdiff_t>(sizeof(Complex)) };
     c2c(shape_, stride_, stride_, axes_, BACKWARD, src, dst, static_cast<Scalar>(1));
   }
-  
+
 };
 
 } // namespace internal

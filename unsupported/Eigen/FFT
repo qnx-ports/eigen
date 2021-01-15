@@ -93,6 +93,7 @@
    }
 #elif defined EIGEN_POCKETFFT_DEFAULT
 // internal::pocketfft_impl: a heavily modified implementation of FFTPack, with many advantages.
+# include<pocketfft_hdronly.h>
 # include"src/FFT/ei_pocketfft_impl.h"
   namespace Eigen {
      template <typename T>

@@ -244,7 +244,7 @@ EIGEN_DECLARE_TEST(FFTW)
   CALL_SUBTEST( test_scalar<float>(256) ); CALL_SUBTEST( test_scalar<double>(256) ); 
   CALL_SUBTEST( test_scalar<float>(2*3*4*5*7) ); CALL_SUBTEST( test_scalar<double>(2*3*4*5*7) ); 
   
-  #ifdef EIGEN_HAS_FFTWL
+  #if defined EIGEN_HAS_FFTWL || defined EIGEN_POCKETFFT_DEFAULT 
   CALL_SUBTEST( test_complex<long double>(32) );
   CALL_SUBTEST( test_complex<long double>(256) );
   CALL_SUBTEST( test_complex<long double>(3*8) );
