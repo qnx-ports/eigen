@@ -29,8 +29,11 @@
   * The default implementation is based on kissfft. It is a small, free, and
   * reasonably efficient default.
   *
-  * There are currently three implementation backend:
+  * There are currently four implementation backend:
   *
+  * - kissfft(https://github.com/mborgerding/kissfft) : Simple and not so fast, BSD-3-Clause.
+  *   It is a mixed-radix Fast Fourier Transform based up on the principle, "Keep It Simple, Stupid."
+  *   Notice that:kissfft fail to handle "odd-sized" inputs(i.e., sizes with large factors),a workaround is using fftw or pocketfft.
   * - fftw (http://www.fftw.org) : faster, GPL -- incompatible with Eigen in LGPL form, bigger code size.
   * - MKL (http://en.wikipedia.org/wiki/Math_Kernel_Library) : fastest, commercial -- may be incompatible with Eigen in GPL form.
   * - pocketfft (https://gitlab.mpcdf.mpg.de/mtr/pocketfft) : faster than kissfft, BSD 3-clause.
@@ -208,13 +211,13 @@ class FFT
         m_impl.fwd(dst,src,static_cast<int>(nfft));
     }
 
-    /*
+#if defined EIGEN_FFTW_DEFAULT || defined EIGEN_POCKETFFT_DEFAULT
     inline 
     void fwd2(Complex * dst, const Complex * src, int n0,int n1)
     {
       m_impl.fwd2(dst,src,n0,n1);
     }
-    */
+#endif
 
     template <typename Input_>
     inline
@@ -367,8 +370,7 @@ class FFT
     }
 
 
-    /*
-    // TODO: multi-dimensional FFTs
+#if defined EIGEN_FFTW_DEFAULT || defined EIGEN_POCKETFFT_DEFAULT 
     inline 
     void inv2(Complex * dst, const Complex * src, int n0,int n1)
     {
@@ -376,7 +378,8 @@ class FFT
       if ( HasFlag( Unscaled ) == false)
           scale(dst,1./(n0*n1),n0*n1);
     }
-  */
+#endif
+
 
     inline
     impl_type & impl() {return m_impl;}
