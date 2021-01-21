@@ -177,7 +177,7 @@ void test_complex(int nfft)
   test_complex_generic<StdVectorContainer,T>(nfft);
   test_complex_generic<EigenVectorContainer,T>(nfft);
 }
-/*
+
 template <typename T,int nrows,int ncols>
 void test_complex2d()
 {
@@ -205,8 +205,6 @@ void test_complex2d()
     VERIFY( (src-src2).norm() < test_precision<T>() );
     VERIFY( (dst-dst2).norm() < test_precision<T>() );
 }
-*/
-
 
 void test_return_by_value(int len)
 {
@@ -228,8 +226,6 @@ void test_return_by_value(int len)
 EIGEN_DECLARE_TEST(FFTW)
 {
   CALL_SUBTEST( test_return_by_value(32) );
-  //CALL_SUBTEST( ( test_complex2d<float,4,8> () ) ); CALL_SUBTEST( ( test_complex2d<double,4,8> () ) );
-  //CALL_SUBTEST( ( test_complex2d<long double,4,8> () ) );
   CALL_SUBTEST( test_complex<float>(32) ); CALL_SUBTEST( test_complex<double>(32) ); 
   CALL_SUBTEST( test_complex<float>(256) ); CALL_SUBTEST( test_complex<double>(256) ); 
   CALL_SUBTEST( test_complex<float>(3*8) ); CALL_SUBTEST( test_complex<double>(3*8) ); 
@@ -258,5 +254,26 @@ EIGEN_DECLARE_TEST(FFTW)
   CALL_SUBTEST( test_scalar<long double>(50) );
   CALL_SUBTEST( test_scalar<long double>(256) );
   CALL_SUBTEST( test_scalar<long double>(2*3*4*5*7) );
+
+  CALL_SUBTEST( ( test_complex2d<long double, 2*3*4, 2*3*4> () ) );
+  CALL_SUBTEST( ( test_complex2d<long double, 3*4*5, 3*4*5> () ) );
+  CALL_SUBTEST( ( test_complex2d<long double, 24, 60> () ) );
+  CALL_SUBTEST( ( test_complex2d<long double, 60, 24> () ) );
+  // fail to build since Eigen limit the stack allocation size,too big here.
+  // CALL_SUBTEST( ( test_complex2d<long double, 256, 256> () ) ); 
+
   #endif
+
+  #if defined EIGEN_FFTW_DEFAULT || defined EIGEN_POCKETFFT_DEFAULT
+  CALL_SUBTEST( ( test_complex2d<float, 24, 24> () ) );
+  CALL_SUBTEST( ( test_complex2d<float, 60, 60> () ) );
+  CALL_SUBTEST( ( test_complex2d<float, 24, 60> () ) );
+  CALL_SUBTEST( ( test_complex2d<float, 60, 24> () ) );
+
+  CALL_SUBTEST( ( test_complex2d<double, 24, 24> () ) );
+  CALL_SUBTEST( ( test_complex2d<double, 60, 60> () ) );
+  CALL_SUBTEST( ( test_complex2d<double, 24, 60> () ) );
+  CALL_SUBTEST( ( test_complex2d<double, 60, 24> () ) );
+  #endif
+
 }
