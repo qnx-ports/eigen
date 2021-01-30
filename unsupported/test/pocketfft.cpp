@@ -1,2 +1,2 @@
 #define TEST_POCKETFFT TEST_FFT
-#include "FFTW.cpp"
+#include "fft_test_shared.h"
