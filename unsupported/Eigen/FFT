@@ -33,7 +33,7 @@
   *
   * - kissfft(https://github.com/mborgerding/kissfft) : Simple and not so fast, BSD-3-Clause.
   *   It is a mixed-radix Fast Fourier Transform based up on the principle, "Keep It Simple, Stupid."
-  *   Notice that:kissfft fail to handle "atypically-sized" inputs(i.e., sizes with large factors),a workaround is using fftw or pocketfft.
+  *   Notice that:kissfft fails to handle "atypically-sized" inputs(i.e., sizes with large factors),a workaround is using fftw or pocketfft.
   * - fftw (http://www.fftw.org) : faster, GPL -- incompatible with Eigen in LGPL form, bigger code size.
   * - MKL (http://en.wikipedia.org/wiki/Math_Kernel_Library) : fastest, commercial -- may be incompatible with Eigen in GPL form.
   * - pocketfft (https://gitlab.mpcdf.mpg.de/mtr/pocketfft) : faster than kissfft, BSD 3-clause.
