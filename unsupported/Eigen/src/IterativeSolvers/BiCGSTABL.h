@@ -273,23 +273,24 @@ namespace Eigen
 			/** Default constructor. */
 			BiCGSTABL() : m_L(2){;}
 
-			/**     Initialize the solver with matrix \a A for further \c Ax=b solving.
+			/**
+			Initialize the solver with matrix \a A for further \c Ax=b solving.
 
-			        This constructor is a shortcut for the default constructor followed
-			        by a call to compute().
+			This constructor is a shortcut for the default constructor followed
+			by a call to compute().
 
-			        \warning this class stores a reference to the matrix A as well as some
-			        precomputed values that depend on it. Therefore, if \a A is changed
-			        this class becomes invalid. Call compute() to update it with the new
-			        matrix A, or modify a copy of A.
+			\warning this class stores a reference to the matrix A as well as some
+			precomputed values that depend on it. Therefore, if \a A is changed
+			this class becomes invalid. Call compute() to update it with the new
+			matrix A, or modify a copy of A.
 			*/
 			template <typename MatrixDerived>
 			explicit BiCGSTABL(const EigenBase<MatrixDerived>& A) : Base(A.derived()),m_L(2){;}
 
 			/** \internal */
-			/**     Loops over the number of columns of b and does the following:
-			                1. sets the tolerence and maxIterations
-			                2. Calls the function that has the core solver routine
+			/** Loops over the number of columns of b and does the following:
+				1. sets the tolerence and maxIterations
+				2. Calls the function that has the core solver routine
 			*/
 			template <typename Rhs, typename Dest>
 			void _solve_vector_with_guess_impl(const Rhs& b, Dest& x) const
@@ -313,7 +314,6 @@ namespace Eigen
 				m_L = L;
 			}
 
-		protected:
 	};
 
 }  // namespace Eigen
