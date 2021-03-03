@@ -42,6 +42,7 @@
 //#include "src/IterativeSolvers/SSORPreconditioner.h"
 #include "src/IterativeSolvers/MINRES.h"
 #include "src/IterativeSolvers/IDRS.h"
+#include "src/IterativeSolvers/BiCGSTABL.h"
 
 #include "../../Eigen/src/Core/util/ReenableStupidWarnings.h"
 
