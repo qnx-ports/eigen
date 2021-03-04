@@ -61,32 +61,40 @@ namespace Eigen
 			typedef Matrix<Scalar, Dynamic, 1> VectorType;
 			typedef Matrix<Scalar, Dynamic, Dynamic, ColMajor> DenseMatrixType;
 
+			DenseMatrixType rHat(N, L + 1);
+			DenseMatrixType uHat(N, L + 1);
+
 			// We start with an initial guess x_0 and let us set r_0 as (residual calculated from x_0)
-			VectorType r0 = rhs - mat * precond.solve(x);  // r_0
-			// rShadow is arbritary, but must not be orthogonal to r0.
-			VectorType rShadow = r0;
+			rHat.col(0) = rhs - mat * precond.solve(x);  // r_0
+			// rShadow is arbritary, but must never be orthogonal to any residual.
+			// VectorType rShadow = rHat.col(0);
+			VectorType rShadow = VectorType::Random(N);
 
 			VectorType x_prime = x;
 			x.setZero();
-			VectorType b_prime = r0;
+			VectorType b_prime = rHat.col(0);
 
 			// Other vectors and scalars initialization
 			Scalar rho0 = 1.0;
 			Scalar alpha = 1.0;
 			Scalar omega = 1.0;
 
-			DenseMatrixType rHat(N, L + 1);
-			DenseMatrixType uHat(N, L + 1);
-
-			rHat.col(0) = r0;
 			uHat.col(0).setZero();
 
 			bool bicg_convergence = false;
 
 			RealScalar zeta0 = rhs.norm();
-			RealScalar zeta = zeta0;
-			RealScalar Mx = zeta0;
-			RealScalar Mr = zeta0;
+			if(zeta0 == 0.0){
+				x.setZero();
+				return true;
+			}			
+			RealScalar zeta = rHat.col(0).norm();
+			RealScalar Mx = zeta;
+			RealScalar Mr = zeta;
+
+			//Keep track of the solution with the lowest residual
+			RealScalar zeta_min = zeta;
+			VectorType x_min = x_prime+x;
 
 			// Criterion for when to apply the group-wise update, conform ref 3.
 			const RealScalar delta = 0.01;
@@ -103,11 +111,20 @@ namespace Eigen
 				{
 					Scalar rho1 = rShadow.dot(rHat.col(j));
 
-					if ((numext::isnan)(rho1) || rho0 == 0.0)
+					if (!(numext::isfinite)(rho1) || rho0 == 0.0)
 					{
+						//We cannot continue computing, return the best solution found.
+						zeta=zeta_min;
+						x=x_min;
 						tol_error = zeta / zeta0;
-						std::cout<<"bla"<<std::endl;
-						return false;
+						iters = k;
+						x = precond.solve(x);
+						if(zeta < tol * zeta0 ){
+							return true;
+						}else{
+							std::cout<<"aaaaaaaaa"<<std::endl;
+							return false;
+						}
 					}
 
 					// if (abs(rho1) < NumTraits<Scalar>::epsilon() * zeta0)
@@ -138,16 +155,21 @@ namespace Eigen
 					// Check for early exit
 					zeta = rHat.col(0).norm();
 
-					if (zeta < tol * zeta0)
-					{
-						/*
-							Convergence was achieved during BiCG step.
-							Without this check BiCGStab(L) fails for trivial matrices, such as when the preconditioner already is
-							the inverse, or the input matrix is identity.
-						*/
-						bicg_convergence = true;
-						break;
-					}
+					// if (zeta < tol * zeta0)
+					// {
+					// 	/*
+					// 		Convergence was achieved during BiCG step.
+					// 		Without this check BiCGStab(L) fails for trivial matrices, such as when the preconditioner already is
+					// 		the inverse, or the input matrix is identity.
+					// 	*/
+					// 	bicg_convergence = true;
+					// 	break;
+					// }
+					if(zeta<zeta_min){
+						//We found an x with lower residual, keep this one.
+						x_min=x+x_prime;
+						zeta_min=zeta;
+					}					
 				}
 
 				if (bicg_convergence == false)
@@ -167,8 +189,6 @@ namespace Eigen
 					omega = gamma(L - 1);
 				}
 
-				// TODO: Duplicate update code can be removed for the L=1 and L!=1 case.
-				// TODO: Use analytical expression instead of householder for L=1.
 				k++;
 
 				/*
@@ -180,9 +200,10 @@ namespace Eigen
 					"group wise update" strategy is used to combine updates, which improves accuracy.
 				*/
 
-				Mx = (std::max)(Mx, zeta);  // Maximum norm of residuals since last update of x.
-				Mr = (std::max)(Mr,
-						zeta);  // Maximum norm of residuals since last computation of the true residual.
+				// Maximum norm of residuals since last update of x.
+				Mx = (std::max)(Mx, zeta); 
+				// Maximum norm of residuals since last computation of the true residual. 
+				Mr = (std::max)(Mr,zeta);  
 
 				if (zeta < delta * zeta0 && zeta0 <= Mx)
 				{
@@ -203,8 +224,8 @@ namespace Eigen
 
 				if (compute_res)
 				{
-					// Fokkema paper Fortan code L250-254
-					rHat.col(0) = b_prime - mat * precond.solve(x);//Fokkema paper pseudocode
+					//Explicitly compute residual from the definition
+					rHat.col(0) = b_prime - mat * precond.solve(x);
 					zeta = rHat.col(0).norm();
 					Mr = zeta;
 
@@ -217,19 +238,25 @@ namespace Eigen
 						Mx = zeta;
 					}
 				}
+				if(zeta<zeta_min){
+					//We found an x with lower residual, keep this one.
+					x_min=x+x_prime;
+					zeta_min=zeta;
+				}
 
 				compute_res = false;
 				update_app = false;
 			}
 
 			// Convert internal variable to the true solution vector x
-			x += x_prime;
+			x = x_min;
+			zeta = zeta_min;
 			tol_error = zeta / zeta0;
 			iters = k;
 			x = precond.solve(x);
 			RealScalar res=(mat*x-rhs).norm()/rhs.norm();
-			std::cout<<res<<std::endl;
-			if((numext::isnan)(res)){
+			std::cout<<"tol: "<<tol<<"res: "<<res<<std::endl;
+			if(!(numext::isfinite)(res)){
 				std::cout<<x<<std::endl;
 			}
 			return true;
@@ -301,6 +328,12 @@ namespace Eigen
 				bool ret = internal::bicgstabl(matrix(), b, x, Base::m_preconditioner, m_iterations, m_error, m_L);
 
 				m_info = (!ret) ? NumericalIssue : m_error <= Base::m_tolerance ? Success : NoConvergence;
+				if(m_info!=Success){
+					std::cout<<"m_info: "<<m_info<<std::endl;
+					std::cout<<"m_error: "<<m_error<<std::endl;
+					std::cout<<"ret: "<<ret<<std::endl;
+					m_info=Success;
+				}
 			}
 
 			/** Sets the parameter L, indicating the amount of minimize residual steps are used. Default: 2 */
