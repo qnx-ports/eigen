@@ -178,6 +178,11 @@ namespace Eigen
 					normr = rHat.col(0).norm();
 					omega = gamma(L - 1);
 				}
+				if(normr<normr_min){
+					//We found an x with lower residual, keep this one.
+					x_min=x+x_prime;
+					normr_min=normr;
+				}				
 
 				k++;
 
