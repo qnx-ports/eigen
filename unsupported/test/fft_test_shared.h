@@ -43,7 +43,7 @@ complex<long double>  promote(long double x) { return complex<long double>((long
             difpower += numext::abs2(dif);
             //cerr << k0 << "\t" << acc << "\t" <<  x << "\t" << sqrt(numext::abs2(dif)) << endl;
         }
-        cerr << "rmse:" << sqrt(difpower/totalpower) << endl;
+        // cerr << "rmse:" << sqrt(difpower/totalpower) << endl;
         return sqrt(difpower/totalpower);
     }
 
