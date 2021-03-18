@@ -20,6 +20,7 @@
 	reduction SIAM Journal on Scientific Computing.
 			3. Fokkema, Diederik R. Enhanced implementation of BiCGstab (l) for solving linear systems of equations.
 	Universiteit Utrecht. Mathematisch Instituut, 1996
+			4. Sleijpen, G. L., & van der Vorst, H. A. (1996). Reliable updated residuals in hybrid Bi-CG methods. Computing, 56(2), 141-163.
 */
 
 #ifndef EIGEN_BICGSTABL_H
@@ -69,7 +70,7 @@ namespace Eigen
 			rHat.col(0) = rhs - mat * precond.solve(x);  // r_0
 			// rShadow is arbritary, but must never be orthogonal to any residual.
 			VectorType rShadow = VectorType::Random(N);
-			rShadow.normalize();
+			//rShadow.normalize();
 
 			VectorType x_prime = x;
 			x.setZero();
