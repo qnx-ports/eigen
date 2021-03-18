@@ -85,6 +85,7 @@ namespace Eigen
 			bool bicg_convergence = false;
 
 			const RealScalar normb = rhs.norm();
+			//RealScalar normbb=normb;
 			if (internal::isApprox(normb, RealScalar(0)))
 			{
 				x.setZero();
@@ -116,14 +117,23 @@ namespace Eigen
 					if (!(numext::isfinite)(rho1) || rho0 == RealScalar(0.0))
 					{
 						//We cannot continue computing, return the best solution found.
-						normr=normr_min;
-						x=x_min;
+						x=x+x_prime;			
+						normr=(rhs - mat * precond.solve(x)).norm()/rhs.norm();
+						if(normr>normr_min || !(numext::isfinite)(normr)){
+							//x_min is a better solution than x, return x_min
+							x = x_min;
+							normr = normr_min;				
+						}						
+						// normr=normr_min;
+						// x=x_min;
 						tol_error = normr / normb;
 						iters = k;
 						x = precond.solve(x);
 						if(normr < tol * normb ){
+							//std::cout<<"exit: rho1 true"<<std::endl;
 							return true;
 						}else{
+							//std::cout<<"exit: rho1 false"<<std::endl;
 							return false;
 						}
 					}
@@ -142,12 +152,7 @@ namespace Eigen
 					x += alpha * uHat.col(0);
 					// Check for early exit
 					normr = rHat.col(0).norm();
-
-					if(normr<normr_min){
-						//We found an x with lower residual, keep this one.
-						x_min=x+x_prime;
-						normr_min=normr;
-					}				
+				
 					if (normr < tol * normb)
 					{
 						/*
@@ -157,11 +162,15 @@ namespace Eigen
 						*/
 						bicg_convergence = true;
 						break;
-					}
+					}else if(normr<normr_min){
+						//We found an x with lower residual, keep this one.
+						x_min=x+x_prime;
+						normr_min=normr;
+					}		
 						
 				}
-
 				if (bicg_convergence == false)
+				//if (bicg_convergence == false || (bicg_convergence && k>0))
 				{
 					/*
 						The polynomial/minimize residual step.
@@ -172,11 +181,13 @@ namespace Eigen
 					*/
 					Eigen::BDCSVD<DenseMatrixType> bdsvd(rHat.rightCols(L),Eigen::ComputeThinU | Eigen::ComputeThinV);
 					const VectorType gamma = bdsvd.solve(rHat.col(0));
+					//const VectorType gamma= (rHat.rightCols(L).transpose() * rHat.rightCols(L)).ldlt().solve(rHat.rightCols(L).transpose() * rHat.col(0));
 					x += rHat.leftCols(L) * gamma;
 					rHat.col(0) -= rHat.rightCols(L) * gamma;
 					uHat.col(0) -= uHat.rightCols(L) * gamma;
 					normr = rHat.col(0).norm();
 					omega = gamma(L - 1);
+					//omega=1.0;
 				}
 				if(normr<normr_min){
 					//We found an x with lower residual, keep this one.
@@ -202,6 +213,7 @@ namespace Eigen
 
 				if (normr < delta * normb && normb <= Mx)
 				{
+					//normbb gives (15), normb gives (16)
 					update_app = true;
 				}
 
@@ -231,6 +243,7 @@ namespace Eigen
 						x.setZero();
 						b_prime = rHat.col(0);
 						Mx = normr;
+						//normbb=normr;
 					}
 				}
 				if(normr<normr_min){
@@ -244,11 +257,18 @@ namespace Eigen
 			}
 
 			// Convert internal variable to the true solution vector x
-			x = x_min;
-			normr = normr_min;
+			//x_prime += x;
+			x=x+x_prime;			
+			normr=(rhs - mat * precond.solve(x)).norm()/rhs.norm();
+			if(normr>normr_min || !(numext::isfinite)(normr)){
+				//x_min is a better solution than x, return x_min
+				x = x_min;
+				normr = normr_min;				
+			}
 			tol_error = normr / normb;
 			iters = k;
 			x = precond.solve(x);
+			std::cout<<"exit: at the end, normr: "<<normr<<"\t normr_min: "<<normr_min<<std::endl;
 			return true;
 		}
 
@@ -317,6 +337,13 @@ namespace Eigen
 
 				bool ret = internal::bicgstabl(matrix(), b, x, Base::m_preconditioner, m_iterations, m_error, m_L);
 				m_info = (!ret) ? NumericalIssue : m_error <= Base::m_tolerance ? Success : NoConvergence;
+				// m_info=Success;			
+				if(m_info!=Success){
+					std::cout<<"ret: "<<ret<<std::endl;
+					std::cout<<"m_iterations: "<<m_iterations<<std::endl;
+					std::cout<<"m_error: "<<m_error<<std::endl;
+					std::cout<<"residual: "<<(b-matrix()*x).norm()/b.norm()<<std::endl;
+				}	
 			}
 
 			/** Sets the parameter L, indicating the amount of minimize residual steps are used. Default: 2 */
