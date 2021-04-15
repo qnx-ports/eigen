@@ -70,7 +70,6 @@ namespace Eigen
 			rHat.col(0) = rhs - mat * precond.solve(x);  // r_0
 			// rShadow is arbritary, but must never be orthogonal to any residual.
 			VectorType rShadow = VectorType::Random(N);
-			//rShadow.normalize();
 
 			VectorType x_prime = x;
 			x.setZero();
@@ -127,11 +126,7 @@ namespace Eigen
 						tol_error = normr / normb;
 						iters = k;
 						x = precond.solve(x);
-						if(normr < tol * normb ){
-							return true;
-						}else{
-							return false;
-						}
+						return (normr < tol * normb );
 					}
 
 					const Scalar beta = alpha * (rho1 / rho0);
@@ -164,7 +159,7 @@ namespace Eigen
 					}		
 						
 				}
-				if (bicg_convergence == false)
+				if (!bicg_convergence)
 				{
 					/*
 						The polynomial/minimize residual step.
@@ -198,9 +193,9 @@ namespace Eigen
 				*/
 
 				// Maximum norm of residuals since last update of x.
-				Mx = (std::max)(Mx, normr); 
+				Mx = numext::maxi(Mx, normr); 
 				// Maximum norm of residuals since last computation of the true residual. 
-				Mr = (std::max)(Mr,normr);  
+				Mr = numext::maxi(Mr,normr);  
 
 				if (normr < delta * normb && normb <= Mx)
 				{
@@ -246,8 +241,7 @@ namespace Eigen
 			}
 
 			// Convert internal variable to the true solution vector x
-			//x_prime += x;
-			x=x+x_prime;			
+			x+=x_prime;			
 			normr=(rhs - mat * precond.solve(x)).norm()/rhs.norm();
 			if(normr>normr_min || !(numext::isfinite)(normr)){
 				//x_min is a better solution than x, return x_min
@@ -294,9 +288,8 @@ namespace Eigen
 			typedef typename MatrixType::RealScalar RealScalar;
 			typedef _Preconditioner Preconditioner;
 
-		public:
 			/** Default constructor. */
-			BiCGSTABL() : m_L(2){;}
+			BiCGSTABL() : m_L(2){}
 
 			/**
 			Initialize the solver with matrix \a A for further \c Ax=b solving.
@@ -327,14 +320,10 @@ namespace Eigen
 				m_info = (!ret) ? NumericalIssue : m_error <= Base::m_tolerance ? Success : NoConvergence;
 			}
 
-			/** Sets the parameter L, indicating the amount of minimize residual steps are used. Default: 2 */
+			/** Sets the parameter L, indicating how many minimize residual steps are used. Default: 2 */
 			void setL(Index L)
 			{
-				if (L < 1)
-				{
-					L = 2;
-				}
-
+				eigen_assert(L>=1 && "L needs to be positive");
 				m_L = L;
 			}
 
