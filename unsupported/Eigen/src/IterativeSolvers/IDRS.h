@@ -387,11 +387,7 @@ namespace Eigen
 			/** Sets the parameter S, indicating the dimension of the shadow space. Default is 4*/
 			void setS(Index S)
 			{
-				if (S < 1)
-				{
-					S = 4;
-				}
-
+        eigen_assert(S>=1 && "S needs to be positive");
 				m_S = S;
 			}
 
