@@ -13,17 +13,17 @@
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 /*
 
-        The IDR(S)Stab(L) method is a combination of IDR(S) and BiCGStab(L)
-        //TODO: elaborate what this improves over BiCGStab here
+The IDR(S)Stab(L) method is a combination of IDR(S) and BiCGStab(L)
+//TODO: elaborate what this improves over BiCGStab here
 
-        Possible optimizations (PO):
-        -See //PO: notes in the code
+Possible optimizations (PO):
+-See //PO: notes in the code
 
-        This implementation of IDRStab is based on
-                1. Aihara, K., Abe, K., & Ishiwata, E. (2014). A variant of IDRstab with reliable update strategies for
+This implementation of IDRSTABL is based on
+1. Aihara, K., Abe, K., & Ishiwata, E. (2014). A variant of IDRstab with reliable update strategies for
    solving sparse linear systems. Journal of Computational and Applied Mathematics, 259, 244-258.
    doi:10.1016/j.cam.2013.08.028
-                2. Aihara, K., Abe, K., & Ishiwata, E. (2015). Preconditioned IDRStab Algorithms for Solving
+                2. Aihara, K., Abe, K., & Ishiwata, E. (2015). Preconditioned IDRSTABL Algorithms for Solving
    Nonsymmetric Linear Systems. International Journal of Applied Mathematics, 45(3).
                 3. Saad, Y. (2003). Iterative Methods for Sparse Linear Systems: Second Edition. Philadelphia, PA: SIAM.
                 4. Sonneveld, P., & Van Gijzen, M. B. (2009). IDR(s): A Family of Simple and Fast Algorithms for Solving
@@ -35,15 +35,15 @@
     Right-preconditioning based on Ref. 3 is implemented here.
 */
 
-#ifndef EIGEN_IDRSTAB_H
-#define EIGEN_IDRSTAB_H
+#ifndef EIGEN_IDRSTABL_H
+#define EIGEN_IDRSTABL_H
 
 namespace Eigen {
 
 namespace internal {
 
 template <typename MatrixType, typename Rhs, typename Dest, typename Preconditioner>
-bool idrstab(const MatrixType &mat, const Rhs &rhs, Dest &x, const Preconditioner &precond, Index &iters,
+bool idrstabl(const MatrixType &mat, const Rhs &rhs, Dest &x, const Preconditioner &precond, Index &iters,
              typename Dest::RealScalar &tol_error, Index L, Index S) {
   /*
     Setup and type definitions.
@@ -82,9 +82,6 @@ bool idrstab(const MatrixType &mat, const Rhs &rhs, Dest &x, const Preconditione
       The matrix is very small, or the choice of L and S is very poor
       in that case solving directly will be best.
     */
-    /*
-      Exit
-    */
     lu_solver.compute(DenseMatrixTypeRow(mat));
     x = lu_solver.solve(rhs);
     tol_error = (rhs - mat * x).norm() / rhs_norm;
@@ -103,7 +100,7 @@ bool idrstab(const MatrixType &mat, const Rhs &rhs, Dest &x, const Preconditione
   VectorType update(N);
 
   /*
-    Main IDRStab algorithm
+    Main IDRSTABL algorithm
   */
   // Set up the initial residual
   r.head(N) = rhs - mat * precond.solve(x);
@@ -207,7 +204,7 @@ bool idrstab(const MatrixType &mat, const Rhs &rhs, Dest &x, const Preconditione
   // PO: To save on memory consumption identity can be sparse
   // PO: can this be done with colPiv/fullPiv version as well? This would save 1 construction of a HouseholderQR object
 
-  // Original IDRStab and Kensuke choose S random vectors:
+  // Original IDRSTABL and Kensuke choose S random vectors:
   HouseholderQR<DenseMatrixTypeCol> qr(DenseMatrixTypeCol::Random(N, S));
   DenseMatrixTypeRow R_T = (qr.householderQ() * DenseMatrixTypeCol::Identity(N, S)).adjoint();
   DenseMatrixTypeRow AR_T = DenseMatrixTypeRow(R_T * mat);
@@ -223,7 +220,6 @@ bool idrstab(const MatrixType &mat, const Rhs &rhs, Dest &x, const Preconditione
   DenseMatrixTypeCol QAP(S, S);  // Scaled sigma
   bool repair_flag = false;
   RealScalar residual_0 = tol_error;
-  // bool apply_r_exit = false;
 
   while (k < maxIters) {
     for (Index j = 1; j <= L; ++j) {
@@ -468,12 +464,12 @@ bool idrstab(const MatrixType &mat, const Rhs &rhs, Dest &x, const Preconditione
 }  // namespace internal
 
 template <typename _MatrixType, typename _Preconditioner = DiagonalPreconditioner<typename _MatrixType::Scalar> >
-class IDRStab;
+class IDRSTABL;
 
 namespace internal {
 
 template <typename _MatrixType, typename _Preconditioner>
-struct traits<IDRStab<_MatrixType, _Preconditioner> > {
+struct traits<IDRSTABL<_MatrixType, _Preconditioner> > {
   typedef _MatrixType MatrixType;
   typedef _Preconditioner Preconditioner;
 };
@@ -481,8 +477,8 @@ struct traits<IDRStab<_MatrixType, _Preconditioner> > {
 }  // namespace internal
 
 template <typename _MatrixType, typename _Preconditioner>
-class IDRStab : public IterativeSolverBase<IDRStab<_MatrixType, _Preconditioner> > {
-  typedef IterativeSolverBase<IDRStab> Base;
+class IDRSTABL : public IterativeSolverBase<IDRSTABL<_MatrixType, _Preconditioner> > {
+  typedef IterativeSolverBase<IDRSTABL> Base;
   using Base::m_error;
   using Base::m_info;
   using Base::m_isInitialized;
@@ -499,10 +495,7 @@ class IDRStab : public IterativeSolverBase<IDRStab<_MatrixType, _Preconditioner>
 
  public:
   /** Default constructor. */
-  IDRStab() : Base() {
-    m_L = 2;
-    m_S = 4;
-  }
+  IDRSTABL() : m_L(2),m_S(4){}
 
   /**   Initialize the solver with matrix \a A for further \c Ax=b solving.
 
@@ -515,12 +508,8 @@ class IDRStab : public IterativeSolverBase<IDRStab<_MatrixType, _Preconditioner>
   matrix A, or modify a copy of A.
           */
   template <typename MatrixDerived>
-  explicit IDRStab(const EigenBase<MatrixDerived> &A) : Base(A.derived()) {
-    m_L = 2;
-    m_S = 4;
-  }
+  explicit IDRSTABL(const EigenBase<MatrixDerived> &A) : Base(A.derived()),m_L(2),m_S(4){}
 
-  ~IDRStab() {}
 
   /** \internal */
 
@@ -528,7 +517,7 @@ class IDRStab : public IterativeSolverBase<IDRStab<_MatrixType, _Preconditioner>
   void _solve_vector_with_guess_impl(const Rhs &b, Dest &x) const {
     m_iterations = Base::maxIterations();
     m_error = Base::m_tolerance;
-    bool ret = internal::idrstab(matrix(), b, x, Base::m_preconditioner, m_iterations, m_error, m_L, m_S);
+    bool ret = internal::idrstabl(matrix(), b, x, Base::m_preconditioner, m_iterations, m_error, m_L, m_S);
 
     m_info = (!ret) ? NumericalIssue : m_error <= 10 * Base::m_tolerance ? Success : NoConvergence;
   }
@@ -536,23 +525,18 @@ class IDRStab : public IterativeSolverBase<IDRStab<_MatrixType, _Preconditioner>
   /** \internal */
   /** Sets the parameter L, indicating the amount of minimize residual steps are used. */
   void setL(Index L) {
-    if (L < 1) {
-      L = 2;
-    }
-
+    eigen_assert(L>=1 && "L needs to be positive");
     m_L = L;
   }
   /** \internal */
   /** Sets the parameter S, indicating the dimension of the shadow residual space.. */
   void setS(Index S) {
-    if (S > 0) {
-      m_S = S;
-    }
+    eigen_assert(S>=1 && "S needs to be positive");
+		m_S = S;
   }
 
- protected:
 };
 
 }  // namespace Eigen
 
-#endif /* EIGEN_IDRSTAB_H */
+#endif /* EIGEN_IDRSTABL_H */
