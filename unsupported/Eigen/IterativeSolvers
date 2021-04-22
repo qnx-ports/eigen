@@ -24,6 +24,7 @@
   *  - an IDR(s) implementation
   *  - a DGMRES implementation
   *  - a MINRES implementation
+  *  - a IDRSTABL implementation
   *
   * \code
   * #include <unsupported/Eigen/IterativeSolvers>
@@ -44,6 +45,7 @@
 //#include "src/IterativeSolvers/SSORPreconditioner.h"
 #include "src/IterativeSolvers/MINRES.h"
 #include "src/IterativeSolvers/IDRS.h"
+#include "src/IterativeSolvers/IDRSTABL.h"
 
 #include "../../Eigen/src/Core/util/ReenableStupidWarnings.h"
 
