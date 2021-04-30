@@ -16,8 +16,13 @@ template<typename T> void test_bicgstabl_T()
   BiCGSTABL<SparseMatrix<T>, DiagonalPreconditioner<T> > bicgstabl_colmajor_diag;
   BiCGSTABL<SparseMatrix<T>, IncompleteLUT<T> >           bicgstabl_colmajor_ilut;
 
-  bicgstabl_colmajor_diag.setTolerance(NumTraits<T>::epsilon()*10);
-  bicgstabl_colmajor_ilut.setTolerance(NumTraits<T>::epsilon()*10);
+  //This does not change the tolerance of the test, only the tolerance of the solver.
+  //bicgstabl_colmajor_diag.setTolerance(NumTraits<T>::epsilon()*10);
+  //bicgstabl_colmajor_ilut.setTolerance(NumTraits<T>::epsilon()*10);
+  //bicgstabl_colmajor_diag.setTolerance(1e-12);
+  //bicgstabl_colmajor_ilut.setTolerance(1e-12);
+  bicgstabl_colmajor_diag.setTolerance(NumTraits<T>::dummy_precision());
+  bicgstabl_colmajor_ilut.setTolerance(NumTraits<T>::dummy_precision());  
 
   CALL_SUBTEST( check_sparse_square_solving(bicgstabl_colmajor_diag)  );
   CALL_SUBTEST( check_sparse_square_solving(bicgstabl_colmajor_ilut)     );

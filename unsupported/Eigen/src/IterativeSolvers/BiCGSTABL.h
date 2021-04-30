@@ -67,12 +67,16 @@ namespace Eigen
 			DenseMatrixType uHat(N, L + 1);
 
 			// We start with an initial guess x_0 and let us set r_0 as (residual calculated from x_0)
-			rHat.col(0) = rhs - mat * precond.solve(x);  // r_0
+			VectorType x0 = x;
+			rHat.col(0) = rhs - mat * x0;  // r_0
+			x.setZero(); // This will contain the updates to the solution.
 			// rShadow is arbritary, but must never be orthogonal to any residual.
 			VectorType rShadow = VectorType::Random(N);
 
 			VectorType x_prime = x;
-			x.setZero();
+
+			//Redundant: x is already set to 0
+			//x.setZero();
 			VectorType b_prime = rHat.col(0);
 
 			// Other vectors and scalars initialization
@@ -117,7 +121,15 @@ namespace Eigen
 					{
 						//We cannot continue computing, return the best solution found.
 						x=x+x_prime;			
-						normr=(rhs - mat * precond.solve(x)).norm()/rhs.norm();
+
+						//Check if x is better than the best stored solution thus far.
+						normr=(rhs - mat * (precond.solve(x) + x0)).norm()/rhs.norm();
+
+						// std::cout<<"rHat.col(0):\n"<<rHat.col(0).norm()<<std::endl;
+						// std::cout<<"b_prime - mat * precond.solve(x):\n"<<(b_prime - mat * precond.solve(x)).norm()<<std::endl;
+						// std::cout<<"b_prime - mat * precond.solve(x_prime):\n"<<(b_prime - mat * precond.solve(x_prime)).norm()<<std::endl;
+						// std::cout<<"b_prime - mat * x:\n"<<(b_prime - mat * x).norm()<<std::endl;
+						// std::cout<<"rhs - mat * (precond.solve(x)+x0):\n"<<(rhs - mat * (precond.solve(x)+x0)).norm()<<std::endl;						
 						if(normr>normr_min || !(numext::isfinite)(normr)){
 							//x_min is a better solution than x, return x_min
 							x = x_min;
@@ -125,7 +137,9 @@ namespace Eigen
 						}						
 						tol_error = normr / normb;
 						iters = k;
+						// x contains the updates to x0, add those back to obtain the solution
 						x = precond.solve(x);
+						x = x + x0;
 						return (normr < tol * normb );
 					}
 
@@ -217,6 +231,12 @@ namespace Eigen
 				if (compute_res)
 				{
 					//Explicitly compute residual from the definition
+
+					// std::cout<<"rHat.col(0):\n"<<rHat.col(0).norm()<<std::endl;
+					// std::cout<<"b_prime - mat * precond.solve(x):\n"<<(b_prime - mat * precond.solve(x)).norm()<<std::endl;
+					// std::cout<<"b_prime - mat * x:\n"<<(b_prime - mat * x).norm()<<std::endl;
+					// std::cout<<"rhs - mat * (precond.solve(x)+x0):\n"<<(rhs - mat * (precond.solve(x)+x0)).norm()<<std::endl;
+					//This is equivalent to rhs - mat * (precond.solve(x)+x0)
 					rHat.col(0) = b_prime - mat * precond.solve(x);
 					normr = rHat.col(0).norm();
 					Mr = normr;
@@ -238,11 +258,14 @@ namespace Eigen
 
 				compute_res = false;
 				update_app = false;
+
 			}
 
 			// Convert internal variable to the true solution vector x
-			x+=x_prime;			
-			normr=(rhs - mat * precond.solve(x)).norm()/rhs.norm();
+			x+=x_prime;	
+
+			//This normr computation is redundant		
+			normr=(rhs - mat * (precond.solve(x)+x0)).norm()/rhs.norm();
 			if(normr>normr_min || !(numext::isfinite)(normr)){
 				//x_min is a better solution than x, return x_min
 				x = x_min;
@@ -250,7 +273,10 @@ namespace Eigen
 			}
 			tol_error = normr / normb;
 			iters = k;
+
+			// x contains the updates to x0, add those back to obtain the solution
 			x = precond.solve(x);
+			x = x + x0;
 			return true;
 		}
 
@@ -314,10 +340,22 @@ namespace Eigen
 			void _solve_vector_with_guess_impl(const Rhs& b, Dest& x) const
 			{
 				m_iterations = Base::maxIterations();
+
+				//Can't be changed here:
+				//Base::m_tolerance=1e-12;
+
 				m_error = Base::m_tolerance;
 
 				bool ret = internal::bicgstabl(matrix(), b, x, Base::m_preconditioner, m_iterations, m_error, m_L);
 				m_info = (!ret) ? NumericalIssue : m_error <= Base::m_tolerance ? Success : NoConvergence;
+				// if(!ret){
+				// 	std::cout<<"m_info: "<<m_info<<std::endl;
+				// }
+				if(m_error>Base::m_tolerance){
+					std::cout<<"m_error: "<<m_error<<"Base::m_tolerance: "<<Base::m_tolerance<<std::endl;
+					//If m_info!=Success, then the tests always fail.
+					//m_info=Success;
+				}
 			}
 
 			/** Sets the parameter L, indicating how many minimize residual steps are used. Default: 2 */
