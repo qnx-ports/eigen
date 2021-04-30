@@ -14,10 +14,6 @@
 /*
 
 The IDR(S)Stab(L) method is a combination of IDR(S) and BiCGStab(L)
-//TODO: elaborate what this improves over BiCGStab here
-
-Possible optimizations (PO):
--See //PO: notes in the code
 
 This implementation of IDRSTABL is based on
 1. Aihara, K., Abe, K., & Ishiwata, E. (2014). A variant of IDRstab with reliable update strategies for
@@ -204,8 +200,7 @@ bool idrstabl(const MatrixType &mat, const Rhs &rhs, Dest &x, const Precondition
     2. This results in R0, however to save memory and compute we only need the adjoint of R0. This is given by the
     matrix R_T.\ Additionally, the matrix (mat.adjoint()*R_tilde).adjoint()=R_tilde.adjoint()*mat by the
     anti-distributivity property of the adjoint. This results in AR_T, which is constant if R_T does not have to be
-    regenerated and can be precomputed. Based on reference 4, this has zero probability in exact arithmetic. However in
-    practice it does (extremely infrequently) occur, most notably for small matrices.
+    regenerated and can be precomputed. Based on reference 4, this has zero probability in exact arithmetic. 
   */
 
   // Original IDRSTABL and Kensuke choose S random vectors:
@@ -213,7 +208,7 @@ bool idrstabl(const MatrixType &mat, const Rhs &rhs, Dest &x, const Precondition
   DenseMatrixTypeRow R_T = (qr.householderQ() * DenseMatrixTypeCol::Identity(N, S)).adjoint();
   DenseMatrixTypeRow AR_T = DenseMatrixTypeRow(R_T * mat);
 
-  // Pre-allocate sigma, this space will be recycled without additional allocations.
+  // Pre-allocate sigma.
   DenseMatrixTypeCol sigma(S, S);
 
   bool reset_while = false;  // Should the while loop be reset for some reason?
@@ -314,16 +309,7 @@ bool idrstabl(const MatrixType &mat, const Rhs &rhs, Dest &x, const Precondition
       }
     }
     if (reset_while) {
-      reset_while = false;
-      tol_error = r.head(N).norm();
-      if (tol_error < tol2) {
-        /*
-        Slightly early exit by moving the criterion before the update of U,
-        after the main while loop the result of that calculation would not be needed.
-        */
-        break;
-      }
-      continue;
+      break;
     }
 
     // r=[r;mat*r_{L-1}]
