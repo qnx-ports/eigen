@@ -218,7 +218,6 @@ bool idrstabl(const MatrixType &mat, const Rhs &rhs, Dest &x, const Precondition
   // Pre-allocate sigma, this space will be recycled without additional allocations.
   DenseMatrixTypeCol sigma(S, S);
 
-  Index rt_counter = k;      // Iteration at which R_T was reset last
   bool reset_while = false;  // Should the while loop be reset for some reason?
 
   while (k < maxIters) {
@@ -235,14 +234,6 @@ bool idrstabl(const MatrixType &mat, const Rhs &rhs, Dest &x, const Precondition
       for (Index i = 0; i < S; ++i) {
         sigma.col(i).noalias() = AR_T * precond.solve(U.block(Nj_min_1, i, N, 1));
       }
-      /*
-        Suspected is that sigma could be badly scaled, since causes alpha~=0, but the
-        update vector is not zero. To improve stability we scale with absolute row and col sums first.
-        Sigma can become badly scaled (but still well-conditioned).
-        A bad sigma also happens if R_T is not chosen properly, for example if R_T is zeros sigma would be zeros
-        as well. The effect of this is a left-right preconditioner, instead of solving Ax=b, we solve
-        Q*A*P*inv(P)*x=Q*b.
-      */
 
       lu_solver.compute(sigma);
       // Obtain the update coefficients alpha
@@ -253,8 +244,6 @@ bool idrstabl(const MatrixType &mat, const Rhs &rhs, Dest &x, const Precondition
         // alpha=inverse(sigma)*(AR_T*r_{j-2})
         alpha.noalias() = lu_solver.solve(AR_T * precond.solve(r.segment(N * (j - 2), N)));
       }
-
-      double old_res = tol_error;
 
       // Obtain new solution and residual from this update
       update.noalias() = U.topRows(N) * alpha;
@@ -277,33 +266,6 @@ bool idrstabl(const MatrixType &mat, const Rhs &rhs, Dest &x, const Precondition
         break;
       }
 
-      bool reset_R_T = false;
-      if (alpha.norm() * rhs_norm < S * NumTraits<Scalar>::epsilon() * old_res) {
-        // This would indicate the update computed by alpha did nothing much to decrease the residual
-        // apparantly we've also not converged either.
-        // TODO: Check if there is some better criterion, the current one is a bit handwavy.
-        reset_R_T = true;
-      }
-
-      if (reset_R_T) {
-        if (k - rt_counter > 0) {
-          /*
-                  Only regenerate if it didn't already happen this iteration.
-          */
-          // Choose new R0 and try again
-          qr.compute(DenseMatrixTypeCol::Random(N, S));
-          R_T = (qr.householderQ() * DenseMatrixTypeCol::Identity(N, S))
-                    .transpose();  //.adjoint() vs .transpose() makes no difference, R_T is random anyways.
-          /*
-            Additionally, the matrix (mat.adjoint()*R_tilde).adjoint()=R_tilde.adjoint()*mat by the
-            anti-distributivity property of the adjoint. This results in AR_T, which can be precomputed.
-          */
-          AR_T = DenseMatrixTypeRow(R_T * mat);
-          j = 0;  // WARNING reset the for loop counter
-          rt_counter = k;
-          continue;
-        }
-      }
       bool break_normalization = false;
       for (Index q = 1; q <= S; ++q) {
         if (q == 1) {
