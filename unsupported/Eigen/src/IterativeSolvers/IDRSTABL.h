@@ -310,7 +310,7 @@ bool idrstabl(const MatrixType &mat, const Rhs &rhs, Dest &x, const Precondition
           u.head(N * (j + 1)) /= normalization_constant;
         } else {
           u.head(N * (j + 1)).setZero();
-          if (tol_error < tol2 || tol_error < 1e4 * NumTraits<Scalar>::epsilon()) {
+          if (tol_error < tol2) {
             // Just quit, we've converged
             iters = k;
             //Convert back to the unpreconditioned solution
