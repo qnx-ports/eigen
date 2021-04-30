@@ -301,19 +301,16 @@ bool idrstabl(const MatrixType &mat, const Rhs &rhs, Dest &x, const Precondition
         // Normalize u and assign to a column of V
         Scalar normalization_constant = u.block(N * j, 0, N, 1).norm();
 
-        if (normalization_constant != 0.0) {
+        u.head(N * (j + 1)) /= normalization_constant;
+        if(normalization_constant == 0.0){
           /*
             If u is exactly zero, this will lead to a NaN. Small, non-zero u is fine. In the case of NaN the
             algorithm breaks down, eventhough it could have continued, since u zero implies that there is no further
             update in a given direction.
-          */
-          u.head(N * (j + 1)) /= normalization_constant;
-        } else {
-          u.head(N * (j + 1)).setZero();
+          */          
           break_normalization = true;
-          break;
+          break;          
         }
-
         V.block(0, q - 1, N * (j + 1), 1).noalias() = u.head(N * (j + 1));
       }
 
