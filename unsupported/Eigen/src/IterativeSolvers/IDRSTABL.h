@@ -224,8 +224,6 @@ bool idrstabl(const MatrixType &mat, const Rhs &rhs, Dest &x, const Precondition
   VectorType Q(S, 1);            // Vector containing the row-scaling applied to sigma
   VectorType P(S, 1);            // Vector containing the column-scaling applied to sigma
   DenseMatrixTypeCol QAP(S, S);  // Scaled sigma
-  bool repair_flag = false;
-  RealScalar residual_0 = tol_error;
 
   while (k < maxIters) {
     for (Index j = 1; j <= L; ++j) {
@@ -287,17 +285,6 @@ bool idrstabl(const MatrixType &mat, const Rhs &rhs, Dest &x, const Precondition
         // If at this point the algorithm has converged, exit.
         reset_while = true;
         break;
-      }
-
-      if (repair_flag == false && tol_error > 10 * residual_0) {
-        // Sonneveld's repair flag suggestion from [5]
-        // This massively reduces problems with false residual estimates (if they'd occur)
-        repair_flag = true;
-      }
-      if (repair_flag && 1000 * tol_error < residual_0) {
-        // 1000 comes from Sonneveld's repair flag suggestion from [5]
-        r.head(N) = rhs - mat * precond.solve(x);
-        repair_flag = false;
       }
 
       bool reset_R_T = false;
@@ -439,16 +426,6 @@ bool idrstabl(const MatrixType &mat, const Rhs &rhs, Dest &x, const Precondition
       // Slightly early exit by moving the criterion before the update of U,
       // after the main while loop the result of that calculation would not be needed.
       break;
-    }
-
-    if (repair_flag == false && tol_error > 10 * residual_0) {
-      // Sonneveld's repair flag suggestion from [5]
-      // This massively reduces problems with false residual estimates (if they'd occur)
-      repair_flag = true;
-    }
-    if (repair_flag && 1000 * tol_error < residual_0) {
-      r.head(N) = rhs - mat * precond.solve(x);
-      repair_flag = false;
     }
 
     /*
