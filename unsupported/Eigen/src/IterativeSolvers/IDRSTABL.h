@@ -207,8 +207,6 @@ bool idrstabl(const MatrixType &mat, const Rhs &rhs, Dest &x, const Precondition
     regenerated and can be precomputed. Based on reference 4, this has zero probability in exact arithmetic. However in
     practice it does (extremely infrequently) occur, most notably for small matrices.
   */
-  // PO: To save on memory consumption identity can be sparse
-  // PO: can this be done with colPiv/fullPiv version as well? This would save 1 construction of a HouseholderQR object
 
   // Original IDRSTABL and Kensuke choose S random vectors:
   HouseholderQR<DenseMatrixTypeCol> qr(DenseMatrixTypeCol::Random(N, S));
@@ -270,9 +268,9 @@ bool idrstabl(const MatrixType &mat, const Rhs &rhs, Dest &x, const Precondition
           // u=[u_1;u_2;...;u_j]
           u.head(N * j) = u.segment(N, N * j);
         }
+
         // Obtain the update coefficients beta implicitly
         // beta=lu_sigma.solve(AR_T * u.block(N * (j - 1), 0, N, 1)
-
         u.head(N * j) -= U.topRows(N * j) * lu_solver.solve(AR_T * precond.solve(u.segment(N * (j - 1), N)));
 
         // u=[u;Au_{j-1}]
@@ -286,7 +284,6 @@ bool idrstabl(const MatrixType &mat, const Rhs &rhs, Dest &x, const Precondition
           The vector mu from Ref. 1 is obtained implicitly:
           mu=V.block(N * j, 0, N, q - 1).adjoint() * u.block(N * j, 0, N, 1).
           */
-
           for (Index i = 0; i <= q - 2; ++i) {
             //"Normalization factor"
             Scalar h = V.col(i).segment(N * j, N).squaredNorm();
@@ -304,9 +301,7 @@ bool idrstabl(const MatrixType &mat, const Rhs &rhs, Dest &x, const Precondition
         u.head(N * (j + 1)) /= normalization_constant;
         if(normalization_constant == 0.0){
           /*
-            If u is exactly zero, this will lead to a NaN. Small, non-zero u is fine. In the case of NaN the
-            algorithm breaks down, eventhough it could have continued, since u zero implies that there is no further
-            update in a given direction.
+            If u is exactly zero, this will lead to a NaN. Small, non-zero u is fine.
           */          
           break_normalization = true;
           break;          
