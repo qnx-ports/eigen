@@ -221,10 +221,6 @@ bool idrstabl(const MatrixType &mat, const Rhs &rhs, Dest &x, const Precondition
   Index rt_counter = k;      // Iteration at which R_T was reset last
   bool reset_while = false;  // Should the while loop be reset for some reason?
 
-  VectorType Q(S, 1);            // Vector containing the row-scaling applied to sigma
-  VectorType P(S, 1);            // Vector containing the column-scaling applied to sigma
-  DenseMatrixTypeCol QAP(S, S);  // Scaled sigma
-
   while (k < maxIters) {
     for (Index j = 1; j <= L; ++j) {
       // Cache some indexing variables that occur frequently and are constant.
@@ -248,21 +244,15 @@ bool idrstabl(const MatrixType &mat, const Rhs &rhs, Dest &x, const Precondition
         Q*A*P*inv(P)*x=Q*b.
       */
 
-      Q = (sigma.cwiseAbs().rowwise().sum()).cwiseInverse();  // Calculate absolute inverse row sum
-      QAP = Q.asDiagonal() * sigma;                           // Scale with inverse absolute row sums
-      P = (QAP.cwiseAbs().colwise().sum()).cwiseInverse();    // Calculate absolute inverse column sum
-      QAP = QAP * P.asDiagonal();                             // Scale with inverse absolute column sums
-      lu_solver.compute(QAP);
+      lu_solver.compute(sigma);
       // Obtain the update coefficients alpha
       if (j == 1) {
         // alpha=inverse(sigma)*(R_T*r_0);
-        alpha.noalias() = lu_solver.solve(Q.asDiagonal() * R_T * r.head(N));
+        alpha.noalias() = lu_solver.solve(R_T * r.head(N));
       } else {
         // alpha=inverse(sigma)*(AR_T*r_{j-2})
-        alpha.noalias() = lu_solver.solve(Q.asDiagonal() * AR_T * precond.solve(r.segment(N * (j - 2), N)));
+        alpha.noalias() = lu_solver.solve(AR_T * precond.solve(r.segment(N * (j - 2), N)));
       }
-      // Unscale the solution
-      alpha = P.asDiagonal() * alpha;
 
       double old_res = tol_error;
 
@@ -326,8 +316,7 @@ bool idrstabl(const MatrixType &mat, const Rhs &rhs, Dest &x, const Precondition
         // Obtain the update coefficients beta implicitly
         // beta=lu_sigma.solve(AR_T * u.block(Nj_min_1, 0, N, 1)
 
-        u.head(Nj) -= U.topRows(Nj) * P.asDiagonal() *
-                      lu_solver.solve(Q.asDiagonal() * AR_T * precond.solve(u.segment(Nj_min_1, N)));
+        u.head(Nj) -= U.topRows(Nj) * lu_solver.solve(AR_T * precond.solve(u.segment(Nj_min_1, N)));
 
         // u=[u;Au_{j-1}]
         u.segment(Nj, N).noalias() = mat * precond.solve(u.segment(Nj_min_1, N));
