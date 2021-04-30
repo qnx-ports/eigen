@@ -222,17 +222,12 @@ bool idrstabl(const MatrixType &mat, const Rhs &rhs, Dest &x, const Precondition
 
   while (k < maxIters) {
     for (Index j = 1; j <= L; ++j) {
-      // Cache some indexing variables that occur frequently and are constant.
-      const Index Nj = N * j;
-      const Index Nj_plus_1 = N * (j + 1);
-      const Index Nj_min_1 = N * (j - 1);
-
       /*
         The IDR Step
       */
       // Construction of the sigma-matrix, and the decomposition of sigma.
       for (Index i = 0; i < S; ++i) {
-        sigma.col(i).noalias() = AR_T * precond.solve(U.block(Nj_min_1, i, N, 1));
+        sigma.col(i).noalias() = AR_T * precond.solve(U.block(N * (j - 1), i, N, 1));
       }
 
       lu_solver.compute(sigma);
@@ -256,7 +251,7 @@ bool idrstabl(const MatrixType &mat, const Rhs &rhs, Dest &x, const Precondition
       }
       if (j > 1) {
         // r=[r;A*r_{j-2}]
-        r.segment(Nj_min_1, N).noalias() = mat * precond.solve(r.segment(N * (j - 2), N));
+        r.segment(N * (j - 1), N).noalias() = mat * precond.solve(r.segment(N * (j - 2), N));
       }
       tol_error = r.head(N).norm();
 
@@ -270,18 +265,18 @@ bool idrstabl(const MatrixType &mat, const Rhs &rhs, Dest &x, const Precondition
       for (Index q = 1; q <= S; ++q) {
         if (q == 1) {
           // u = r;
-          u.head(Nj_plus_1) = r.topRows(Nj_plus_1);
+          u.head(N * (j + 1)) = r.topRows(N * (j + 1));
         } else {
           // u=[u_1;u_2;...;u_j]
-          u.head(Nj) = u.segment(N, Nj);
+          u.head(N * j) = u.segment(N, N * j);
         }
         // Obtain the update coefficients beta implicitly
-        // beta=lu_sigma.solve(AR_T * u.block(Nj_min_1, 0, N, 1)
+        // beta=lu_sigma.solve(AR_T * u.block(N * (j - 1), 0, N, 1)
 
-        u.head(Nj) -= U.topRows(Nj) * lu_solver.solve(AR_T * precond.solve(u.segment(Nj_min_1, N)));
+        u.head(N * j) -= U.topRows(N * j) * lu_solver.solve(AR_T * precond.solve(u.segment(N * (j - 1), N)));
 
         // u=[u;Au_{j-1}]
-        u.segment(Nj, N).noalias() = mat * precond.solve(u.segment(Nj_min_1, N));
+        u.segment(N * j, N).noalias() = mat * precond.solve(u.segment(N * (j - 1), N));
 
         // Orthonormalize u_j to the columns of V_j(:,1:q-1)
         if (q > 1) {
@@ -289,22 +284,22 @@ bool idrstabl(const MatrixType &mat, const Rhs &rhs, Dest &x, const Precondition
           Modified Gram-Schmidt-like procedure to make u orthogonal to the columns of V from Ref. 1.
 
           The vector mu from Ref. 1 is obtained implicitly:
-          mu=V.block(Nj, 0, N, q - 1).adjoint() * u.block(Nj, 0, N, 1).
+          mu=V.block(N * j, 0, N, q - 1).adjoint() * u.block(N * j, 0, N, 1).
           */
 
           for (Index i = 0; i <= q - 2; ++i) {
             //"Normalization factor"
-            Scalar h = V.col(i).segment(Nj, N).squaredNorm();
+            Scalar h = V.col(i).segment(N * j, N).squaredNorm();
 
             //"How much do u and V have in common?"
-            h = V.col(i).segment(Nj, N).dot(u.segment(Nj, N)) / h;
+            h = V.col(i).segment(N * j, N).dot(u.segment(N * j, N)) / h;
 
             //"Subtract the part they have in common"
-            u.head(Nj_plus_1) -= h * V.block(0, i, Nj_plus_1, 1);
+            u.head(N * (j + 1)) -= h * V.block(0, i, N * (j + 1), 1);
           }
         }
         // Normalize u and assign to a column of V
-        Scalar normalization_constant = u.block(Nj, 0, N, 1).norm();
+        Scalar normalization_constant = u.block(N * j, 0, N, 1).norm();
 
         if (normalization_constant != 0.0) {
           /*
@@ -312,9 +307,9 @@ bool idrstabl(const MatrixType &mat, const Rhs &rhs, Dest &x, const Precondition
             algorithm breaks down, eventhough it could have continued, since u zero implies that there is no further
             update in a given direction.
           */
-          u.head(Nj_plus_1) /= normalization_constant;
+          u.head(N * (j + 1)) /= normalization_constant;
         } else {
-          u.head(Nj_plus_1).setZero();
+          u.head(N * (j + 1)).setZero();
           if (tol_error < tol2 || tol_error < 1e4 * NumTraits<Scalar>::epsilon()) {
             // Just quit, we've converged
             iters = k;
@@ -329,7 +324,7 @@ bool idrstabl(const MatrixType &mat, const Rhs &rhs, Dest &x, const Precondition
           break;
         }
 
-        V.block(0, q - 1, Nj_plus_1, 1).noalias() = u.head(Nj_plus_1);
+        V.block(0, q - 1, N * (j + 1), 1).noalias() = u.head(N * (j + 1));
       }
 
       if (break_normalization == false) {
