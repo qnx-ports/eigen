@@ -103,7 +103,10 @@ bool idrstabl(const MatrixType &mat, const Rhs &rhs, Dest &x, const Precondition
     Main IDRSTABL algorithm
   */
   // Set up the initial residual
-  r.head(N) = rhs - mat * precond.solve(x);
+	VectorType x0 = x;
+  r.head(N) = rhs - mat * x;
+  x.setZero(); // This will contain the updates to the solution.
+
   tol_error = r.head(N).norm();
 
   DenseMatrixTypeRow h_FOM(S, S - 1);
@@ -186,7 +189,10 @@ bool idrstabl(const MatrixType &mat, const Rhs &rhs, Dest &x, const Precondition
       Exit, the FOM algorithm was already accurate enough
       */
       iters = k;
+      //Convert back to the unpreconditioned solution
       x = precond.solve(x2);
+      // x contains the updates to x0, add those back to obtain the solution
+      x = x + x0;
       tol_error = FOM_residual / rhs_norm;
       return true;
     }
@@ -374,7 +380,10 @@ bool idrstabl(const MatrixType &mat, const Rhs &rhs, Dest &x, const Precondition
           if (tol_error < tol2 || tol_error < 1e4 * NumTraits<Scalar>::epsilon()) {
             // Just quit, we've converged
             iters = k;
+            //Convert back to the unpreconditioned solution
             x = precond.solve(x);
+            // x contains the updates to x0, add those back to obtain the solution
+            x = x + x0;
             tol_error = (rhs - mat * x).norm() / rhs_norm;
             return true;
           }
@@ -456,7 +465,10 @@ bool idrstabl(const MatrixType &mat, const Rhs &rhs, Dest &x, const Precondition
           Exit after the while loop terminated.
   */
   iters = k;
+  //Convert back to the unpreconditioned solution
   x = precond.solve(x);
+  // x contains the updates to x0, add those back to obtain the solution
+  x = x + x0;
   tol_error = tol_error / rhs_norm;
   return true;
 }
