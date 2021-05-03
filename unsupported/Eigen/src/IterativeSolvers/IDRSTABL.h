@@ -14,10 +14,6 @@
 /*
 
 The IDR(S)Stab(L) method is a combination of IDR(S) and BiCGStab(L)
-//TODO: elaborate what this improves over BiCGStab here
-
-Possible optimizations (PO):
--See //PO: notes in the code
 
 This implementation of IDRSTABL is based on
 1. Aihara, K., Abe, K., & Ishiwata, E. (2014). A variant of IDRstab with reliable update strategies for
@@ -103,7 +99,10 @@ bool idrstabl(const MatrixType &mat, const Rhs &rhs, Dest &x, const Precondition
     Main IDRSTABL algorithm
   */
   // Set up the initial residual
-  r.head(N) = rhs - mat * precond.solve(x);
+	VectorType x0 = x;
+  r.head(N) = rhs - mat * x;
+  x.setZero(); // This will contain the updates to the solution.
+
   tol_error = r.head(N).norm();
 
   DenseMatrixTypeRow h_FOM(S, S - 1);
@@ -186,7 +185,10 @@ bool idrstabl(const MatrixType &mat, const Rhs &rhs, Dest &x, const Precondition
       Exit, the FOM algorithm was already accurate enough
       */
       iters = k;
+      //Convert back to the unpreconditioned solution
       x = precond.solve(x2);
+      // x contains the updates to x0, add those back to obtain the solution
+      x = x + x0;
       tol_error = FOM_residual / rhs_norm;
       return true;
     }
@@ -198,69 +200,38 @@ bool idrstabl(const MatrixType &mat, const Rhs &rhs, Dest &x, const Precondition
     2. This results in R0, however to save memory and compute we only need the adjoint of R0. This is given by the
     matrix R_T.\ Additionally, the matrix (mat.adjoint()*R_tilde).adjoint()=R_tilde.adjoint()*mat by the
     anti-distributivity property of the adjoint. This results in AR_T, which is constant if R_T does not have to be
-    regenerated and can be precomputed. Based on reference 4, this has zero probability in exact arithmetic. However in
-    practice it does (extremely infrequently) occur, most notably for small matrices.
+    regenerated and can be precomputed. Based on reference 4, this has zero probability in exact arithmetic. 
   */
-  // PO: To save on memory consumption identity can be sparse
-  // PO: can this be done with colPiv/fullPiv version as well? This would save 1 construction of a HouseholderQR object
 
   // Original IDRSTABL and Kensuke choose S random vectors:
   HouseholderQR<DenseMatrixTypeCol> qr(DenseMatrixTypeCol::Random(N, S));
   DenseMatrixTypeRow R_T = (qr.householderQ() * DenseMatrixTypeCol::Identity(N, S)).adjoint();
   DenseMatrixTypeRow AR_T = DenseMatrixTypeRow(R_T * mat);
 
-  // Pre-allocate sigma, this space will be recycled without additional allocations.
+  // Pre-allocate sigma.
   DenseMatrixTypeCol sigma(S, S);
 
-  Index rt_counter = k;      // Iteration at which R_T was reset last
   bool reset_while = false;  // Should the while loop be reset for some reason?
-
-  VectorType Q(S, 1);            // Vector containing the row-scaling applied to sigma
-  VectorType P(S, 1);            // Vector containing the column-scaling applied to sigma
-  DenseMatrixTypeCol QAP(S, S);  // Scaled sigma
-  bool repair_flag = false;
-  RealScalar residual_0 = tol_error;
 
   while (k < maxIters) {
     for (Index j = 1; j <= L; ++j) {
-      // Cache some indexing variables that occur frequently and are constant.
-      const Index Nj = N * j;
-      const Index Nj_plus_1 = N * (j + 1);
-      const Index Nj_min_1 = N * (j - 1);
-
       /*
         The IDR Step
       */
       // Construction of the sigma-matrix, and the decomposition of sigma.
       for (Index i = 0; i < S; ++i) {
-        sigma.col(i).noalias() = AR_T * precond.solve(U.block(Nj_min_1, i, N, 1));
+        sigma.col(i).noalias() = AR_T * precond.solve(U.block(N * (j - 1), i, N, 1));
       }
-      /*
-        Suspected is that sigma could be badly scaled, since causes alpha~=0, but the
-        update vector is not zero. To improve stability we scale with absolute row and col sums first.
-        Sigma can become badly scaled (but still well-conditioned).
-        A bad sigma also happens if R_T is not chosen properly, for example if R_T is zeros sigma would be zeros
-        as well. The effect of this is a left-right preconditioner, instead of solving Ax=b, we solve
-        Q*A*P*inv(P)*x=Q*b.
-      */
 
-      Q = (sigma.cwiseAbs().rowwise().sum()).cwiseInverse();  // Calculate absolute inverse row sum
-      QAP = Q.asDiagonal() * sigma;                           // Scale with inverse absolute row sums
-      P = (QAP.cwiseAbs().colwise().sum()).cwiseInverse();    // Calculate absolute inverse column sum
-      QAP = QAP * P.asDiagonal();                             // Scale with inverse absolute column sums
-      lu_solver.compute(QAP);
+      lu_solver.compute(sigma);
       // Obtain the update coefficients alpha
       if (j == 1) {
         // alpha=inverse(sigma)*(R_T*r_0);
-        alpha.noalias() = lu_solver.solve(Q.asDiagonal() * R_T * r.head(N));
+        alpha.noalias() = lu_solver.solve(R_T * r.head(N));
       } else {
         // alpha=inverse(sigma)*(AR_T*r_{j-2})
-        alpha.noalias() = lu_solver.solve(Q.asDiagonal() * AR_T * precond.solve(r.segment(N * (j - 2), N)));
+        alpha.noalias() = lu_solver.solve(AR_T * precond.solve(r.segment(N * (j - 2), N)));
       }
-      // Unscale the solution
-      alpha = P.asDiagonal() * alpha;
-
-      double old_res = tol_error;
 
       // Obtain new solution and residual from this update
       update.noalias() = U.topRows(N) * alpha;
@@ -273,7 +244,7 @@ bool idrstabl(const MatrixType &mat, const Rhs &rhs, Dest &x, const Precondition
       }
       if (j > 1) {
         // r=[r;A*r_{j-2}]
-        r.segment(Nj_min_1, N).noalias() = mat * precond.solve(r.segment(N * (j - 2), N));
+        r.segment(N * (j - 1), N).noalias() = mat * precond.solve(r.segment(N * (j - 2), N));
       }
       tol_error = r.head(N).norm();
 
@@ -283,61 +254,22 @@ bool idrstabl(const MatrixType &mat, const Rhs &rhs, Dest &x, const Precondition
         break;
       }
 
-      if (repair_flag == false && tol_error > 10 * residual_0) {
-        // Sonneveld's repair flag suggestion from [5]
-        // This massively reduces problems with false residual estimates (if they'd occur)
-        repair_flag = true;
-      }
-      if (repair_flag && 1000 * tol_error < residual_0) {
-        // 1000 comes from Sonneveld's repair flag suggestion from [5]
-        r.head(N) = rhs - mat * precond.solve(x);
-        repair_flag = false;
-      }
-
-      bool reset_R_T = false;
-      if (alpha.norm() * rhs_norm < S * NumTraits<Scalar>::epsilon() * old_res) {
-        // This would indicate the update computed by alpha did nothing much to decrease the residual
-        // apparantly we've also not converged either.
-        // TODO: Check if there is some better criterion, the current one is a bit handwavy.
-        reset_R_T = true;
-      }
-
-      if (reset_R_T) {
-        if (k - rt_counter > 0) {
-          /*
-                  Only regenerate if it didn't already happen this iteration.
-          */
-          // Choose new R0 and try again
-          qr.compute(DenseMatrixTypeCol::Random(N, S));
-          R_T = (qr.householderQ() * DenseMatrixTypeCol::Identity(N, S))
-                    .transpose();  //.adjoint() vs .transpose() makes no difference, R_T is random anyways.
-          /*
-            Additionally, the matrix (mat.adjoint()*R_tilde).adjoint()=R_tilde.adjoint()*mat by the
-            anti-distributivity property of the adjoint. This results in AR_T, which can be precomputed.
-          */
-          AR_T = DenseMatrixTypeRow(R_T * mat);
-          j = 0;  // WARNING reset the for loop counter
-          rt_counter = k;
-          continue;
-        }
-      }
       bool break_normalization = false;
       for (Index q = 1; q <= S; ++q) {
         if (q == 1) {
           // u = r;
-          u.head(Nj_plus_1) = r.topRows(Nj_plus_1);
+          u.head(N * (j + 1)) = r.topRows(N * (j + 1));
         } else {
           // u=[u_1;u_2;...;u_j]
-          u.head(Nj) = u.segment(N, Nj);
+          u.head(N * j) = u.segment(N, N * j);
         }
-        // Obtain the update coefficients beta implicitly
-        // beta=lu_sigma.solve(AR_T * u.block(Nj_min_1, 0, N, 1)
 
-        u.head(Nj) -= U.topRows(Nj) * P.asDiagonal() *
-                      lu_solver.solve(Q.asDiagonal() * AR_T * precond.solve(u.segment(Nj_min_1, N)));
+        // Obtain the update coefficients beta implicitly
+        // beta=lu_sigma.solve(AR_T * u.block(N * (j - 1), 0, N, 1)
+        u.head(N * j) -= U.topRows(N * j) * lu_solver.solve(AR_T * precond.solve(u.segment(N * (j - 1), N)));
 
         // u=[u;Au_{j-1}]
-        u.segment(Nj, N).noalias() = mat * precond.solve(u.segment(Nj_min_1, N));
+        u.segment(N * j, N).noalias() = mat * precond.solve(u.segment(N * (j - 1), N));
 
         // Orthonormalize u_j to the columns of V_j(:,1:q-1)
         if (q > 1) {
@@ -345,44 +277,31 @@ bool idrstabl(const MatrixType &mat, const Rhs &rhs, Dest &x, const Precondition
           Modified Gram-Schmidt-like procedure to make u orthogonal to the columns of V from Ref. 1.
 
           The vector mu from Ref. 1 is obtained implicitly:
-          mu=V.block(Nj, 0, N, q - 1).adjoint() * u.block(Nj, 0, N, 1).
+          mu=V.block(N * j, 0, N, q - 1).adjoint() * u.block(N * j, 0, N, 1).
           */
-
           for (Index i = 0; i <= q - 2; ++i) {
             //"Normalization factor"
-            Scalar h = V.col(i).segment(Nj, N).squaredNorm();
+            Scalar h = V.col(i).segment(N * j, N).squaredNorm();
 
             //"How much do u and V have in common?"
-            h = V.col(i).segment(Nj, N).dot(u.segment(Nj, N)) / h;
+            h = V.col(i).segment(N * j, N).dot(u.segment(N * j, N)) / h;
 
             //"Subtract the part they have in common"
-            u.head(Nj_plus_1) -= h * V.block(0, i, Nj_plus_1, 1);
+            u.head(N * (j + 1)) -= h * V.block(0, i, N * (j + 1), 1);
           }
         }
         // Normalize u and assign to a column of V
-        Scalar normalization_constant = u.block(Nj, 0, N, 1).norm();
+        Scalar normalization_constant = u.block(N * j, 0, N, 1).norm();
 
-        if (normalization_constant != 0.0) {
+        u.head(N * (j + 1)) /= normalization_constant;
+        if(normalization_constant == 0.0){
           /*
-            If u is exactly zero, this will lead to a NaN. Small, non-zero u is fine. In the case of NaN the
-            algorithm breaks down, eventhough it could have continued, since u zero implies that there is no further
-            update in a given direction.
-          */
-          u.head(Nj_plus_1) /= normalization_constant;
-        } else {
-          u.head(Nj_plus_1).setZero();
-          if (tol_error < tol2 || tol_error < 1e4 * NumTraits<Scalar>::epsilon()) {
-            // Just quit, we've converged
-            iters = k;
-            x = precond.solve(x);
-            tol_error = (rhs - mat * x).norm() / rhs_norm;
-            return true;
-          }
+            If u is exactly zero, this will lead to a NaN. Small, non-zero u is fine.
+          */          
           break_normalization = true;
-          break;
+          break;          
         }
-
-        V.block(0, q - 1, Nj_plus_1, 1).noalias() = u.head(Nj_plus_1);
+        V.block(0, q - 1, N * (j + 1), 1).noalias() = u.head(N * (j + 1));
       }
 
       if (break_normalization == false) {
@@ -390,16 +309,7 @@ bool idrstabl(const MatrixType &mat, const Rhs &rhs, Dest &x, const Precondition
       }
     }
     if (reset_while) {
-      reset_while = false;
-      tol_error = r.head(N).norm();
-      if (tol_error < tol2) {
-        /*
-        Slightly early exit by moving the criterion before the update of U,
-        after the main while loop the result of that calculation would not be needed.
-        */
-        break;
-      }
-      continue;
+      break;
     }
 
     // r=[r;mat*r_{L-1}]
@@ -432,16 +342,6 @@ bool idrstabl(const MatrixType &mat, const Rhs &rhs, Dest &x, const Precondition
       break;
     }
 
-    if (repair_flag == false && tol_error > 10 * residual_0) {
-      // Sonneveld's repair flag suggestion from [5]
-      // This massively reduces problems with false residual estimates (if they'd occur)
-      repair_flag = true;
-    }
-    if (repair_flag && 1000 * tol_error < residual_0) {
-      r.head(N) = rhs - mat * precond.solve(x);
-      repair_flag = false;
-    }
-
     /*
     U=U0-sum(gamma_j*U_j)
     Consider the first iteration. Then U only contains U0, so at the start of the while-loop
@@ -456,7 +356,10 @@ bool idrstabl(const MatrixType &mat, const Rhs &rhs, Dest &x, const Precondition
           Exit after the while loop terminated.
   */
   iters = k;
+  //Convert back to the unpreconditioned solution
   x = precond.solve(x);
+  // x contains the updates to x0, add those back to obtain the solution
+  x = x + x0;
   tol_error = tol_error / rhs_norm;
   return true;
 }
