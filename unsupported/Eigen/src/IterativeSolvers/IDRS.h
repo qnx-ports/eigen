@@ -18,6 +18,7 @@
 namespace Eigen
 {
 
+<<<<<<< HEAD
 	namespace internal
 	{
 		/**     \internal Low-level Induced Dimension Reduction algorithm
@@ -95,11 +96,91 @@ namespace Eigen
 			 // from http://homepage.tudelft.nl/1w5b5/IDRS/manual.pdf
 			 // A peak in the residual is considered dangerously high if‖ri‖/‖b‖> C(tol/epsilon).
 			 // With epsilon the
+=======
+  namespace internal
+  {
+    /**     \internal Low-level Induced Dimension Reduction algoritm
+            \param A The matrix A
+            \param b The right hand side vector b
+            \param x On input and initial solution, on output the computed solution.
+            \param precond A preconditioner being able to efficiently solve for an
+                      approximation of Ax=b (regardless of b)
+            \param iter On input the max number of iteration, on output the number of performed iterations.
+            \param relres On input the tolerance error, on output an estimation of the relative error.
+            \param S On input Number of the dimension of the shadow space.
+        \param smoothing switches residual smoothing on.
+        \param angle small omega lead to faster convergence at the expense of numerical stability
+        \param replacement switches on a residual replacement strategy to increase accuracy of residual at the expense of more Mat*vec products
+            \return false in the case of numerical issue, for example a break down of IDRS.
+    */
+    template<typename Vector, typename RealScalar>
+    typename Vector::Scalar omega(const Vector& t, const Vector& s, RealScalar angle)
+    {
+      using numext::abs;
+      typedef typename Vector::Scalar Scalar;
+      const RealScalar ns = s.norm();
+      const RealScalar nt = t.norm();
+      const Scalar ts = t.dot(s);
+      const RealScalar rho = abs(ts / (nt * ns));
+
+      if (rho < angle) {
+        if (ts == Scalar(0)) {
+          return Scalar(0);
+        }
+        // Original relation for om is given by
+        // om = om * angle / rho;
+        // To alleviate potential (near) division by zero this can be rewritten as
+        // om = angle * (ns / nt) * (ts / abs(ts)) = angle * (ns / nt) * sgn(ts)
+          return angle * (ns / nt) * (ts / abs(ts));
+      }
+      return ts / (nt * nt);
+    }
+
+    template <typename MatrixType, typename Rhs, typename Dest, typename Preconditioner>
+    bool idrs(const MatrixType& A, const Rhs& b, Dest& x, const Preconditioner& precond,
+      Index& iter,
+      typename Dest::RealScalar& relres, Index S, bool smoothing, typename Dest::RealScalar angle, bool replacement)
+    {
+      typedef typename Dest::RealScalar RealScalar;
+      typedef typename Dest::Scalar Scalar;
+      typedef Matrix<Scalar, Dynamic, 1> VectorType;
+      typedef Matrix<Scalar, Dynamic, Dynamic, ColMajor> DenseMatrixType;
+      const Index N = b.size();
+      S = S < x.rows() ? S : x.rows();
+      const RealScalar tol = relres;
+      const Index maxit = iter;
+
+      Index replacements = 0;
+      bool trueres = false;
+
+      FullPivLU<DenseMatrixType> lu_solver;
+
+      DenseMatrixType P;
+      {
+        HouseholderQR<DenseMatrixType> qr(DenseMatrixType::Random(N, S));
+          P = (qr.householderQ() * DenseMatrixType::Identity(N, S));
+      }
+
+      const RealScalar normb = b.norm();
+
+      if (internal::isApprox(normb, RealScalar(0)))
+      {
+        //Solution is the zero vector
+        x.setZero();
+        iter = 0;
+        relres = 0;
+        return true;
+      }
+       // from http://homepage.tudelft.nl/1w5b5/IDRS/manual.pdf
+       // A peak in the residual is considered dangerously high if‖ri‖/‖b‖> C(tol/epsilon).
+       // With epsilon the
+>>>>>>> converted tabs to spaces
              // relative machine precision. The factor tol/epsilon corresponds to the size of a
              // finite precision number that is so large that the absolute round-off error in
              // this number, when propagated through the process, makes it impossible to
              // achieve the required accuracy.The factor C accounts for the accumulation of
              // round-off errors. This parameter has beenset to 10−3.
+<<<<<<< HEAD
 			 // mp is epsilon/C
 			 // 10^3 * eps is very conservative, so normally no residual replacements will take place. 
 			 // It only happens if things go very wrong. Too many restarts may ruin the convergence.
@@ -287,6 +368,195 @@ namespace Eigen
 		};
 
 	}  // namespace internal
+=======
+       // mp is epsilon/C
+       // 10^3 * eps is very conservative, so normally no residual replacements will take place. 
+       // It only happens if things go very wrong. Too many restarts may ruin the convergence.
+      const RealScalar mp = RealScalar(1e3) * NumTraits<Scalar>::epsilon();
+
+
+
+      //Compute initial residual
+      const RealScalar tolb = tol * normb; //Relative tolerance
+      VectorType r = b - A * x;
+
+      VectorType x_s, r_s;
+
+      if (smoothing)
+      {
+        x_s = x;
+        r_s = r;
+      }
+
+      RealScalar normr = r.norm();
+
+      if (normr <= tolb)
+      {
+        //Initial guess is a good enough solution
+        iter = 0;
+        relres = normr / normb;
+        return true;
+      }
+
+      DenseMatrixType G = DenseMatrixType::Zero(N, S);
+      DenseMatrixType U = DenseMatrixType::Zero(N, S);
+      DenseMatrixType M = DenseMatrixType::Identity(S, S);
+      VectorType t(N), v(N);
+      Scalar om = 1.;
+
+      //Main iteration loop, guild G-spaces:
+      iter = 0;
+
+      while (normr > tolb && iter < maxit)
+      {
+        //New right hand size for small system:
+        VectorType f = (r.adjoint() * P).adjoint();
+
+        for (Index k = 0; k < S; ++k)
+        {
+          //Solve small system and make v orthogonal to P:
+          //c = M(k:s,k:s)\f(k:s);
+          lu_solver.compute(M.block(k , k , S -k, S - k ));
+          VectorType c = lu_solver.solve(f.segment(k , S - k ));
+          //v = r - G(:,k:s)*c;
+          v = r - G.rightCols(S - k ) * c;
+          //Preconditioning
+          v = precond.solve(v);
+
+          //Compute new U(:,k) and G(:,k), G(:,k) is in space G_j
+          U.col(k) = U.rightCols(S - k ) * c + om * v;
+          G.col(k) = A * U.col(k );
+
+          //Bi-Orthogonalise the new basis vectors:
+          for (Index i = 0; i < k-1 ; ++i)
+          {
+            //alpha =  ( P(:,i)'*G(:,k) )/M(i,i);
+            Scalar alpha = P.col(i ).dot(G.col(k )) / M(i, i );
+            G.col(k ) = G.col(k ) - alpha * G.col(i );
+            U.col(k ) = U.col(k ) - alpha * U.col(i );
+          }
+
+          //New column of M = P'*G  (first k-1 entries are zero)
+          //M(k:s,k) = (G(:,k)'*P(:,k:s))';
+          M.block(k , k , S - k , 1) = (G.col(k ).adjoint() * P.rightCols(S - k )).adjoint();
+
+          if (internal::isApprox(M(k,k), Scalar(0)))
+          {
+            return false;
+          }
+
+          //Make r orthogonal to q_i, i = 0..k-1
+          Scalar beta = f(k ) / M(k , k );
+          r = r - beta * G.col(k );
+          x = x + beta * U.col(k );
+          normr = r.norm();
+
+          if (replacement && normr > tolb / mp)
+          {
+            trueres = true;
+          }
+
+          //Smoothing:
+          if (smoothing)
+          {
+            t = r_s - r;
+            //gamma is a Scalar, but the conversion is not allowed
+            Scalar gamma = t.dot(r_s) / t.norm();
+            r_s = r_s - gamma * t;
+            x_s = x_s - gamma * (x_s - x);
+            normr = r_s.norm();
+          }
+
+          if (normr < tolb || iter == maxit)
+          {
+            break;
+          }
+
+          //New f = P'*r (first k  components are zero)
+          if (k < S-1)
+          {
+            f.segment(k + 1, S - (k + 1) ) = f.segment(k + 1 , S - (k + 1)) - beta * M.block(k + 1 , k , S - (k + 1), 1);
+          }
+        }//end for
+
+        if (normr < tolb || iter == maxit)
+        {
+          break;
+        }
+
+        //Now we have sufficient vectors in G_j to compute residual in G_j+1
+        //Note: r is already perpendicular to P so v = r
+        //Preconditioning
+        v = r;
+        v = precond.solve(v);
+
+        //Matrix-vector multiplication:
+        t = A * v;
+
+        //Computation of a new omega
+        om = internal::omega(t, r, angle);
+
+        if (om == RealScalar(0.0))
+        {
+          return false;
+        }
+
+        r = r - om * t;
+        x = x + om * v;
+        normr = r.norm();
+
+        if (replacement && normr > tolb / mp)
+        {
+          trueres = true;
+        }
+
+        //Residual replacement?
+        if (trueres && normr < normb)
+        {
+          r = b - A * x;
+          trueres = false;
+          replacements++;
+        }
+
+        //Smoothing:
+        if (smoothing)
+        {
+          t = r_s - r;
+          Scalar gamma = t.dot(r_s) /t.norm();
+          r_s = r_s - gamma * t;
+          x_s = x_s - gamma * (x_s - x);
+          normr = r_s.norm();
+        }
+
+        iter++;
+
+      }//end while
+
+      if (smoothing)
+      {
+        x = x_s;
+      }
+      relres=normr/normb;
+      return true;
+    }
+
+  }  // namespace internal
+
+  template <typename _MatrixType, typename _Preconditioner = DiagonalPreconditioner<typename _MatrixType::Scalar> >
+  class IDRS;
+
+  namespace internal
+  {
+
+    template <typename _MatrixType, typename _Preconditioner>
+    struct traits<Eigen::IDRS<_MatrixType, _Preconditioner> >
+    {
+      typedef _MatrixType MatrixType;
+      typedef _Preconditioner Preconditioner;
+    };
+
+  }  // namespace internal
+>>>>>>> converted tabs to spaces
 
 
 /** \ingroup IterativeLinearSolvers_Module
@@ -390,44 +660,44 @@ namespace Eigen
 			void setS(Index S)
 			{
         eigen_assert(S>=1 && "S needs to be positive");
-				m_S = S;
-			}
+        m_S = S;
+      }
 
-			/** Switches off and on smoothing.
-			Residual smoothing results in monotonically decreasing residual norms at
-			the expense of two extra vectors of storage and a few extra vector
-			operations. Although monotonic decrease of the residual norms is a
-			desirable property, the rate of convergence of the unsmoothed process and
-			the smoothed process is basically the same. Default is off */
-			void setSmoothing(bool smoothing)
-			{
-				m_smoothing=smoothing;
-			}
+      /** Switches off and on smoothing.
+      Residual smoothing results in monotonically decreasing residual norms at
+      the expense of two extra vectors of storage and a few extra vector
+      operations. Although monotonic decrease of the residual norms is a
+      desirable property, the rate of convergence of the unsmoothed process and
+      the smoothed process is basically the same. Default is off */
+      void setSmoothing(bool smoothing)
+      {
+        m_smoothing=smoothing;
+      }
 
-			/** The angle must be a real scalar. In IDR(s), a value for the
-			iteration parameter omega must be chosen in every s+1th step. The most
-			natural choice is to select a value to minimize the norm of the next residual.
-			This corresponds to the parameter omega = 0. In practice, this may lead to
-			values of omega that are so small that the other iteration parameters
-			cannot be computed with sufficient accuracy. In such cases it is better to
-			increase the value of omega sufficiently such that a compromise is reached
-			between accurate computations and reduction of the residual norm. The
-			parameter angle =0.7 (”maintaining the convergence strategy”)
-			results in such a compromise. */
-			void setAngle(RealScalar angle)
-			{
-				m_angle=angle;
-			}
+      /** The angle must be a real scalar. In IDR(s), a value for the
+      iteration parameter omega must be chosen in every s+1th step. The most
+      natural choice is to select a value to minimize the norm of the next residual.
+      This corresponds to the parameter omega = 0. In practice, this may lead to
+      values of omega that are so small that the other iteration parameters
+      cannot be computed with sufficient accuracy. In such cases it is better to
+      increase the value of omega sufficiently such that a compromise is reached
+      between accurate computations and reduction of the residual norm. The
+      parameter angle =0.7 (”maintaining the convergence strategy”)
+      results in such a compromise. */
+      void setAngle(RealScalar angle)
+      {
+        m_angle=angle;
+      }
 
-			/** The parameter replace is a logical that determines whether a
-			residual replacement strategy is employed to increase the accuracy of the
-			solution. */
-			void setResidualUpdate(bool update)
-			{
-				m_residual=update;
-			}
+      /** The parameter replace is a logical that determines whether a
+      residual replacement strategy is employed to increase the accuracy of the
+      solution. */
+      void setResidualUpdate(bool update)
+      {
+        m_residual=update;
+      }
 
-	};
+  };
 
 }  // namespace Eigen
 
