@@ -51,8 +51,7 @@ bool idrstabl(const MatrixType &mat, const Rhs &rhs, Dest &x, const Precondition
   typedef typename Dest::Scalar Scalar;
   typedef typename Dest::RealScalar RealScalar;
   typedef Matrix<Scalar, Dynamic, 1> VectorType;
-  typedef Matrix<Scalar, Dynamic, Dynamic, ColMajor> DenseMatrixTypeCol;
-  typedef Matrix<Scalar, Dynamic, Dynamic, RowMajor> DenseMatrixTypeRow;
+  typedef Matrix<Scalar, Dynamic, Dynamic, ColMajor> DenseMatrixType;
 
   const Index N = x.rows();
 
@@ -72,15 +71,15 @@ bool idrstabl(const MatrixType &mat, const Rhs &rhs, Dest &x, const Precondition
     return true;
   }
   // Construct decomposition objects beforehand.
-  ColPivHouseholderQR<DenseMatrixTypeCol> qr_solver;
-  FullPivLU<DenseMatrixTypeCol> lu_solver;
+  ColPivHouseholderQR<DenseMatrixType> qr_solver;
+  FullPivLU<DenseMatrixType> lu_solver;
 
   if (S >= N || L >= N) {
     /*
       The matrix is very small, or the choice of L and S is very poor
       in that case solving directly will be best.
     */
-    lu_solver.compute(DenseMatrixTypeRow(mat));
+    lu_solver.compute(DenseMatrixType(mat));
     x = lu_solver.solve(rhs);
     tol_error = (rhs - mat * x).norm() / rhs_norm;
     return true;
@@ -91,9 +90,9 @@ bool idrstabl(const MatrixType &mat, const Rhs &rhs, Dest &x, const Precondition
   VectorType r(N * (L + 1));
 
   //TODO maybe use Eigen::Tensor for 3d object
-  DenseMatrixTypeCol V(N * (L + 1), S);
+  DenseMatrixType V(N * (L + 1), S);
 
-  DenseMatrixTypeCol rHat(N, L + 1);
+  DenseMatrixType rHat(N, L + 1);
 
   VectorType alpha(S);
   VectorType gamma(L);
@@ -111,12 +110,12 @@ bool idrstabl(const MatrixType &mat, const Rhs &rhs, Dest &x, const Precondition
 
 
   // FOM = Full orthogonalisation method
-  DenseMatrixTypeRow h_FOM(S, S - 1);
+  DenseMatrixType h_FOM(S, S - 1);
   h_FOM.setZero();
 
 
   // Construct an initial U matrix of size N x S
-  DenseMatrixTypeCol U(N * (L + 1), S);
+  DenseMatrixType U(N * (L + 1), S);
   for (Index col_index = 0; col_index < S; ++col_index) {
     // Arnoldi-like process to generate a set of orthogonal vectors spanning {u,A*u,A*A*u,...,A^(S-1)*u}.
     // This construction can be combined with the Full Orthogonalization Method (FOM) from Ref.3 to provide a possible
@@ -208,12 +207,12 @@ bool idrstabl(const MatrixType &mat, const Rhs &rhs, Dest &x, const Precondition
   */
 
   // Original IDRSTABL and Kensuke choose S random vectors:
-  HouseholderQR<DenseMatrixTypeCol> qr(DenseMatrixTypeCol::Random(N, S));
-  DenseMatrixTypeRow R_T = (qr.householderQ() * DenseMatrixTypeCol::Identity(N, S)).adjoint();
-  DenseMatrixTypeRow AR_T = DenseMatrixTypeRow(R_T * mat);
+  HouseholderQR<DenseMatrixType> qr(DenseMatrixType::Random(N, S));
+  DenseMatrixType R_T = (qr.householderQ() * DenseMatrixType::Identity(N, S)).adjoint();
+  DenseMatrixType AR_T = DenseMatrixType(R_T * mat);
 
   // Pre-allocate sigma.
-  DenseMatrixTypeCol sigma(S, S);
+  DenseMatrixType sigma(S, S);
 
   bool reset_while = false;  // Should the while loop be reset for some reason?
 
