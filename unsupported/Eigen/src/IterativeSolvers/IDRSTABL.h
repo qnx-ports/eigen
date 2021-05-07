@@ -99,7 +99,7 @@ bool idrstabl(const MatrixType &mat, const Rhs &rhs, Dest &x, const Precondition
     Main IDRSTABL algorithm
   */
   // Set up the initial residual
-	VectorType x0 = x;
+  VectorType x0 = x;
   r.head(N) = rhs - mat * x;
   x.setZero(); // This will contain the updates to the solution.
 
@@ -435,7 +435,7 @@ class IDRSTABL : public IterativeSolverBase<IDRSTABL<_MatrixType, _Preconditione
   /** Sets the parameter S, indicating the dimension of the shadow residual space.. */
   void setS(Index S) {
     eigen_assert(S>=1 && "S needs to be positive");
-		m_S = S;
+    m_S = S;
   }
 
 };
