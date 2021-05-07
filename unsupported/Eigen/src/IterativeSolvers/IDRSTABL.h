@@ -38,6 +38,8 @@ namespace Eigen {
 
 namespace internal {
 
+
+
 template <typename MatrixType, typename Rhs, typename Dest, typename Preconditioner>
 bool idrstabl(const MatrixType &mat, const Rhs &rhs, Dest &x, const Preconditioner &precond, Index &iters,
              typename Dest::RealScalar &tol_error, Index L, Index S) {
@@ -58,7 +60,7 @@ bool idrstabl(const MatrixType &mat, const Rhs &rhs, Dest &x, const Precondition
   const Index maxIters = iters;
 
   const RealScalar rhs_norm = rhs.norm();
-  const RealScalar tol2 = tol_error * rhs_norm;
+  const RealScalar tol = tol_error * rhs_norm;
 
   if (rhs_norm == 0) {
     /*
@@ -87,6 +89,8 @@ bool idrstabl(const MatrixType &mat, const Rhs &rhs, Dest &x, const Precondition
   // Define maximum sizes to prevent any reallocation later on.
   VectorType u(N * (L + 1));
   VectorType r(N * (L + 1));
+
+  //TODO maybe use Eigen::Tensor for 3d object
   DenseMatrixTypeCol V(N * (L + 1), S);
 
   DenseMatrixTypeCol rHat(N, L + 1);
@@ -105,13 +109,13 @@ bool idrstabl(const MatrixType &mat, const Rhs &rhs, Dest &x, const Precondition
 
   tol_error = r.head(N).norm();
 
+
+  // FOM = Full orthogonalisation method
   DenseMatrixTypeRow h_FOM(S, S - 1);
   h_FOM.setZero();
 
-  /*
-    Determine an initial U matrix of size N x S
-  */
 
+  // Construct an initial U matrix of size N x S
   DenseMatrixTypeCol U(N * (L + 1), S);
   for (Index col_index = 0; col_index < S; ++col_index) {
     // Arnoldi-like process to generate a set of orthogonal vectors spanning {u,A*u,A*A*u,...,A^(S-1)*u}.
@@ -180,7 +184,7 @@ bool idrstabl(const MatrixType &mat, const Rhs &rhs, Dest &x, const Precondition
     // Using proposition 6.7 in Saad, one MV can be saved to calculate the residual
     RealScalar FOM_residual = (h_FOM(S - 1, S - 2) * y(S - 2) * U.col(S - 1).head(N)).norm();
 
-    if (FOM_residual < tol2) {
+    if (FOM_residual < tol) {
       /*
       Exit, the FOM algorithm was already accurate enough
       */
@@ -248,7 +252,7 @@ bool idrstabl(const MatrixType &mat, const Rhs &rhs, Dest &x, const Precondition
       }
       tol_error = r.head(N).norm();
 
-      if (tol_error < tol2) {
+      if (tol_error < tol) {
         // If at this point the algorithm has converged, exit.
         reset_while = true;
         break;
@@ -336,7 +340,7 @@ bool idrstabl(const MatrixType &mat, const Rhs &rhs, Dest &x, const Precondition
     ++k;
     tol_error = r.head(N).norm();
 
-    if (tol_error < tol2) {
+    if (tol_error < tol) {
       // Slightly early exit by moving the criterion before the update of U,
       // after the main while loop the result of that calculation would not be needed.
       break;
@@ -379,6 +383,38 @@ struct traits<IDRSTABL<_MatrixType, _Preconditioner> > {
 
 }  // namespace internal
 
+/** \ingroup IterativeLinearSolvers_Module
+  * \brief The IDR(s)STAB(l) is a combination of IDR(s) and BiCGSTAB(l). It is a short-recurrences Krylov method for sparse square problems. 
+  * It can outperform both IDR(s) and BiCGSTAB(l). IDR(s)STAB(l) generally closely follows the optimal GMRES convergence in 
+  * terms of the number of Matrix-Vector products. However, without the increasing cost per iteration of GMRES. IDR(s)STAB(l) 
+  * is suitable for both indefinite systems and systems with complex eigenvalues.
+  *
+  * This class allows to solve for A.x = b sparse linear problems. The vectors x and b can be either dense or sparse.
+  * he Induced Dimension Reduction method. 
+  *
+  * \tparam _MatrixType the type of the sparse matrix A, can be a dense or a sparse matrix.
+  * \tparam _Preconditioner the type of the preconditioner. Default is DiagonalPreconditioner
+  *
+  * \implsparsesolverconcept
+  *
+  * The maximal number of iterations and tolerance value can be controlled via the setMaxIterations()
+  * and setTolerance() methods. The defaults are the size of the problem for the maximal number of iterations
+  * and NumTraits<Scalar>::epsilon() for the tolerance.
+  *
+  * The tolerance corresponds to the relative residual error: |Ax-b|/|b|
+  *
+  * \b Performance: when using sparse matrices, best performance is achied for a row-major sparse matrix format.
+  * Moreover, in this case multi-threading can be exploited if the user code is compiled with OpenMP enabled.
+  * See \ref TopicMultiThreading for details.
+  *
+  * By default the iterations start with x=0 as an initial guess of the solution.
+  * One can control the start using the solveWithGuess() method.
+  *
+  * IDR(s)STAB(l) can also be used in a matrix-free context, see the following \link MatrixfreeSolverExample example \endlink.
+  *
+  * \sa class SimplicialCholesky, DiagonalPreconditioner, IdentityPreconditioner
+  */
+
 template <typename _MatrixType, typename _Preconditioner>
 class IDRSTABL : public IterativeSolverBase<IDRSTABL<_MatrixType, _Preconditioner> > {
   typedef IterativeSolverBase<IDRSTABL> Base;
@@ -415,7 +451,10 @@ class IDRSTABL : public IterativeSolverBase<IDRSTABL<_MatrixType, _Preconditione
 
 
   /** \internal */
-
+	/**     Loops over the number of columns of b and does the following:
+			                1. sets the tolerance and maxIterations
+			                2. Calls the function that has the core solver routine
+	*/
   template <typename Rhs, typename Dest>
   void _solve_vector_with_guess_impl(const Rhs &b, Dest &x) const {
     m_iterations = Base::maxIterations();
@@ -425,13 +464,11 @@ class IDRSTABL : public IterativeSolverBase<IDRSTABL<_MatrixType, _Preconditione
     m_info = (!ret) ? NumericalIssue : m_error <= 10 * Base::m_tolerance ? Success : NoConvergence;
   }
 
-  /** \internal */
   /** Sets the parameter L, indicating the amount of minimize residual steps are used. */
   void setL(Index L) {
     eigen_assert(L>=1 && "L needs to be positive");
     m_L = L;
   }
-  /** \internal */
   /** Sets the parameter S, indicating the dimension of the shadow residual space.. */
   void setS(Index S) {
     eigen_assert(S>=1 && "S needs to be positive");
