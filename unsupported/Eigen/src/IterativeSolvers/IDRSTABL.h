@@ -86,13 +86,12 @@ bool idrstabl(const MatrixType &mat, const Rhs &rhs, Dest &x, const Precondition
   }
 
   // Define maximum sizes to prevent any reallocation later on.
-  VectorType u(N * (L + 1));
-  VectorType r(N * (L + 1));
+  DenseMatrixType u(N ,L + 1);
+  Map<VectorType> uvec(u.data(),u.size());
+  DenseMatrixType r(N ,L + 1);
 
   //TODO maybe use Eigen::Tensor for 3d object
   DenseMatrixType V(N * (L + 1), S);
-
-  DenseMatrixType rHat(N, L + 1);
 
   VectorType alpha(S);
   VectorType gamma(L);
@@ -103,16 +102,14 @@ bool idrstabl(const MatrixType &mat, const Rhs &rhs, Dest &x, const Precondition
   */
   // Set up the initial residual
   VectorType x0 = x;
-  r.head(N) = rhs - mat * x;
+  r.col(0) = rhs - mat * x;
   x.setZero(); // This will contain the updates to the solution.
 
-  tol_error = r.head(N).norm();
+  tol_error = r.col(0).norm();
 
 
   // FOM = Full orthogonalisation method
-  DenseMatrixType h_FOM(S, S - 1);
-  h_FOM.setZero();
-
+  DenseMatrixType h_FOM=DenseMatrixType::Zero(S, S - 1);
 
   // Construct an initial U matrix of size N x S
   DenseMatrixType U(N * (L + 1), S);
@@ -125,7 +122,7 @@ bool idrstabl(const MatrixType &mat, const Rhs &rhs, Dest &x, const Precondition
       /*
       Modified Gram-Schmidt strategy:
       */
-      VectorType w = mat * precond.solve(u.head(N));
+      VectorType w = mat * precond.solve(u.col(0));
       for (Index i = 0; i < col_index; ++i) {
         //"Normalization factor" (v is normalized already)
         VectorType v = U.col(i).head(N);
@@ -136,8 +133,8 @@ bool idrstabl(const MatrixType &mat, const Rhs &rhs, Dest &x, const Precondition
         //"Subtract the part they have in common"
         w -= h_FOM(i, col_index - 1) * v;
       }
-      u.head(N) = w;
-      h_FOM(col_index, col_index - 1) = u.head(N).norm();
+      u.col(0) = w;
+      h_FOM(col_index, col_index - 1) = u.col(0).norm();
 
       if (abs(h_FOM(col_index, col_index - 1)) != 0.0) {
         /*
@@ -159,21 +156,19 @@ bool idrstabl(const MatrixType &mat, const Rhs &rhs, Dest &x, const Precondition
         Any arbritary non-zero u is fine to continue, however if u contains either NaN or Inf the algorithm will
         break down.
         */
-        u.head(N) /= h_FOM(col_index, col_index - 1);
+        u.col(0) /= h_FOM(col_index, col_index - 1);
       }
     } else {
-      u.head(N) = r.head(N);
-      u.head(N).normalize();
+      u.col(0) = r.col(0);
+      u.col(0).normalize();
     }
 
-    U.col(col_index).head(N) = u.head(N);
+    U.col(col_index).head(N) = u.col(0);
   }
 
   if (S > 1) {
-    /*
-    Check for early FOM exit.
-    */
-    Scalar beta = r.head(N).norm();
+    // Check for early FOM exit.
+    Scalar beta = r.col(0).norm();
     VectorType e1 = VectorType::Zero(S - 1);
     e1(0) = beta;
     lu_solver.compute(h_FOM.topLeftCorner(S - 1, S - 1));
@@ -184,9 +179,7 @@ bool idrstabl(const MatrixType &mat, const Rhs &rhs, Dest &x, const Precondition
     RealScalar FOM_residual = (h_FOM(S - 1, S - 2) * y(S - 2) * U.col(S - 1).head(N)).norm();
 
     if (FOM_residual < tol) {
-      /*
-      Exit, the FOM algorithm was already accurate enough
-      */
+      // Exit, the FOM algorithm was already accurate enough
       iters = k;
       //Convert back to the unpreconditioned solution
       x = precond.solve(x2);
@@ -230,26 +223,26 @@ bool idrstabl(const MatrixType &mat, const Rhs &rhs, Dest &x, const Precondition
       // Obtain the update coefficients alpha
       if (j == 1) {
         // alpha=inverse(sigma)*(R_T*r_0);
-        alpha.noalias() = lu_solver.solve(R_T * r.head(N));
+        alpha.noalias() = lu_solver.solve(R_T * r.col(0));
       } else {
         // alpha=inverse(sigma)*(AR_T*r_{j-2})
-        alpha.noalias() = lu_solver.solve(AR_T * precond.solve(r.segment(N * (j - 2), N)));
+        alpha.noalias() = lu_solver.solve(AR_T * precond.solve(r.col(j-2)));
       }
 
       // Obtain new solution and residual from this update
       update.noalias() = U.topRows(N) * alpha;
-      r.head(N) -= mat * precond.solve(update);
+      r.col(0) -= mat * precond.solve(update);
       x += update;
 
       for (Index i = 1; i <= j - 2; ++i) {
         // This only affects the case L>2
-        r.segment(N * i, N) -= U.block(N * (i + 1), 0, N, S) * alpha;
+        r.col(i) -= U.block(N * (i + 1), 0, N, S) * alpha;
       }
       if (j > 1) {
         // r=[r;A*r_{j-2}]
-        r.segment(N * (j - 1), N).noalias() = mat * precond.solve(r.segment(N * (j - 2), N));
+        r.col(j-1).noalias() = mat * precond.solve(r.col(j-2));
       }
-      tol_error = r.head(N).norm();
+      tol_error = r.col(0).norm();
 
       if (tol_error < tol) {
         // If at this point the algorithm has converged, exit.
@@ -261,18 +254,18 @@ bool idrstabl(const MatrixType &mat, const Rhs &rhs, Dest &x, const Precondition
       for (Index q = 1; q <= S; ++q) {
         if (q == 1) {
           // u = r;
-          u.head(N * (j + 1)) = r.topRows(N * (j + 1));
+          u.leftCols(j + 1) = r.leftCols(j + 1);
         } else {
           // u=[u_1;u_2;...;u_j]
-          u.head(N * j) = u.segment(N, N * j);
+          u.leftCols(j)= u.block(0,1,N,j);
         }
 
         // Obtain the update coefficients beta implicitly
         // beta=lu_sigma.solve(AR_T * u.block(N * (j - 1), 0, N, 1)
-        u.head(N * j) -= U.topRows(N * j) * lu_solver.solve(AR_T * precond.solve(u.segment(N * (j - 1), N)));
+        uvec.head(u.rows()*j) -= U.topRows(N * j) * lu_solver.solve(AR_T * precond.solve(u.col(j - 1)));
 
         // u=[u;Au_{j-1}]
-        u.segment(N * j, N).noalias() = mat * precond.solve(u.segment(N * (j - 1), N));
+        u.col(j).noalias() = mat * precond.solve(u.col(j - 1));
 
         // Orthonormalize u_j to the columns of V_j(:,1:q-1)
         if (q > 1) {
@@ -287,24 +280,22 @@ bool idrstabl(const MatrixType &mat, const Rhs &rhs, Dest &x, const Precondition
             Scalar h = V.col(i).segment(N * j, N).squaredNorm();
 
             //"How much do u and V have in common?"
-            h = V.col(i).segment(N * j, N).dot(u.segment(N * j, N)) / h;
+            h = V.col(i).segment(N * j, N).dot(u.col(j)) / h;
 
-            //"Subtract the part they have in common"
-            u.head(N * (j + 1)) -= h * V.block(0, i, N * (j + 1), 1);
+            uvec.head(u.rows()*(j+1)) -= h * V.block(0, i, N * (j + 1), 1);
           }
         }
         // Normalize u and assign to a column of V
-        Scalar normalization_constant = u.block(N * j, 0, N, 1).norm();
-
-        u.head(N * (j + 1)) /= normalization_constant;
-        if(normalization_constant == 0.0){
-          /*
-            If u is exactly zero, this will lead to a NaN. Small, non-zero u is fine.
-          */          
+        Scalar normalization_constant = u.col(j).norm();
+         //  If u is exactly zero, this will lead to a NaN. Small, non-zero u is fine. 
+        if(normalization_constant == 0.0){     
           break_normalization = true;
           break;          
+        }else{
+          u.leftCols(j + 1) /= normalization_constant;
         }
-        V.block(0, q - 1, N * (j + 1), 1).noalias() = u.head(N * (j + 1));
+
+        V.block(0, q - 1, N * (j + 1), 1).noalias() = uvec.head(u.rows()*(j+1));
       }
 
       if (break_normalization == false) {
@@ -316,28 +307,22 @@ bool idrstabl(const MatrixType &mat, const Rhs &rhs, Dest &x, const Precondition
     }
 
     // r=[r;mat*r_{L-1}]
-    // Save this in rHat, the storage form for rHat is more suitable for the argmin step than the way r is stored.
-    // In Eigen 3.4 this step can be compactly done via: rHat = r.reshaped(N, L + 1);
-    r.segment(N * L, N).noalias() = mat * precond.solve(r.segment(N * (L - 1), N));
-
-    for (Index i = 0; i <= L; ++i) {
-      rHat.col(i) = r.segment(N * i, N);
-    }
+    r.col(L).noalias() = mat * precond.solve(r.col(L - 1));
 
     /*
             The polynomial step
     */
-    qr_solver.compute(rHat.rightCols(L));
-    gamma.noalias() = qr_solver.solve(r.head(N));
+    qr_solver.compute(r.rightCols(L));
+    gamma.noalias() = qr_solver.solve(r.col(0));
 
     // Update solution and residual using the "minimized residual coefficients"
-    update.noalias() = rHat.leftCols(L) * gamma;
+    update.noalias() = r.leftCols(L) * gamma;
     x += update;
-    r.head(N) -= mat * precond.solve(update);
+    r.col(0) -= mat * precond.solve(update);
 
     // Update iteration info
     ++k;
-    tol_error = r.head(N).norm();
+    tol_error = r.col(0).norm();
 
     if (tol_error < tol) {
       // Slightly early exit by moving the criterion before the update of U,
