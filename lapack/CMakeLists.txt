@@ -1,5 +1,8 @@
 project(EigenLapack CXX)
 
+option(EIGEN_BUILD_LAPACK "Toggles the building of the included Eigen LAPACK library" ON)
+
+if(EIGEN_BUILD_LAPACK AND EIGEN_BUILD_BLAS)
 include(CheckLanguage)
 check_language(Fortran)
 if(CMAKE_Fortran_COMPILER)
@@ -457,3 +460,6 @@ if(EXISTS ${eigen_full_path_to_testing_lapack})
 
 endif()
 
+else()
+ message(FATAL_ERROR "EIGEN_BUILD_LAPACK requires EIGEN_BUILD_BLAS be true")
+endif() #EIGEN_BUILD_LAPACK

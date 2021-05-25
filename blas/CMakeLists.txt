@@ -1,6 +1,9 @@
 
 project(EigenBlas CXX)
 
+option(EIGEN_BUILD_BLAS "Toogles on the building of the Eigen Blas library" ON)
+
+if(EIGEN_BUILD_BLAS)
 include(CheckLanguage)
 check_language(Fortran)
 if(CMAKE_Fortran_COMPILER)
@@ -59,4 +62,4 @@ if(EIGEN_BUILD_TESTING)
 endif()
 
 endif()
-
+endif()
