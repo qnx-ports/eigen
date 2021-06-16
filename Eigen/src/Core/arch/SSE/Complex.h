@@ -19,7 +19,7 @@ struct Packet2cf
 {
   EIGEN_STRONG_INLINE Packet2cf() {}
   EIGEN_STRONG_INLINE explicit Packet2cf(const __m128& a) : v(a) {}
-  __m128  v;
+  Packet4f v;
 };
 
 // Use the packet_traits defined in AVX/PacketMath.h instead if we're going
@@ -66,12 +66,6 @@ template<> struct unpacket_traits<Packet2cf> {
 
 template<> EIGEN_STRONG_INLINE Packet2cf padd<Packet2cf>(const Packet2cf& a, const Packet2cf& b) { return Packet2cf(_mm_add_ps(a.v,b.v)); }
 template<> EIGEN_STRONG_INLINE Packet2cf psub<Packet2cf>(const Packet2cf& a, const Packet2cf& b) { return Packet2cf(_mm_sub_ps(a.v,b.v)); }
-template<> EIGEN_STRONG_INLINE Packet2cf pxor<Packet2cf>(const Packet2cf& a, const Packet2cf& b);
-template<> EIGEN_STRONG_INLINE Packet2cf paddsub<Packet2cf>(const Packet2cf& a, const Packet2cf& b)
-{
-  const Packet4f mask = _mm_castsi128_ps(_mm_setr_epi32(0x80000000,0x80000000,0x0,0x0));
-  return Packet2cf(padd(a.v, pxor(mask, b.v)));
-}
 
 template<> EIGEN_STRONG_INLINE Packet2cf pnegate(const Packet2cf& a)
 {
@@ -246,7 +240,7 @@ struct Packet1cd
 {
   EIGEN_STRONG_INLINE Packet1cd() {}
   EIGEN_STRONG_INLINE explicit Packet1cd(const __m128d& a) : v(a) {}
-  __m128d  v;
+  Packet2d v;
 };
 
 // Use the packet_traits defined in AVX/PacketMath.h instead if we're going
