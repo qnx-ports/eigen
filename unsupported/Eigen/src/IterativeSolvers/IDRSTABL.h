@@ -71,7 +71,6 @@ bool idrstabl(const MatrixType &mat, const Rhs &rhs, Dest &x, const Precondition
     return true;
   }
   // Construct decomposition objects beforehand.
-  ColPivHouseholderQR<DenseMatrixType> qr_solver;
   FullPivLU<DenseMatrixType> lu_solver;
 
   if (S >= N || L >= N) {
@@ -90,7 +89,6 @@ bool idrstabl(const MatrixType &mat, const Rhs &rhs, Dest &x, const Precondition
   Map<VectorType> uvec(u.data(),u.size());
   DenseMatrixType r(N ,L + 1);
 
-  //TODO maybe use Eigen::Tensor for 3d object
   DenseMatrixType V(N * (L + 1), S);
 
   VectorType alpha(S);
@@ -124,19 +122,13 @@ bool idrstabl(const MatrixType &mat, const Rhs &rhs, Dest &x, const Precondition
       */
       VectorType w = mat * precond.solve(u.col(0));
       for (Index i = 0; i < col_index; ++i) {
-        //"Normalization factor" (v is normalized already)
-        VectorType v = U.col(i).head(N);
-
-        //"How much do v and w have in common?"
-        h_FOM(i, col_index - 1) = v.dot(w);
-
-        //"Subtract the part they have in common"
-        w -= h_FOM(i, col_index - 1) * v;
+        h_FOM(i, col_index - 1) = U.col(i).head(N).dot(w);
+        w -= h_FOM(i, col_index - 1) * U.col(i).head(N);
       }
       u.col(0) = w;
       h_FOM(col_index, col_index - 1) = u.col(0).norm();
 
-      if (abs(h_FOM(col_index, col_index - 1)) != 0.0) {
+      if (abs(h_FOM(col_index, col_index - 1)) != RealScalar(0)) {
         /*
         This only happens if u is NOT exactly zero. In case it is exactly zero
         it would imply that that this u has no component in the direction of the current residual.
@@ -200,7 +192,7 @@ bool idrstabl(const MatrixType &mat, const Rhs &rhs, Dest &x, const Precondition
   */
 
   // Original IDRSTABL and Kensuke choose S random vectors:
-  HouseholderQR<DenseMatrixType> qr(DenseMatrixType::Random(N, S));
+  const HouseholderQR<DenseMatrixType> qr(DenseMatrixType::Random(N, S));
   DenseMatrixType R_T = (qr.householderQ() * DenseMatrixType::Identity(N, S)).adjoint();
   DenseMatrixType AR_T = DenseMatrixType(R_T * mat);
 
@@ -276,12 +268,8 @@ bool idrstabl(const MatrixType &mat, const Rhs &rhs, Dest &x, const Precondition
           mu=V.block(N * j, 0, N, q - 1).adjoint() * u.block(N * j, 0, N, 1).
           */
           for (Index i = 0; i <= q - 2; ++i) {
-            //"Normalization factor"
             Scalar h = V.col(i).segment(N * j, N).squaredNorm();
-
-            //"How much do u and V have in common?"
             h = V.col(i).segment(N * j, N).dot(u.col(j)) / h;
-
             uvec.head(u.rows()*(j+1)) -= h * V.block(0, i, N * (j + 1), 1);
           }
         }
@@ -312,7 +300,7 @@ bool idrstabl(const MatrixType &mat, const Rhs &rhs, Dest &x, const Precondition
     /*
             The polynomial step
     */
-    qr_solver.compute(r.rightCols(L));
+    ColPivHouseholderQR<DenseMatrixType> qr_solver(r.rightCols(L));
     gamma.noalias() = qr_solver.solve(r.col(0));
 
     // Update solution and residual using the "minimized residual coefficients"
