@@ -19,12 +19,6 @@
 namespace Eigen {
 namespace internal {
 
-template<typename Packet, int N> EIGEN_DEVICE_FUNC inline Packet
-pset(const typename unpacket_traits<Packet>::type (&a)[N] /* a */) {
-  EIGEN_STATIC_ASSERT(unpacket_traits<Packet>::size == N, THE_ARRAY_SIZE_SHOULD_EQUAL_WITH_PACKET_SIZE);
-  return pload<Packet>(a);
-}
-
 // Creates a Scalar integer type with same bit-width.
 template<typename T> struct make_integer;
 template<> struct make_integer<float>    { typedef numext::int32_t type; };
@@ -763,6 +757,26 @@ Packet pcos_float(const Packet& x)
   return psincos_float<false>(x);
 }
 
+template<typename Packet>
+EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
+EIGEN_UNUSED Packet pdiv_complex(const Packet& x, const Packet& y) {
+  typedef typename unpacket_traits<Packet>::as_real RealPacket;
+  // In the following we annotate the code for the case where the inputs
+  // are a pair length-2 SIMD vectors representing a single pair of complex
+  // numbers x = a + i*b, y = c + i*d.
+  const RealPacket y_abs = pabs(y.v);  // |c|, |d|
+  const RealPacket y_abs_flip = pcplxflip(Packet(y_abs)).v; // |d|, |c|
+  const RealPacket y_max = pmax(y_abs, y_abs_flip); // max(|c|, |d|), max(|c|, |d|)
+  const RealPacket y_scaled = pdiv(y.v, y_max);  // c / max(|c|, |d|), d / max(|c|, |d|)
+  // Compute scaled denominator.
+  const RealPacket y_scaled_sq = pmul(y_scaled, y_scaled); // c'**2, d'**2
+  const RealPacket denom = padd(y_scaled_sq, pcplxflip(Packet(y_scaled_sq)).v);
+  Packet result_scaled = pmul(x, pconj(Packet(y_scaled)));  // a * c' + b * d', -a * d + b * c
+  // Divide elementwise by denom.
+  result_scaled = Packet(pdiv(result_scaled.v, denom));
+  // Rescale result
+  return Packet(pdiv(result_scaled.v, y_max));
+}
 
 template<typename Packet>
 EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
@@ -808,9 +822,8 @@ Packet psqrt_complex(const Packet& a) {
   //    l0 = (min0 == 0 ? max0 : max0 * sqrt(1 + (min0/max0)**2)),
   // where max0 = max(|x0|, |y0|), min0 = min(|x0|, |y0|), and similarly for l1.
 
-  Packet a_flip = pcplxflip(a);
   RealPacket a_abs = pabs(a.v);           // [|x0|, |y0|, |x1|, |y1|]
-  RealPacket a_abs_flip = pabs(a_flip.v); // [|y0|, |x0|, |y1|, |x1|]
+  RealPacket a_abs_flip = pcplxflip(Packet(a_abs)).v; // [|y0|, |x0|, |y1|, |x1|]
   RealPacket a_max = pmax(a_abs, a_abs_flip);
   RealPacket a_min = pmin(a_abs, a_abs_flip);
   RealPacket a_min_zero_mask = pcmp_eq(a_min, pzero(a_min));
