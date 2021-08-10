@@ -17,10 +17,6 @@ namespace internal {
 // implemented in GenericPacketMathFunctions.h
 // This is needed to workaround a circular dependency.
 
-/** \internal \returns a packet with constant coefficients \a a, e.g.: (a[N-1],...,a[0]) */
-template<typename Packet, int N> EIGEN_DEVICE_FUNC inline Packet
-pset(const typename unpacket_traits<Packet>::type (&a)[N] /* a */);
-
 /***************************************************************************
  * Some generic implementations to be used by implementors
 ***************************************************************************/
@@ -104,6 +100,12 @@ template<typename Packet>
 EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
 EIGEN_UNUSED
 Packet psqrt_complex(const Packet& a);
+
+/** \internal \returns x / y for complex types */
+template<typename Packet>
+EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
+EIGEN_UNUSED
+Packet pdiv_complex(const Packet& x, const Packet& y);
 
 template <typename Packet, int N> struct ppolevl;
 
