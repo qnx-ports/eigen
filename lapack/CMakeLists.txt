@@ -1,7 +1,5 @@
 project(EigenLapack CXX)
 
-option(EIGEN_BUILD_LAPACK "Toggles the building of the included Eigen LAPACK library" ON)
-
 if(EIGEN_BUILD_LAPACK AND EIGEN_BUILD_BLAS)
 
 include(CheckLanguage)

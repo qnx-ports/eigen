@@ -457,7 +457,6 @@ endif()
 
 install(DIRECTORY Eigen DESTINATION ${INCLUDE_INSTALL_DIR} COMPONENT Devel)
 
-
 option(EIGEN_BUILD_DOC "Enable creation of Eigen documentation" ON)
 if(EIGEN_BUILD_DOC)
   add_subdirectory(doc EXCLUDE_FROM_ALL)
@@ -478,15 +477,16 @@ if(EIGEN_BUILD_TESTING)
   add_subdirectory(failtest)
 endif()
 
-if(NOT EIGEN_HEADER_ONLY)
+option(EIGEN_BUILD_BLAS "Toogles on the building of the Eigen Blas library" ON)
+option(EIGEN_BUILD_LAPACK "Toggles the building of the included Eigen LAPACK library" ON)
 if(EIGEN_LEAVE_TEST_IN_ALL_TARGET)
-    add_subdirectory(blas)
-    add_subdirectory(lapack)
+  add_subdirectory(blas)
+  add_subdirectory(lapack)
 else()
   add_subdirectory(blas EXCLUDE_FROM_ALL)
   add_subdirectory(lapack EXCLUDE_FROM_ALL)
 endif()
-endif()
+
 # add SYCL
 option(EIGEN_TEST_SYCL "Add Sycl support." OFF)
 option(EIGEN_SYCL_TRISYCL "Use the triSYCL Sycl implementation (ComputeCPP by default)." OFF)
@@ -519,15 +519,11 @@ endif()
 
 add_subdirectory(unsupported)
 
-if(NOT EIGEN_HEADER_ONLY)
 add_subdirectory(demos EXCLUDE_FROM_ALL)
-endif()
 # must be after test and unsupported, for configuring buildtests.in
-if(NOT EIGEN_HEADER_ONLY)
 add_subdirectory(scripts EXCLUDE_FROM_ALL)
-endif()
 # TODO: consider also replacing EIGEN_BUILD_BTL by a custom target "make btl"?
-if(EIGEN_BUILD_BTL AND NOT EIGEN_HEADER_ONLY)
+if(EIGEN_BUILD_BTL)
   add_subdirectory(bench/btl EXCLUDE_FROM_ALL)
 endif()
 
@@ -615,6 +611,8 @@ set_target_properties (eigen PROPERTIES EXPORT_NAME Eigen)
 
 install (TARGETS eigen EXPORT Eigen3Targets)
 
+option(CMAKE_BUILD_EXPORT_TARGETS "Enables the creation of EigenConfig.cmake and related files" ON)
+if(CMAKE_BUILD_EXPORT_TARGETS)
 configure_package_config_file (
   ${CMAKE_CURRENT_SOURCE_DIR}/cmake/Eigen3Config.cmake.in
   ${CMAKE_CURRENT_BINARY_DIR}/Eigen3Config.cmake
@@ -651,14 +649,14 @@ export (TARGETS eigen NAMESPACE Eigen3:: FILE Eigen3Targets.cmake)
 export (PACKAGE Eigen3)
 
 install (EXPORT Eigen3Targets NAMESPACE Eigen3:: DESTINATION ${CMAKEPACKAGE_INSTALL_DIR})
-
-install (FILES ${CMAKE_CURRENT_BINARY_DIR}/Eigen3Config.cmake
-               ${CMAKE_CURRENT_BINARY_DIR}/Eigen3ConfigVersion.cmake
-         DESTINATION ${CMAKEPACKAGE_INSTALL_DIR})
-
+install ( FILES ${CMAKE_CURRENT_SOURCE_DIR}/cmake/UseEigen3.cmake
+                ${CMAKE_CURRENT_BINARY_DIR}/Eigen3Config.cmake
+                ${CMAKE_CURRENT_BINARY_DIR}/Eigen3ConfigVersion.cmake
+          DESTINATION ${CMAKEPACKAGE_INSTALL_DIR} )
 # Add uninstall target
 add_custom_target ( uninstall
     COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/EigenUninstall.cmake)
+endif()
 
 if (EIGEN_SPLIT_TESTSUITE)
   ei_split_testsuite("${EIGEN_SPLIT_TESTSUITE}")
