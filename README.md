@@ -37,7 +37,6 @@ This code base uses CMake as its core build system. The following options can be
 | EIGEN_BUILD_PKGCONFIG | Build pkg-config .pc file for Eigen | ON (!WIN32) |
 | CMAKE_BUILD_EXPORT_TARGETS | Controls the installation of cmake helper files find_package commands of downstream projects. | OFF |
 | EIGEN_TEST_CXX11 | Enable testing with C++11 and C++11 features (e.g. Tensor module). | OFF |
-| EIGEN_HEADER_ONLY | Enable this to simply install Eigen Headers and CMake support files. | OFF |
 | EIGEN_SPLIT_LARGE_TESTS | Split large tests into smaller executables | ON |
 | EIGEN_DEFAULT_TO_ROW_MAJOR | Use row-major as default matrix storage order | OFF |
 | EIGEN_TEST_SSE2 | Enable/Disable SSE2 in tests/examples | OFF |

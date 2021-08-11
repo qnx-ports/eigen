@@ -133,7 +133,6 @@ else()
   message(STATUS "Standard libraries to link to explicitly: none")
 endif()
 
-option(EIGEN_HEADER_ONLY "Enable this to simply install Eigen Headers and CMake support files." OFF)
 option(EIGEN_BUILD_BTL "Build benchmark suite" OFF)
 
 # Disable pkgconfig only for native Windows builds
