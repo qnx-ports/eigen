@@ -460,5 +460,5 @@ if(EXISTS ${eigen_full_path_to_testing_lapack})
 endif()
 
 elseif(EIGEN_BUILD_LAPACK AND NOT EIGEN_BUILD_BLAS)
- message(FATAL_ERROR "EIGEN_BUILD_LAPACK requires EIGEN_BUILD_BLAS be true")
+ message(FATAL_ERROR "EIGEN_BUILD_LAPACK requires EIGEN_BUILD_BLAS")
 endif() #EIGEN_BUILD_LAPACK
