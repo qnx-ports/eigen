@@ -157,7 +157,7 @@ const unsigned int DirectAccessBit = 0x40;
 /** \deprecated \ingroup flags
   *
   * means the first coefficient packet is guaranteed to be aligned.
-  * An expression cannot has the AlignedBit without the PacketAccessBit flag.
+  * An expression cannot have the AlignedBit without the PacketAccessBit flag.
   * In other words, this means we are allow to perform an aligned packet access to the first element regardless
   * of the expression kind:
   * \code
@@ -312,7 +312,7 @@ enum SpecializedType {
 };
 
 /** \ingroup enums
-  * Enum containing possible values for the \p _Options template parameter of
+  * Enum containing possible values for the \p Options_ template parameter of
   * Matrix, Array and BandMatrix. */
 enum StorageOptions {
   /** Storage order is column major (see \ref TopicStorageOrders). */

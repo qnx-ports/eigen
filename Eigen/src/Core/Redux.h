@@ -58,7 +58,7 @@ public:
 public:
   enum {
     Cost = Evaluator::SizeAtCompileTime == Dynamic ? HugeCost
-         : Evaluator::SizeAtCompileTime * Evaluator::CoeffReadCost + (Evaluator::SizeAtCompileTime-1) * functor_traits<Func>::Cost,
+         : int(Evaluator::SizeAtCompileTime) * int(Evaluator::CoeffReadCost) + (Evaluator::SizeAtCompileTime-1) * functor_traits<Func>::Cost,
     UnrollingLimit = EIGEN_UNROLLING_LIMIT * (int(Traversal) == int(DefaultTraversal) ? 1 : int(PacketSize))
   };
 
@@ -331,7 +331,7 @@ struct redux_impl<Func, Evaluator, LinearVectorizedTraversal, CompleteUnrolling>
   enum {
     PacketSize = redux_traits<Func, Evaluator>::PacketSize,
     Size = Evaluator::SizeAtCompileTime,
-    VectorizedSize = (Size / PacketSize) * PacketSize
+    VectorizedSize = (int(Size) / int(PacketSize)) * int(PacketSize)
   };
 
   template<typename XprType>
@@ -353,12 +353,12 @@ struct redux_impl<Func, Evaluator, LinearVectorizedTraversal, CompleteUnrolling>
 };
 
 // evaluator adaptor
-template<typename _XprType>
-class redux_evaluator : public internal::evaluator<_XprType>
+template<typename XprType_>
+class redux_evaluator : public internal::evaluator<XprType_>
 {
-  typedef internal::evaluator<_XprType> Base;
+  typedef internal::evaluator<XprType_> Base;
 public:
-  typedef _XprType XprType;
+  typedef XprType_ XprType;
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
   explicit redux_evaluator(const XprType &xpr) : Base(xpr) {}
   

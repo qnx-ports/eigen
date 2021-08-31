@@ -13,10 +13,10 @@
 
 #if defined(EIGEN_INITIALIZE_MATRICES_BY_ZERO)
 # define EIGEN_INITIALIZE_COEFFS
-# define EIGEN_INITIALIZE_COEFFS_IF_THAT_OPTION_IS_ENABLED for(int i=0;i<base().size();++i) coeffRef(i)=Scalar(0);
+# define EIGEN_INITIALIZE_COEFFS_IF_THAT_OPTION_IS_ENABLED for(Index i=0;i<base().size();++i) coeffRef(i)=Scalar(0);
 #elif defined(EIGEN_INITIALIZE_MATRICES_BY_NAN)
 # define EIGEN_INITIALIZE_COEFFS
-# define EIGEN_INITIALIZE_COEFFS_IF_THAT_OPTION_IS_ENABLED for(int i=0;i<base().size();++i) coeffRef(i)=std::numeric_limits<Scalar>::quiet_NaN();
+# define EIGEN_INITIALIZE_COEFFS_IF_THAT_OPTION_IS_ENABLED for(Index i=0;i<base().size();++i) coeffRef(i)=std::numeric_limits<Scalar>::quiet_NaN();
 #else
 # undef EIGEN_INITIALIZE_COEFFS
 # define EIGEN_INITIALIZE_COEFFS_IF_THAT_OPTION_IS_ENABLED
@@ -64,18 +64,18 @@ namespace doxygen {
 // This is a workaround to doxygen not being able to understand the inheritance logic
 // when it is hidden by the dense_xpr_base helper struct.
 // Moreover, doxygen fails to include members that are not documented in the declaration body of
-// MatrixBase if we inherits MatrixBase<Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> >,
+// MatrixBase if we inherits MatrixBase<Matrix<Scalar_, Rows_, Cols_, Options_, MaxRows_, MaxCols_> >,
 // this is why we simply inherits MatrixBase, though this does not make sense.
 
 /** This class is just a workaround for Doxygen and it does not not actually exist. */
 template<typename Derived> struct dense_xpr_base_dispatcher;
 /** This class is just a workaround for Doxygen and it does not not actually exist. */
-template<typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols>
-struct dense_xpr_base_dispatcher<Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> >
+template<typename Scalar_, int Rows_, int Cols_, int Options_, int MaxRows_, int MaxCols_>
+struct dense_xpr_base_dispatcher<Matrix<Scalar_, Rows_, Cols_, Options_, MaxRows_, MaxCols_> >
     : public MatrixBase {};
 /** This class is just a workaround for Doxygen and it does not not actually exist. */
-template<typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols>
-struct dense_xpr_base_dispatcher<Array<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> >
+template<typename Scalar_, int Rows_, int Cols_, int Options_, int MaxRows_, int MaxCols_>
+struct dense_xpr_base_dispatcher<Array<Scalar_, Rows_, Cols_, Options_, MaxRows_, MaxCols_> >
     : public ArrayBase {};
 
 } // namespace doxygen
@@ -139,10 +139,10 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
     EIGEN_DEVICE_FUNC
     const Base& base() const { return *static_cast<const Base*>(this); }
 
-    EIGEN_DEVICE_FUNC
-    EIGEN_STRONG_INLINE Index rows() const { return m_storage.rows(); }
-    EIGEN_DEVICE_FUNC
-    EIGEN_STRONG_INLINE Index cols() const { return m_storage.cols(); }
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE EIGEN_CONSTEXPR
+    Index rows() const EIGEN_NOEXCEPT { return m_storage.rows(); }
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE EIGEN_CONSTEXPR
+    Index cols() const EIGEN_NOEXCEPT { return m_storage.cols(); }
 
     /** This is an overloaded version of DenseCoeffsBase<Derived,ReadOnlyAccessors>::coeff(Index,Index) const
       * provided to by-pass the creation of an evaluator of the expression, thus saving compilation efforts.
@@ -522,11 +522,11 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
     /** \brief Construct a row of column vector with fixed size from an arbitrary number of coefficients. \cpp11
       *
       * \only_for_vectors
-      * 
+      *
       * This constructor is for 1D array or vectors with more than 4 coefficients.
       * There exists C++98 analogue constructors for fixed-size array/vector having 1, 2, 3, or 4 coefficients.
-      * 
-      * \warning To construct a column (resp. row) vector of fixed length, the number of values passed to this 
+      *
+      * \warning To construct a column (resp. row) vector of fixed length, the number of values passed to this
       * constructor must match the the fixed number of rows (resp. columns) of \c *this.
       */
     template <typename... ArgTypes>
@@ -540,7 +540,7 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
       m_storage.data()[1] = a1;
       m_storage.data()[2] = a2;
       m_storage.data()[3] = a3;
-      int i = 4;
+      Index i = 4;
       auto x = {(m_storage.data()[i++] = args, 0)...};
       static_cast<void>(x);
     }
@@ -568,7 +568,7 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
         eigen_assert(list.size() == static_cast<size_t>(RowsAtCompileTime) || RowsAtCompileTime == Dynamic);
         eigen_assert(list_size == static_cast<size_t>(ColsAtCompileTime) || ColsAtCompileTime == Dynamic);
         resize(list.size(), list_size);
-       
+
         Index row_index = 0;
         for (const std::initializer_list<Scalar>& row : list) {
           eigen_assert(list_size == row.size());
@@ -1019,7 +1019,7 @@ struct conservative_resize_like_impl
     else
     {
       // The storage order does not allow us to use reallocation.
-      typename Derived::PlainObject tmp(rows,cols);
+      Derived tmp(rows,cols);
       const Index common_rows = numext::mini(rows, _this.rows());
       const Index common_cols = numext::mini(cols, _this.cols());
       tmp.block(0,0,common_rows,common_cols) = _this.block(0,0,common_rows,common_cols);
@@ -1054,7 +1054,7 @@ struct conservative_resize_like_impl
     else
     {
       // The storage order does not allow us to use reallocation.
-      typename Derived::PlainObject tmp(other);
+      Derived tmp(other);
       const Index common_rows = numext::mini(tmp.rows(), _this.rows());
       const Index common_cols = numext::mini(tmp.cols(), _this.cols());
       tmp.block(0,0,common_rows,common_cols) = _this.block(0,0,common_rows,common_cols);
