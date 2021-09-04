@@ -27,7 +27,6 @@
 
 import gdb
 import re
-import itertools
 from bisect import bisect_left
 
 
