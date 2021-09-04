@@ -274,7 +274,6 @@ class EigenQuaternionPrinter:
 			return '[%s]' % (self.elementNames[element],), item
 			
 	def children(self):
-		
 		return self._Iterator(self.data)
 	
 	def to_string(self):
