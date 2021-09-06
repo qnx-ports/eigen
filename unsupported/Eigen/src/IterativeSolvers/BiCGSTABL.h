@@ -124,7 +124,7 @@ namespace Eigen
             x=x+x_prime;			
 
             //Check if x is better than the best stored solution thus far.
-            normr=(rhs - mat * (precond.solve(x) + x0)).norm()/rhs.norm();
+            normr=(rhs - mat * (precond.solve(x) + x0)).norm();
           
             if(normr>normr_min || !(numext::isfinite)(normr)){
               //x_min is a better solution than x, return x_min
@@ -228,7 +228,7 @@ namespace Eigen
         {
           //Explicitly compute residual from the definition
 
-          //This is equivalent to rhs - mat * (precond.solve(x)+x0)
+          //This is equivalent to the shifted version of rhs - mat * (precond.solve(x)+x0)
           rHat.col(0) = b_prime - mat * precond.solve(x);
           normr = rHat.col(0).norm();
           Mr = normr;
@@ -256,7 +256,7 @@ namespace Eigen
       // Convert internal variable to the true solution vector x
       x+=x_prime;	
 
-      normr=(rhs - mat * (precond.solve(x)+x0)).norm()/rhs.norm();
+      normr=(rhs - mat * (precond.solve(x)+x0)).norm();
       if(normr>normr_min || !(numext::isfinite)(normr)){
         //x_min is a better solution than x, return x_min
         x = x_min;
