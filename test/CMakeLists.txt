@@ -288,6 +288,8 @@ ei_add_test(blasutil)
 ei_add_test(random_matrix)
 ei_add_test(initializer_list_construction)
 ei_add_test(diagonal_matrix_variadic_ctor)
+ei_add_test(serializer)
+ei_add_test(tuple_test)
 
 add_executable(bug1213 bug1213.cpp bug1213_main.cpp)
 
@@ -410,6 +412,7 @@ if(CUDA_FOUND)
   string(APPEND CUDA_NVCC_FLAGS " ${EIGEN_CUDA_RELAXED_CONSTEXPR}")
   set(EIGEN_ADD_TEST_FILENAME_EXTENSION  "cu")
   
+  ei_add_test(gpu_example)
   ei_add_test(gpu_basic)
   
   unset(EIGEN_ADD_TEST_FILENAME_EXTENSION)
@@ -440,6 +443,7 @@ if (EIGEN_TEST_HIP)
 
 	set(EIGEN_ADD_TEST_FILENAME_EXTENSION  "cu")
 	ei_add_test(gpu_basic)
+  ei_add_test(gpu_example)
 	unset(EIGEN_ADD_TEST_FILENAME_EXTENSION)
 	
       elseif ((${HIP_PLATFORM} STREQUAL "nvcc") OR (${HIP_PLATFORM} STREQUAL "nvidia"))

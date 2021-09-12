@@ -10,6 +10,8 @@
 #ifndef EIGEN_SPARSE_SELFADJOINTVIEW_H
 #define EIGEN_SPARSE_SELFADJOINTVIEW_H
 
+#include "./InternalHeaderCheck.h"
+
 namespace Eigen { 
   
 /** \ingroup SparseCore_Module
@@ -259,15 +261,6 @@ struct Assignment<DstXprType, SrcXprType, Functor, SparseSelfAdjoint2Sparse>
     SparseMatrix<DestScalar,StorageOrder,StorageIndex> tmp(src.rows(),src.cols());
     run(tmp, src, AssignOpType());
     dst -= tmp;
-  }
-  
-  template<typename DestScalar>
-  static void run(DynamicSparseMatrix<DestScalar,ColMajor,StorageIndex>& dst, const SrcXprType &src, const AssignOpType&/*func*/)
-  {
-    // TODO directly evaluate into dst;
-    SparseMatrix<DestScalar,ColMajor,StorageIndex> tmp(dst.rows(),dst.cols());
-    internal::permute_symm_to_fullsymm<SrcXprType::Mode>(src.matrix(), tmp);
-    dst = tmp;
   }
 };
 
