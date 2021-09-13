@@ -53,18 +53,18 @@ class _MatrixEntryIterator(object):
 			if self.currentCol >= self.cols:
 				raise StopIteration
 				
-			self.currentRow = self.currentRow + 1
+			self.currentRow += 1
 			if self.currentRow >= self.rows:
 				self.currentRow = 0
-				self.currentCol = self.currentCol + 1
+				self.currentCol += 1
 		else:
 			if self.currentRow >= self.rows:
 				raise StopIteration
 				
-			self.currentCol = self.currentCol + 1
+			self.currentCol += 1
 			if self.currentCol >= self.cols:
 				self.currentCol = 0
-				self.currentRow = self.currentRow + 1
+				self.currentRow += 1
 
 		return row, col
 
@@ -125,7 +125,7 @@ class EigenMatrixPrinter:
 			row, col = super(EigenMatrixPrinter._Iterator, self).__next__()
 			
 			item = self.dataPtr.dereference()
-			self.dataPtr = self.dataPtr + 1
+			self.dataPtr += 1
 			if self.cols == 1:  # if it's a column vector
 				return '[%d]' % (row,), item
 			elif self.rows == 1:  # if it's a row vector
@@ -267,10 +267,10 @@ class EigenQuaternionPrinter:
 			if self.currentElement >= 4:  # there are 4 elements in a quaternion
 				raise StopIteration
 			
-			self.currentElement = self.currentElement + 1
+			self.currentElement += 1
 			
 			item = self.dataPtr.dereference()
-			self.dataPtr = self.dataPtr + 1
+			self.dataPtr += 1
 			return '[%s]' % (self.elementNames[element],), item
 			
 	def children(self):
