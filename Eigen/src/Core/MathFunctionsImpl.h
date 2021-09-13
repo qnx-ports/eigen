@@ -27,9 +27,8 @@ namespace internal {
 
     This implementation works on both scalars and packets.
 */
-template<typename T>
-T generic_fast_tanh_float(const T& a_x)
-{
+template <typename T>
+T generic_fast_tanh_float(const T& a_x) {
   // Clamp the inputs to the range [-c, c]
 #ifdef EIGEN_VECTORIZE_FMA
   const T plus_clamp = pset1<T>(7.99881172180175781f);
@@ -77,31 +76,24 @@ T generic_fast_tanh_float(const T& a_x)
   return pselect(tiny_mask, x, pdiv(p, q));
 }
 
-template<typename RealScalar>
-EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-RealScalar positive_real_hypot(const RealScalar& x, const RealScalar& y)
-{
+template <typename RealScalar>
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE RealScalar positive_real_hypot(const RealScalar& x, const RealScalar& y) {
   // IEEE IEC 6059 special cases.
-  if ((numext::isinf)(x) || (numext::isinf)(y))
-    return NumTraits<RealScalar>::infinity();
-  if ((numext::isnan)(x) || (numext::isnan)(y))
-    return NumTraits<RealScalar>::quiet_NaN();
-    
+  if ((numext::isinf)(x) || (numext::isinf)(y)) return NumTraits<RealScalar>::infinity();
+  if ((numext::isnan)(x) || (numext::isnan)(y)) return NumTraits<RealScalar>::quiet_NaN();
+
   EIGEN_USING_STD(sqrt);
   RealScalar p, qp;
-  p = numext::maxi(x,y);
-  if(p==RealScalar(0)) return RealScalar(0);
-  qp = numext::mini(y,x) / p;
-  return p * sqrt(RealScalar(1) + qp*qp);
+  p = numext::maxi(x, y);
+  if (p == RealScalar(0)) return RealScalar(0);
+  qp = numext::mini(y, x) / p;
+  return p * sqrt(RealScalar(1) + qp * qp);
 }
 
-template<typename Scalar>
-struct hypot_impl
-{
+template <typename Scalar>
+struct hypot_impl {
   typedef typename NumTraits<Scalar>::Real RealScalar;
-  static EIGEN_DEVICE_FUNC
-  inline RealScalar run(const Scalar& x, const Scalar& y)
-  {
+  static EIGEN_DEVICE_FUNC inline RealScalar run(const Scalar& x, const Scalar& y) {
     EIGEN_USING_STD(abs);
     return positive_real_hypot<RealScalar>(abs(x), abs(y));
   }
@@ -109,7 +101,7 @@ struct hypot_impl
 
 // Generic complex sqrt implementation that correctly handles corner cases
 // according to https://en.cppreference.com/w/cpp/numeric/complex/sqrt
-template<typename T>
+template <typename T>
 EIGEN_DEVICE_FUNC std::complex<T> complex_sqrt(const std::complex<T>& z) {
   // Computes the principal sqrt of the input.
   //
@@ -138,15 +130,14 @@ EIGEN_DEVICE_FUNC std::complex<T> complex_sqrt(const std::complex<T>& z) {
   const T zero = T(0);
   const T w = numext::sqrt(T(0.5) * (numext::abs(x) + numext::hypot(x, y)));
 
-  return
-    (numext::isinf)(y) ? std::complex<T>(NumTraits<T>::infinity(), y)
-      : x == zero ? std::complex<T>(w, y < zero ? -w : w)
-      : x > zero ? std::complex<T>(w, y / (2 * w))
-      : std::complex<T>(numext::abs(y) / (2 * w), y < zero ? -w : w );
+  return (numext::isinf)(y) ? std::complex<T>(NumTraits<T>::infinity(), y)
+         : x == zero        ? std::complex<T>(w, y < zero ? -w : w)
+         : x > zero         ? std::complex<T>(w, y / (2 * w))
+                            : std::complex<T>(numext::abs(y) / (2 * w), y < zero ? -w : w);
 }
 
 // Generic complex rsqrt implementation.
-template<typename T>
+template <typename T>
 EIGEN_DEVICE_FUNC std::complex<T> complex_rsqrt(const std::complex<T>& z) {
   // Computes the principal reciprocal sqrt of the input.
   //
@@ -178,15 +169,14 @@ EIGEN_DEVICE_FUNC std::complex<T> complex_rsqrt(const std::complex<T>& z) {
   const T w = numext::sqrt(T(0.5) * (numext::abs(x) + abs_z));
   const T woz = w / abs_z;
   // Corner cases consistent with 1/sqrt(z) on gcc/clang.
-  return
-    abs_z == zero ? std::complex<T>(NumTraits<T>::infinity(), NumTraits<T>::quiet_NaN())
-      : ((numext::isinf)(x) || (numext::isinf)(y)) ? std::complex<T>(zero, zero)
-      : x == zero ? std::complex<T>(woz, y < zero ? woz : -woz)
-      : x > zero ? std::complex<T>(woz, -y / (2 * w * abs_z))
-      : std::complex<T>(numext::abs(y) / (2 * w * abs_z), y < zero ? woz : -woz );
+  return abs_z == zero ? std::complex<T>(NumTraits<T>::infinity(), NumTraits<T>::quiet_NaN())
+         : ((numext::isinf)(x) || (numext::isinf)(y)) ? std::complex<T>(zero, zero)
+         : x == zero                                  ? std::complex<T>(woz, y < zero ? woz : -woz)
+         : x > zero                                   ? std::complex<T>(woz, -y / (2 * w * abs_z))
+                    : std::complex<T>(numext::abs(y) / (2 * w * abs_z), y < zero ? woz : -woz);
 }
 
-template<typename T>
+template <typename T>
 EIGEN_DEVICE_FUNC std::complex<T> complex_log(const std::complex<T>& z) {
   // Computes complex log.
   T a = numext::abs(z);
@@ -195,8 +185,8 @@ EIGEN_DEVICE_FUNC std::complex<T> complex_log(const std::complex<T>& z) {
   return std::complex<T>(numext::log(a), b);
 }
 
-} // end namespace internal
+}  // end namespace internal
 
-} // end namespace Eigen
+}  // end namespace Eigen
 
-#endif // EIGEN_MATHFUNCTIONSIMPL_H
+#endif  // EIGEN_MATHFUNCTIONSIMPL_H

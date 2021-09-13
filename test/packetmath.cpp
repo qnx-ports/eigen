@@ -264,14 +264,14 @@ void packetmath_boolean_mask_ops() {
 
   CHECK_CWISE2_IF(true, internal::pcmp_eq, internal::pcmp_eq);
 
-  //Test (-0) == (0) for signed operations
+  // Test (-0) == (0) for signed operations
   for (int i = 0; i < PacketSize; ++i) {
     data1[i] = Scalar(-0.0);
     data1[i + PacketSize] = internal::random<bool>() ? data1[i] : Scalar(0);
   }
   CHECK_CWISE2_IF(true, internal::pcmp_eq, internal::pcmp_eq);
 
-  //Test NaN
+  // Test NaN
   for (int i = 0; i < PacketSize; ++i) {
     data1[i] = NumTraits<Scalar>::quiet_NaN();
     data1[i + PacketSize] = internal::random<bool>() ? data1[i] : Scalar(0);
@@ -294,14 +294,14 @@ void packetmath_boolean_mask_ops_real() {
 
   CHECK_CWISE2_IF(true, internal::pcmp_lt_or_nan, internal::pcmp_lt_or_nan);
 
-  //Test (-0) <=/< (0) for signed operations
+  // Test (-0) <=/< (0) for signed operations
   for (int i = 0; i < PacketSize; ++i) {
     data1[i] = Scalar(-0.0);
     data1[i + PacketSize] = internal::random<bool>() ? data1[i] : Scalar(0);
   }
   CHECK_CWISE2_IF(true, internal::pcmp_lt_or_nan, internal::pcmp_lt_or_nan);
 
-  //Test NaN
+  // Test NaN
   for (int i = 0; i < PacketSize; ++i) {
     data1[i] = NumTraits<Scalar>::quiet_NaN();
     data1[i + PacketSize] = internal::random<bool>() ? data1[i] : Scalar(0);
@@ -325,7 +325,7 @@ void packetmath_boolean_mask_ops_notcomplex() {
   CHECK_CWISE2_IF(true, internal::pcmp_le, internal::pcmp_le);
   CHECK_CWISE2_IF(true, internal::pcmp_lt, internal::pcmp_lt);
 
-  //Test (-0) <=/< (0) for signed operations
+  // Test (-0) <=/< (0) for signed operations
   for (int i = 0; i < PacketSize; ++i) {
     data1[i] = Scalar(-0.0);
     data1[i + PacketSize] = internal::random<bool>() ? data1[i] : Scalar(0);
@@ -333,7 +333,7 @@ void packetmath_boolean_mask_ops_notcomplex() {
   CHECK_CWISE2_IF(true, internal::pcmp_le, internal::pcmp_le);
   CHECK_CWISE2_IF(true, internal::pcmp_lt, internal::pcmp_lt);
 
-  //Test NaN
+  // Test NaN
   for (int i = 0; i < PacketSize; ++i) {
     data1[i] = NumTraits<Scalar>::quiet_NaN();
     data1[i + PacketSize] = internal::random<bool>() ? data1[i] : Scalar(0);
@@ -344,9 +344,9 @@ void packetmath_boolean_mask_ops_notcomplex() {
 
 // Packet16b representing bool does not support ptrue, pandnot or pcmp_eq, since the scalar path
 // (for some compilers) compute the bitwise and with 0x1 of the results to keep the value in [0,1].
-template<>
+template <>
 void packetmath_boolean_mask_ops<bool, internal::packet_traits<bool>::type>() {}
-template<>
+template <>
 void packetmath_boolean_mask_ops_notcomplex<bool, internal::packet_traits<bool>::type>() {}
 
 template <typename Scalar, typename Packet>
@@ -368,17 +368,16 @@ void packetmath_minus_zero_add() {
 // Only applies to raw types, so will not work for std::complex, Eigen::half
 // or Eigen::bfloat16. For those you would need to refer to an underlying
 // storage element.
-template<typename Packet, typename EnableIf = void>
+template <typename Packet, typename EnableIf = void>
 struct eigen_optimization_barrier_test {
   static void run() {}
 };
 
-template<typename Packet>
-struct eigen_optimization_barrier_test<Packet, typename internal::enable_if<
-    !NumTraits<Packet>::IsComplex &&
-    !internal::is_same<Packet, Eigen::half>::value &&
-    !internal::is_same<Packet, Eigen::bfloat16>::value
-  >::type> {
+template <typename Packet>
+struct eigen_optimization_barrier_test<
+    Packet,
+    typename internal::enable_if<!NumTraits<Packet>::IsComplex && !internal::is_same<Packet, Eigen::half>::value &&
+                                 !internal::is_same<Packet, Eigen::bfloat16>::value>::type> {
   static void run() {
     typedef typename internal::unpacket_traits<Packet>::type Scalar;
     Scalar s = internal::random<Scalar>();
@@ -548,7 +547,7 @@ void packetmath() {
 
   // GeneralBlockPanelKernel also checks PacketBlock<Packet,(PacketSize%4)==0?4:PacketSize>;
   if (PacketSize > 4 && PacketSize % 4 == 0) {
-    internal::PacketBlock<Packet, PacketSize%4==0?4:PacketSize> kernel2;
+    internal::PacketBlock<Packet, PacketSize % 4 == 0 ? 4 : PacketSize> kernel2;
     for (int i = 0; i < 4; ++i) {
       kernel2.packet[i] = internal::pload<Packet>(data1 + i * PacketSize);
     }
@@ -556,13 +555,13 @@ void packetmath() {
     int data_counter = 0;
     for (int i = 0; i < PacketSize; ++i) {
       for (int j = 0; j < 4; ++j) {
-        data2[data_counter++] = data1[j*PacketSize + i];
+        data2[data_counter++] = data1[j * PacketSize + i];
       }
     }
     for (int i = 0; i < 4; ++i) {
       internal::pstore(data3, kernel2.packet[i]);
       for (int j = 0; j < PacketSize; ++j) {
-        VERIFY(test::isApproxAbs(data3[j], data2[i*PacketSize + j], refvalue) && "ptranspose");
+        VERIFY(test::isApproxAbs(data3[j], data2[i * PacketSize + j], refvalue) && "ptranspose");
       }
     }
   }
@@ -659,15 +658,14 @@ void packetmath_real() {
   CHECK_CWISE1_EXACT_IF(PacketTraits::HasFloor, numext::floor, internal::pfloor);
   CHECK_CWISE1_EXACT_IF(PacketTraits::HasRint, numext::rint, internal::print);
 
-  packetmath_boolean_mask_ops_real<Scalar,Packet>();
-  
+  packetmath_boolean_mask_ops_real<Scalar, Packet>();
+
   // Rounding edge cases.
   if (PacketTraits::HasRound || PacketTraits::HasCeil || PacketTraits::HasFloor || PacketTraits::HasRint) {
     typedef typename internal::make_integer<Scalar>::type IntType;
     // Start with values that cannot fit inside an integer, work down to less than one.
-    Scalar val = numext::mini(
-        Scalar(2) * static_cast<Scalar>(NumTraits<IntType>::highest()),
-        NumTraits<Scalar>::highest());
+    Scalar val =
+        numext::mini(Scalar(2) * static_cast<Scalar>(NumTraits<IntType>::highest()), NumTraits<Scalar>::highest());
     std::vector<Scalar> values;
     while (val > Scalar(0.25)) {
       // Cover both even and odd, positive and negative cases.
@@ -693,8 +691,8 @@ void packetmath_real() {
     values.push_back(NumTraits<Scalar>::infinity());
     values.push_back(-NumTraits<Scalar>::infinity());
     values.push_back(NumTraits<Scalar>::quiet_NaN());
-    
-    for (size_t k=0; k<values.size(); ++k) {
+
+    for (size_t k = 0; k < values.size(); ++k) {
       data1[0] = values[k];
       CHECK_CWISE1_EXACT_IF(PacketTraits::HasRound, numext::round, internal::pround);
       CHECK_CWISE1_EXACT_IF(PacketTraits::HasCeil, numext::ceil, internal::pceil);
@@ -715,52 +713,50 @@ void packetmath_real() {
     data2[i] = Scalar(internal::random<double>(-87, 88));
   }
   CHECK_CWISE1_IF(PacketTraits::HasExp, std::exp, internal::pexp);
-  
+
   CHECK_CWISE1_BYREF1_IF(PacketTraits::HasExp, REF_FREXP, internal::pfrexp);
   if (PacketTraits::HasExp) {
     // Check denormals:
-    for (int j=0; j<3; ++j) {
-      data1[0] = Scalar(std::ldexp(1, NumTraits<Scalar>::min_exponent()-j));
+    for (int j = 0; j < 3; ++j) {
+      data1[0] = Scalar(std::ldexp(1, NumTraits<Scalar>::min_exponent() - j));
       CHECK_CWISE1_BYREF1_IF(PacketTraits::HasExp, REF_FREXP, internal::pfrexp);
       data1[0] = -data1[0];
       CHECK_CWISE1_BYREF1_IF(PacketTraits::HasExp, REF_FREXP, internal::pfrexp);
     }
-    
+
     // zero
     data1[0] = Scalar(0);
     CHECK_CWISE1_BYREF1_IF(PacketTraits::HasExp, REF_FREXP, internal::pfrexp);
-    
+
     // inf and NaN only compare output fraction, not exponent.
-    test::packet_helper<PacketTraits::HasExp,Packet> h;
+    test::packet_helper<PacketTraits::HasExp, Packet> h;
     Packet pout;
     Scalar sout;
-    Scalar special[] = { NumTraits<Scalar>::infinity(), 
-                        -NumTraits<Scalar>::infinity(),
-                         NumTraits<Scalar>::quiet_NaN()};
-    for (int i=0; i<3; ++i) {
+    Scalar special[] = {NumTraits<Scalar>::infinity(), -NumTraits<Scalar>::infinity(), NumTraits<Scalar>::quiet_NaN()};
+    for (int i = 0; i < 3; ++i) {
       data1[0] = special[i];
       ref[0] = Scalar(REF_FREXP(data1[0], ref[PacketSize]));
       h.store(data2, internal::pfrexp(h.load(data1), h.forward_reference(pout, sout)));
       VERIFY(test::areApprox(ref, data2, 1) && "internal::pfrexp");
     }
   }
-  
+
   for (int i = 0; i < PacketSize; ++i) {
     data1[i] = Scalar(internal::random<double>(-1, 1));
     data2[i] = Scalar(internal::random<double>(-1, 1));
   }
   for (int i = 0; i < PacketSize; ++i) {
-    data1[i+PacketSize] = Scalar(internal::random<int>(-4, 4));
-    data2[i+PacketSize] = Scalar(internal::random<double>(-4, 4));
+    data1[i + PacketSize] = Scalar(internal::random<int>(-4, 4));
+    data2[i + PacketSize] = Scalar(internal::random<double>(-4, 4));
   }
   CHECK_CWISE2_IF(PacketTraits::HasExp, REF_LDEXP, internal::pldexp);
   if (PacketTraits::HasExp) {
     data1[0] = Scalar(-1);
     // underflow to zero
-    data1[PacketSize] = Scalar(NumTraits<Scalar>::min_exponent()-55);
+    data1[PacketSize] = Scalar(NumTraits<Scalar>::min_exponent() - 55);
     CHECK_CWISE2_IF(PacketTraits::HasExp, REF_LDEXP, internal::pldexp);
     // overflow to inf
-    data1[PacketSize] = Scalar(NumTraits<Scalar>::max_exponent()+10);
+    data1[PacketSize] = Scalar(NumTraits<Scalar>::max_exponent() + 10);
     CHECK_CWISE2_IF(PacketTraits::HasExp, REF_LDEXP, internal::pldexp);
     // NaN stays NaN
     data1[0] = NumTraits<Scalar>::quiet_NaN();
@@ -768,21 +764,19 @@ void packetmath_real() {
     VERIFY((numext::isnan)(data2[0]));
     // inf stays inf
     data1[0] = NumTraits<Scalar>::infinity();
-    data1[PacketSize] = Scalar(NumTraits<Scalar>::min_exponent()-10);
+    data1[PacketSize] = Scalar(NumTraits<Scalar>::min_exponent() - 10);
     CHECK_CWISE2_IF(PacketTraits::HasExp, REF_LDEXP, internal::pldexp);
     // zero stays zero
     data1[0] = Scalar(0);
-    data1[PacketSize] = Scalar(NumTraits<Scalar>::max_exponent()+10);
+    data1[PacketSize] = Scalar(NumTraits<Scalar>::max_exponent() + 10);
     CHECK_CWISE2_IF(PacketTraits::HasExp, REF_LDEXP, internal::pldexp);
     // Small number big exponent.
-    data1[0] = Scalar(std::ldexp(Scalar(1.0), NumTraits<Scalar>::min_exponent()-1));
-    data1[PacketSize] = Scalar(-NumTraits<Scalar>::min_exponent()
-                               +NumTraits<Scalar>::max_exponent());
+    data1[0] = Scalar(std::ldexp(Scalar(1.0), NumTraits<Scalar>::min_exponent() - 1));
+    data1[PacketSize] = Scalar(-NumTraits<Scalar>::min_exponent() + NumTraits<Scalar>::max_exponent());
     CHECK_CWISE2_IF(PacketTraits::HasExp, REF_LDEXP, internal::pldexp);
     // Big number small exponent.
-    data1[0] = Scalar(std::ldexp(Scalar(1.0), NumTraits<Scalar>::max_exponent()-1));
-    data1[PacketSize] = Scalar(+NumTraits<Scalar>::min_exponent()
-                               -NumTraits<Scalar>::max_exponent());
+    data1[0] = Scalar(std::ldexp(Scalar(1.0), NumTraits<Scalar>::max_exponent() - 1));
+    data1[PacketSize] = Scalar(+NumTraits<Scalar>::min_exponent() - NumTraits<Scalar>::max_exponent());
     CHECK_CWISE2_IF(PacketTraits::HasExp, REF_LDEXP, internal::pldexp);
   }
 
@@ -924,9 +918,8 @@ void packetmath_real() {
       VERIFY((numext::isnan)(data2[1]));
     }
     // TODO(rmlarsen): Re-enable for half and bfloat16.
-    if (PacketTraits::HasCos
-        && !internal::is_same<Scalar, half>::value
-        && !internal::is_same<Scalar, bfloat16>::value) {
+    if (PacketTraits::HasCos && !internal::is_same<Scalar, half>::value &&
+        !internal::is_same<Scalar, bfloat16>::value) {
       test::packet_helper<PacketTraits::HasCos, Packet> h;
       for (Scalar k = Scalar(1); k < Scalar(10000) / NumTraits<Scalar>::epsilon(); k *= Scalar(2)) {
         for (int k1 = 0; k1 <= 1; ++k1) {
@@ -974,40 +967,40 @@ void packetmath_real() {
   }
 }
 
-#define CAST_CHECK_CWISE1_IF(COND, REFOP, POP, SCALAR, REFTYPE) if(COND) { \
-  test::packet_helper<COND,Packet> h; \
-  for (int i=0; i<PacketSize; ++i) \
-    ref[i] = SCALAR(REFOP(static_cast<REFTYPE>(data1[i]))); \
-  h.store(data2, POP(h.load(data1))); \
-  VERIFY(test::areApprox(ref, data2, PacketSize) && #POP); \
-}
+#define CAST_CHECK_CWISE1_IF(COND, REFOP, POP, SCALAR, REFTYPE)                                  \
+  if (COND) {                                                                                    \
+    test::packet_helper<COND, Packet> h;                                                         \
+    for (int i = 0; i < PacketSize; ++i) ref[i] = SCALAR(REFOP(static_cast<REFTYPE>(data1[i]))); \
+    h.store(data2, POP(h.load(data1)));                                                          \
+    VERIFY(test::areApprox(ref, data2, PacketSize) && #POP);                                     \
+  }
 
 template <typename Scalar>
 Scalar propagate_nan_max(const Scalar& a, const Scalar& b) {
   if ((numext::isnan)(a)) return a;
   if ((numext::isnan)(b)) return b;
-  return (numext::maxi)(a,b);
+  return (numext::maxi)(a, b);
 }
 
 template <typename Scalar>
 Scalar propagate_nan_min(const Scalar& a, const Scalar& b) {
   if ((numext::isnan)(a)) return a;
   if ((numext::isnan)(b)) return b;
-  return (numext::mini)(a,b);
+  return (numext::mini)(a, b);
 }
 
 template <typename Scalar>
 Scalar propagate_number_max(const Scalar& a, const Scalar& b) {
   if ((numext::isnan)(a)) return b;
   if ((numext::isnan)(b)) return a;
-  return (numext::maxi)(a,b);
+  return (numext::maxi)(a, b);
 }
 
 template <typename Scalar>
 Scalar propagate_number_min(const Scalar& a, const Scalar& b) {
   if ((numext::isnan)(a)) return b;
   if ((numext::isnan)(b)) return a;
-  return (numext::mini)(a,b);
+  return (numext::mini)(a, b);
 }
 
 template <typename Scalar, typename Packet>
@@ -1065,28 +1058,31 @@ void packetmath_notcomplex() {
     }
   }
 
-
   // Test NaN propagation.
   if (!NumTraits<Scalar>::IsInteger) {
     // Test reductions with no NaNs.
     ref[0] = data1[0];
     for (int i = 0; i < PacketSize; ++i) ref[0] = internal::pmin<PropagateNumbers>(ref[0], data1[i]);
-    VERIFY(internal::isApprox(ref[0], internal::predux_min<PropagateNumbers>(internal::pload<Packet>(data1))) && "internal::predux_min<PropagateNumbers>");
+    VERIFY(internal::isApprox(ref[0], internal::predux_min<PropagateNumbers>(internal::pload<Packet>(data1))) &&
+           "internal::predux_min<PropagateNumbers>");
     ref[0] = data1[0];
     for (int i = 0; i < PacketSize; ++i) ref[0] = internal::pmin<PropagateNaN>(ref[0], data1[i]);
-    VERIFY(internal::isApprox(ref[0], internal::predux_min<PropagateNaN>(internal::pload<Packet>(data1))) && "internal::predux_min<PropagateNaN>");
+    VERIFY(internal::isApprox(ref[0], internal::predux_min<PropagateNaN>(internal::pload<Packet>(data1))) &&
+           "internal::predux_min<PropagateNaN>");
     ref[0] = data1[0];
     for (int i = 0; i < PacketSize; ++i) ref[0] = internal::pmax<PropagateNumbers>(ref[0], data1[i]);
-    VERIFY(internal::isApprox(ref[0], internal::predux_max<PropagateNumbers>(internal::pload<Packet>(data1))) && "internal::predux_max<PropagateNumbers>");
+    VERIFY(internal::isApprox(ref[0], internal::predux_max<PropagateNumbers>(internal::pload<Packet>(data1))) &&
+           "internal::predux_max<PropagateNumbers>");
     ref[0] = data1[0];
     for (int i = 0; i < PacketSize; ++i) ref[0] = internal::pmax<PropagateNaN>(ref[0], data1[i]);
-    VERIFY(internal::isApprox(ref[0], internal::predux_max<PropagateNaN>(internal::pload<Packet>(data1))) && "internal::predux_max<PropagateNumbers>");
+    VERIFY(internal::isApprox(ref[0], internal::predux_max<PropagateNaN>(internal::pload<Packet>(data1))) &&
+           "internal::predux_max<PropagateNumbers>");
     // A single NaN.
     const size_t index = std::numeric_limits<size_t>::quiet_NaN() % PacketSize;
     data1[index] = NumTraits<Scalar>::quiet_NaN();
-    VERIFY(PacketSize==1 || !(numext::isnan)(internal::predux_min<PropagateNumbers>(internal::pload<Packet>(data1))));
+    VERIFY(PacketSize == 1 || !(numext::isnan)(internal::predux_min<PropagateNumbers>(internal::pload<Packet>(data1))));
     VERIFY((numext::isnan)(internal::predux_min<PropagateNaN>(internal::pload<Packet>(data1))));
-    VERIFY(PacketSize==1 || !(numext::isnan)(internal::predux_max<PropagateNumbers>(internal::pload<Packet>(data1))));
+    VERIFY(PacketSize == 1 || !(numext::isnan)(internal::predux_max<PropagateNumbers>(internal::pload<Packet>(data1))));
     VERIFY((numext::isnan)(internal::predux_max<PropagateNaN>(internal::pload<Packet>(data1))));
     // All NaNs.
     for (int i = 0; i < 4 * PacketSize; ++i) data1[i] = NumTraits<Scalar>::quiet_NaN();

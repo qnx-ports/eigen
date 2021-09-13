@@ -18,20 +18,20 @@
 #include <cstring>
 #include <algorithm>
 
-/** 
-  * \defgroup SparseCore_Module SparseCore module
-  *
-  * This module provides a sparse matrix representation, and basic associated matrix manipulations
-  * and operations.
-  *
-  * See the \ref TutorialSparse "Sparse tutorial"
-  *
-  * \code
-  * #include <Eigen/SparseCore>
-  * \endcode
-  *
-  * This module depends on: Core.
-  */
+/**
+ * \defgroup SparseCore_Module SparseCore module
+ *
+ * This module provides a sparse matrix representation, and basic associated matrix manipulations
+ * and operations.
+ *
+ * See the \ref TutorialSparse "Sparse tutorial"
+ *
+ * \code
+ * #include <Eigen/SparseCore>
+ * \endcode
+ *
+ * This module depends on: Core.
+ */
 
 #include "src/SparseCore/SparseUtil.h"
 #include "src/SparseCore/SparseMatrixBase.h"
@@ -65,5 +65,4 @@
 
 #include "src/Core/util/ReenableStupidWarnings.h"
 
-#endif // EIGEN_SPARSECORE_MODULE_H
-
+#endif  // EIGEN_SPARSECORE_MODULE_H

@@ -13,12 +13,12 @@
 #include "src/Core/util/DisableStupidWarnings.h"
 
 /** \defgroup Householder_Module Householder module
-  * This module provides Householder transformations.
-  *
-  * \code
-  * #include <Eigen/Householder>
-  * \endcode
-  */
+ * This module provides Householder transformations.
+ *
+ * \code
+ * #include <Eigen/Householder>
+ * \endcode
+ */
 
 #include "src/Householder/Householder.h"
 #include "src/Householder/HouseholderSequence.h"
@@ -26,4 +26,4 @@
 
 #include "src/Core/util/ReenableStupidWarnings.h"
 
-#endif // EIGEN_HOUSEHOLDER_MODULE_H
+#endif  // EIGEN_HOUSEHOLDER_MODULE_H

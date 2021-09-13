@@ -33,9 +33,8 @@ struct traits<CwiseTernaryOp<TernaryOp, Arg1, Arg2, Arg3> > {
   // even though we require Arg1, Arg2, and Arg3 to have the same scalar type
   // (see CwiseTernaryOp constructor),
   // we still want to handle the case when the result type is different.
-  typedef typename result_of<TernaryOp(
-      const typename Arg1::Scalar&, const typename Arg2::Scalar&,
-      const typename Arg3::Scalar&)>::type Scalar;
+  typedef typename result_of<TernaryOp(const typename Arg1::Scalar&, const typename Arg2::Scalar&,
+                                       const typename Arg3::Scalar&)>::type Scalar;
 
   typedef typename internal::traits<Arg1>::StorageKind StorageKind;
   typedef typename internal::traits<Arg1>::StorageIndex StorageIndex;
@@ -50,52 +49,47 @@ struct traits<CwiseTernaryOp<TernaryOp, Arg1, Arg2, Arg3> > {
 };
 }  // end namespace internal
 
-template <typename TernaryOp, typename Arg1, typename Arg2, typename Arg3,
-          typename StorageKind>
+template <typename TernaryOp, typename Arg1, typename Arg2, typename Arg3, typename StorageKind>
 class CwiseTernaryOpImpl;
 
 /** \class CwiseTernaryOp
-  * \ingroup Core_Module
-  *
-  * \brief Generic expression where a coefficient-wise ternary operator is
+ * \ingroup Core_Module
+ *
+ * \brief Generic expression where a coefficient-wise ternary operator is
  * applied to two expressions
-  *
-  * \tparam TernaryOp template functor implementing the operator
-  * \tparam Arg1Type the type of the first argument
-  * \tparam Arg2Type the type of the second argument
-  * \tparam Arg3Type the type of the third argument
-  *
-  * This class represents an expression where a coefficient-wise ternary
+ *
+ * \tparam TernaryOp template functor implementing the operator
+ * \tparam Arg1Type the type of the first argument
+ * \tparam Arg2Type the type of the second argument
+ * \tparam Arg3Type the type of the third argument
+ *
+ * This class represents an expression where a coefficient-wise ternary
  * operator is applied to three expressions.
-  * It is the return type of ternary operators, by which we mean only those
+ * It is the return type of ternary operators, by which we mean only those
  * ternary operators where
-  * all three arguments are Eigen expressions.
-  * For example, the return type of betainc(matrix1, matrix2, matrix3) is a
+ * all three arguments are Eigen expressions.
+ * For example, the return type of betainc(matrix1, matrix2, matrix3) is a
  * CwiseTernaryOp.
-  *
-  * Most of the time, this is the only way that it is used, so you typically
+ *
+ * Most of the time, this is the only way that it is used, so you typically
  * don't have to name
-  * CwiseTernaryOp types explicitly.
-  *
-  * \sa MatrixBase::ternaryExpr(const MatrixBase<Argument2> &, const
+ * CwiseTernaryOp types explicitly.
+ *
+ * \sa MatrixBase::ternaryExpr(const MatrixBase<Argument2> &, const
  * MatrixBase<Argument3> &, const CustomTernaryOp &) const, class CwiseBinaryOp,
  * class CwiseUnaryOp, class CwiseNullaryOp
-  */
-template <typename TernaryOp, typename Arg1Type, typename Arg2Type,
-          typename Arg3Type>
-class CwiseTernaryOp : public CwiseTernaryOpImpl<
-                           TernaryOp, Arg1Type, Arg2Type, Arg3Type,
-                           typename internal::traits<Arg1Type>::StorageKind>,
-                       internal::no_assignment_operator
-{
+ */
+template <typename TernaryOp, typename Arg1Type, typename Arg2Type, typename Arg3Type>
+class CwiseTernaryOp : public CwiseTernaryOpImpl<TernaryOp, Arg1Type, Arg2Type, Arg3Type,
+                                                 typename internal::traits<Arg1Type>::StorageKind>,
+                       internal::no_assignment_operator {
  public:
   typedef typename internal::remove_all<Arg1Type>::type Arg1;
   typedef typename internal::remove_all<Arg2Type>::type Arg2;
   typedef typename internal::remove_all<Arg3Type>::type Arg3;
 
-  typedef typename CwiseTernaryOpImpl<
-      TernaryOp, Arg1Type, Arg2Type, Arg3Type,
-      typename internal::traits<Arg1Type>::StorageKind>::Base Base;
+  typedef typename CwiseTernaryOpImpl<TernaryOp, Arg1Type, Arg2Type, Arg3Type,
+                                      typename internal::traits<Arg1Type>::StorageKind>::Base Base;
   EIGEN_GENERIC_PUBLIC_INTERFACE(CwiseTernaryOp)
 
   typedef typename internal::ref_selector<Arg1Type>::type Arg1Nested;
@@ -106,8 +100,7 @@ class CwiseTernaryOp : public CwiseTernaryOpImpl<
   typedef typename internal::remove_reference<Arg3Nested>::type _Arg3Nested;
 
   EIGEN_DEVICE_FUNC
-  EIGEN_STRONG_INLINE CwiseTernaryOp(const Arg1& a1, const Arg2& a2,
-                                     const Arg3& a3,
+  EIGEN_STRONG_INLINE CwiseTernaryOp(const Arg1& a1, const Arg2& a2, const Arg3& a3,
                                      const TernaryOp& func = TernaryOp())
       : m_arg1(a1), m_arg2(a2), m_arg3(a3), m_functor(func) {
     // require the sizes to match
@@ -115,32 +108,25 @@ class CwiseTernaryOp : public CwiseTernaryOpImpl<
     EIGEN_STATIC_ASSERT_SAME_MATRIX_SIZE(Arg1, Arg3)
 
     // The index types should match
-    EIGEN_STATIC_ASSERT((internal::is_same<
-                         typename internal::traits<Arg1Type>::StorageKind,
-                         typename internal::traits<Arg2Type>::StorageKind>::value),
+    EIGEN_STATIC_ASSERT((internal::is_same<typename internal::traits<Arg1Type>::StorageKind,
+                                           typename internal::traits<Arg2Type>::StorageKind>::value),
                         STORAGE_KIND_MUST_MATCH)
-    EIGEN_STATIC_ASSERT((internal::is_same<
-                         typename internal::traits<Arg1Type>::StorageKind,
-                         typename internal::traits<Arg3Type>::StorageKind>::value),
+    EIGEN_STATIC_ASSERT((internal::is_same<typename internal::traits<Arg1Type>::StorageKind,
+                                           typename internal::traits<Arg3Type>::StorageKind>::value),
                         STORAGE_KIND_MUST_MATCH)
 
-    eigen_assert(a1.rows() == a2.rows() && a1.cols() == a2.cols() &&
-                 a1.rows() == a3.rows() && a1.cols() == a3.cols());
+    eigen_assert(a1.rows() == a2.rows() && a1.cols() == a2.cols() && a1.rows() == a3.rows() && a1.cols() == a3.cols());
   }
 
   EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE Index rows() const {
     // return the fixed size type if available to enable compile time
     // optimizations
-    if (internal::traits<typename internal::remove_all<Arg1Nested>::type>::
-                RowsAtCompileTime == Dynamic &&
-        internal::traits<typename internal::remove_all<Arg2Nested>::type>::
-                RowsAtCompileTime == Dynamic)
+    if (internal::traits<typename internal::remove_all<Arg1Nested>::type>::RowsAtCompileTime == Dynamic &&
+        internal::traits<typename internal::remove_all<Arg2Nested>::type>::RowsAtCompileTime == Dynamic)
       return m_arg3.rows();
-    else if (internal::traits<typename internal::remove_all<Arg1Nested>::type>::
-                     RowsAtCompileTime == Dynamic &&
-             internal::traits<typename internal::remove_all<Arg3Nested>::type>::
-                     RowsAtCompileTime == Dynamic)
+    else if (internal::traits<typename internal::remove_all<Arg1Nested>::type>::RowsAtCompileTime == Dynamic &&
+             internal::traits<typename internal::remove_all<Arg3Nested>::type>::RowsAtCompileTime == Dynamic)
       return m_arg2.rows();
     else
       return m_arg1.rows();
@@ -149,15 +135,11 @@ class CwiseTernaryOp : public CwiseTernaryOpImpl<
   EIGEN_STRONG_INLINE Index cols() const {
     // return the fixed size type if available to enable compile time
     // optimizations
-    if (internal::traits<typename internal::remove_all<Arg1Nested>::type>::
-                ColsAtCompileTime == Dynamic &&
-        internal::traits<typename internal::remove_all<Arg2Nested>::type>::
-                ColsAtCompileTime == Dynamic)
+    if (internal::traits<typename internal::remove_all<Arg1Nested>::type>::ColsAtCompileTime == Dynamic &&
+        internal::traits<typename internal::remove_all<Arg2Nested>::type>::ColsAtCompileTime == Dynamic)
       return m_arg3.cols();
-    else if (internal::traits<typename internal::remove_all<Arg1Nested>::type>::
-                     ColsAtCompileTime == Dynamic &&
-             internal::traits<typename internal::remove_all<Arg3Nested>::type>::
-                     ColsAtCompileTime == Dynamic)
+    else if (internal::traits<typename internal::remove_all<Arg1Nested>::type>::ColsAtCompileTime == Dynamic &&
+             internal::traits<typename internal::remove_all<Arg3Nested>::type>::ColsAtCompileTime == Dynamic)
       return m_arg2.cols();
     else
       return m_arg1.cols();
@@ -184,14 +166,10 @@ class CwiseTernaryOp : public CwiseTernaryOpImpl<
 };
 
 // Generic API dispatcher
-template <typename TernaryOp, typename Arg1, typename Arg2, typename Arg3,
-          typename StorageKind>
-class CwiseTernaryOpImpl
-    : public internal::generic_xpr_base<
-          CwiseTernaryOp<TernaryOp, Arg1, Arg2, Arg3> >::type {
+template <typename TernaryOp, typename Arg1, typename Arg2, typename Arg3, typename StorageKind>
+class CwiseTernaryOpImpl : public internal::generic_xpr_base<CwiseTernaryOp<TernaryOp, Arg1, Arg2, Arg3> >::type {
  public:
-  typedef typename internal::generic_xpr_base<
-      CwiseTernaryOp<TernaryOp, Arg1, Arg2, Arg3> >::type Base;
+  typedef typename internal::generic_xpr_base<CwiseTernaryOp<TernaryOp, Arg1, Arg2, Arg3> >::type Base;
 };
 
 }  // end namespace Eigen
