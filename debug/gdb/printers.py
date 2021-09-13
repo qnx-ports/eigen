@@ -133,7 +133,6 @@ class EigenMatrixPrinter:
 			return '[%d,%d]' % (row, col), item
 			
 	def children(self):
-		
 		return self._Iterator(self.rows, self.cols, self.data, self.rowMajor)
 		
 	def to_string(self):
