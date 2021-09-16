@@ -10,6 +10,8 @@
 #ifndef EIGEN_CXX11_TENSOR_TENSOR_FORWARD_DECLARATIONS_H
 #define EIGEN_CXX11_TENSOR_TENSOR_FORWARD_DECLARATIONS_H
 
+#include "./InternalHeaderCheck.h"
+
 namespace Eigen {
 
 // MakePointer class is used as a container of the address space of the pointer
@@ -61,8 +63,8 @@ template<typename BinaryOp, typename LeftXprType, typename RightXprType> class T
 template<typename TernaryOp, typename Arg1XprType, typename Arg2XprType, typename Arg3XprType> class TensorCwiseTernaryOp;
 template<typename IfXprType, typename ThenXprType, typename ElseXprType> class TensorSelectOp;
 template<typename Op, typename Dims, typename XprType, template <class> class MakePointer_ = MakePointer > class TensorReductionOp;
-template<typename XprType> class TensorIndexTupleOp;
-template<typename ReduceOp, typename Dims, typename XprType> class TensorTupleReducerOp;
+template<typename XprType> class TensorIndexPairOp;
+template<typename ReduceOp, typename Dims, typename XprType> class TensorPairReducerOp;
 template<typename Axis, typename LeftXprType, typename RightXprType> class TensorConcatenationOp;
 template<typename Dimensions, typename LeftXprType, typename RightXprType, typename OutputKernelType> class TensorContractionOp;
 template<typename TargetType, typename XprType> class TensorConversionOp;

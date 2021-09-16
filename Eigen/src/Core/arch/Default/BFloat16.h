@@ -16,6 +16,8 @@ limitations under the License.
 #ifndef EIGEN_BFLOAT16_H
 #define EIGEN_BFLOAT16_H
 
+#include "../../InternalHeaderCheck.h"
+
 #if defined(EIGEN_HAS_GPU_BF16)
 // When compiling with GPU support, the "hip_bfloat16" base class as well as
 // some other routines are defined in the GPU compiler header files
