@@ -38,6 +38,7 @@ void test_gpu_numext() {
 
   gpu_float.device(gpu_device) = gpu_float.random() - gpu_float.constant(0.5f);
   gpu_res_float.device(gpu_device) = gpu_float.unaryExpr(Eigen::internal::scalar_isnan_op<float>());
+  // Test bfloat16 specific isnan op.
   gpu_res_bfloat16.device(gpu_device) = gpu_float.cast<Eigen::bfloat16>().unaryExpr(Eigen::internal::scalar_isnan_op<Eigen::bfloat16>());
 
   Tensor<bool, 1> bfloat16_prec(num_elem);
@@ -467,6 +468,10 @@ EIGEN_DECLARE_TEST(cxx11_tensor_of_bfloat16_gpu)
 {
   CALL_SUBTEST_1(test_gpu_numext<void>());
 
+// The reduction unit tests have been excluded until a working
+// implementation to expand the accumulator data type to float32
+// is available.
+// TODO: add reduction unit tests
 #ifdef EIGEN_HAS_GPU_BF16
   CALL_SUBTEST_2(test_gpu_conversion<void>());
   CALL_SUBTEST_3(test_gpu_unary<void>());
