@@ -16,6 +16,10 @@
 #error a macro SVD_FOR_MIN_NORM(MatrixType) must be defined prior to including svd_common.h
 #endif
 
+#ifndef SVD_STATIC_OPTIONS
+#error a marco SVD_STATIC_OPTIONS(MatrixType, ComputationOptions) must be defined prior to including svd_common.h
+#endif
+
 #include "svd_fill.h"
 #include "solverbase.h"
 
@@ -85,7 +89,7 @@ void svd_compare_to_full(const MatrixType& m,
   }
   
   // The following checks are not critical.
-  // For instance, with Dived&Conquer SVD, if only the factor 'V' is computedt then different matrix-matrix product implementation will be used
+  // For instance, with Dived&Conquer SVD, if only the factor 'V' is computed then different matrix-matrix product implementation will be used
   // and the resulting 'V' factor might be significantly different when the SVD decomposition is not unique, especially with single precision float.
   ++g_test_level;
   if(computationOptions & ComputeFullU)  VERIFY_IS_APPROX(svd.matrixU(), referenceSvd.matrixU());
@@ -162,7 +166,7 @@ void svd_least_square(const MatrixType& m, unsigned int computationOptions)
   }
 }
 
-// check minimal norm solutions, the inoput matrix m is only used to recover problem size
+// check minimal norm solutions, the input matrix m is only used to recover problem size
 template<typename MatrixType>
 void svd_min_norm(const MatrixType& m, unsigned int computationOptions)
 {
@@ -395,8 +399,6 @@ void svd_underoverflow()
   CALL_SUBTEST( svd_check_full(M3,svd3) );
 }
 
-// void jacobisvd(const MatrixType& a = MatrixType(), bool pickrandom = true)
-
 template<typename MatrixType>
 void svd_all_trivial_2x2( void (*cb)(const MatrixType&,bool) )
 {
@@ -510,12 +512,160 @@ void svd_verify_assert(const MatrixType& m, bool fullOnly = false)
     VERIFY_RAISES_ASSERT(svd.matrixU())
     VERIFY_RAISES_ASSERT(svd.solve(rhs))
   }
-  else
+  else 
   {
     VERIFY_RAISES_ASSERT(svd.compute(a, ComputeThinU))
     VERIFY_RAISES_ASSERT(svd.compute(a, ComputeThinV))
   }
 }
 
+template<typename MatrixType, int QRPreconditioner = 0>
+void svd_static_verify_assert(const MatrixType& m = MatrixType())
+{
+  enum {
+    RowsAtCompileTime = MatrixType::RowsAtCompileTime
+  };
+
+  // If both supplied, static and runtime options must match exactly
+  VERIFY_RAISES_ASSERT(( SVD_STATIC_OPTIONS(MatrixType, QRPreconditioner | ComputeFullU)(m, ComputeFullV) ));
+  VERIFY_RAISES_ASSERT(( SVD_STATIC_OPTIONS(MatrixType, QRPreconditioner | ComputeThinV)(m, ComputeThinU) ));
+  VERIFY_RAISES_ASSERT(( SVD_STATIC_OPTIONS(MatrixType, QRPreconditioner | ComputeThinV | ComputeFullV)(m, ComputeThinU) ));
+  // cannot request both thin and full U or V
+  VERIFY_RAISES_ASSERT(( SVD_STATIC_OPTIONS(MatrixType, QRPreconditioner | ComputeFullU | ComputeThinU)(m) ));
+  VERIFY_RAISES_ASSERT(( SVD_STATIC_OPTIONS(MatrixType, QRPreconditioner | ComputeFullV | ComputeThinV)(m) ));
+
+  typedef Matrix<typename MatrixType::Scalar, RowsAtCompileTime, 1> RhsType;
+  RhsType rhs = RhsType::Zero(m.rows());
+
+  SVD_STATIC_OPTIONS(MatrixType, QRPreconditioner) svd0;
+  VERIFY_RAISES_ASSERT(( svd0.matrixU() ));
+  VERIFY_RAISES_ASSERT(( svd0.singularValues() ));
+  VERIFY_RAISES_ASSERT(( svd0.matrixV() ));
+  VERIFY_RAISES_ASSERT(( svd0.solve(rhs) ));
+  VERIFY_RAISES_ASSERT(( svd0.transpose().solve(rhs) ));
+  VERIFY_RAISES_ASSERT(( svd0.adjoint().solve(rhs) ));
+
+  SVD_STATIC_OPTIONS(MatrixType, QRPreconditioner) svd1(m);
+  VERIFY_RAISES_ASSERT(( svd1.matrixU() ));
+  VERIFY_RAISES_ASSERT(( svd1.matrixV() ));
+  VERIFY_RAISES_ASSERT(( svd1.solve(rhs)));
+
+  SVD_STATIC_OPTIONS(MatrixType, QRPreconditioner | ComputeFullU) svd2(m);
+  VERIFY_RAISES_ASSERT(( svd2.matrixV() ));
+  VERIFY_RAISES_ASSERT(( svd2.solve(rhs)));
+  SVD_STATIC_OPTIONS(MatrixType, QRPreconditioner | ComputeFullV) svd3(m);
+  VERIFY_RAISES_ASSERT(( svd3.matrixU() ));
+  VERIFY_RAISES_ASSERT(( svd3.solve(rhs)));
+
+  if (QRPreconditioner != FullPivHouseholderQRPreconditioner)
+  {
+    SVD_STATIC_OPTIONS(MatrixType, QRPreconditioner | ComputeThinU) svd4(m);
+    VERIFY_RAISES_ASSERT(( svd4.matrixV() ));
+    VERIFY_RAISES_ASSERT(( svd4.solve(rhs)));
+    SVD_STATIC_OPTIONS(MatrixType, QRPreconditioner | ComputeThinV) svd5(m);
+    VERIFY_RAISES_ASSERT(( svd5.matrixU() ));
+    VERIFY_RAISES_ASSERT(( svd5.solve(rhs)));
+  }
+}
+
+
+template<typename MatrixType, int ComputationOptions>
+void compute_static_checks(const MatrixType& m)
+{
+  typedef SVD_STATIC_OPTIONS(MatrixType, ComputationOptions) SVDType;
+
+  enum {
+    RowsAtCompileTime = MatrixType::RowsAtCompileTime,
+    ColsAtCompileTime = MatrixType::ColsAtCompileTime,
+    DiagAtCompileTime = EIGEN_SIZE_MIN_PREFER_DYNAMIC(RowsAtCompileTime, ColsAtCompileTime),
+    MatrixURowsAtCompileTime = SVDType::MatrixUType::RowsAtCompileTime,
+    MatrixUColsAtCompileTime = SVDType::MatrixUType::ColsAtCompileTime,
+    MatrixVRowsAtCompileTime = SVDType::MatrixVType::RowsAtCompileTime,
+    MatrixVColsAtCompileTime = SVDType::MatrixVType::ColsAtCompileTime
+  };
+  
+  SVDType staticSvd;
+  staticSvd.compute(m, ComputationOptions);
+
+  VERIFY(MatrixURowsAtCompileTime == RowsAtCompileTime);
+  VERIFY(MatrixVRowsAtCompileTime == ColsAtCompileTime);
+  if (ComputationOptions & ComputeThinU) VERIFY(MatrixUColsAtCompileTime == DiagAtCompileTime);
+  if (ComputationOptions & ComputeFullU) VERIFY(MatrixUColsAtCompileTime == RowsAtCompileTime);
+  if (ComputationOptions & ComputeThinV) VERIFY(MatrixVColsAtCompileTime == DiagAtCompileTime);
+  if (ComputationOptions & ComputeFullV) VERIFY(MatrixVColsAtCompileTime == ColsAtCompileTime);
+
+  if (ComputationOptions & (ComputeThinU|ComputeFullU)) VERIFY(staticSvd.computeU());
+  else VERIFY(!staticSvd.computeU());
+  if (ComputationOptions & (ComputeThinV|ComputeFullV)) VERIFY(staticSvd.computeV());
+  else VERIFY(!staticSvd.computeV());
+
+  if (staticSvd.computeU()) VERIFY(staticSvd.matrixU().isUnitary());
+  if (staticSvd.computeV()) VERIFY(staticSvd.matrixV().isUnitary());
+
+  if (staticSvd.computeU() && staticSvd.computeV())
+  {
+    svd_test_solvers(m, staticSvd);
+    svd_least_square<SVDType, MatrixType>(m, 0);
+  }
+}
+
+template<typename MatrixType, int QRPreconditioner = 0>
+void svd_static_option_checks(const MatrixType& m)
+{
+  // singular values only
+  compute_static_checks<MatrixType, QRPreconditioner | 0>(m);
+  // Thin only
+  compute_static_checks<MatrixType, QRPreconditioner | ComputeThinU               >(m);
+  compute_static_checks<MatrixType, QRPreconditioner | ComputeThinV               >(m);
+  compute_static_checks<MatrixType, QRPreconditioner | ComputeThinU | ComputeThinV>(m);
+  // Full only
+  compute_static_checks<MatrixType, QRPreconditioner | ComputeFullU               >(m);
+  compute_static_checks<MatrixType, QRPreconditioner | ComputeFullV               >(m);
+  compute_static_checks<MatrixType, QRPreconditioner | ComputeFullU | ComputeFullV>(m);
+  // Mixed
+  compute_static_checks<MatrixType, QRPreconditioner | ComputeThinU | ComputeFullV>(m);
+  compute_static_checks<MatrixType, QRPreconditioner | ComputeFullU | ComputeThinV>(m);
+}
+
+template<typename MatrixType, int QRPreconditioner = 0>
+void svd_static_option_checks_full_only(const MatrixType& m)
+{
+  compute_static_checks<MatrixType, QRPreconditioner | ComputeFullU>(m);
+  compute_static_checks<MatrixType, QRPreconditioner | ComputeFullV>(m);
+  compute_static_checks<MatrixType, QRPreconditioner | ComputeFullU | ComputeFullV>(m);
+}
+
+template<typename MatrixType, int QRPreconditioner = 0>
+void svd_check_max_size_matrix(int initialRows, int initialCols)
+{
+  enum {
+    MaxRowsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
+    MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime
+  };
+
+  int rows = MaxRowsAtCompileTime == Dynamic ? initialRows : (std::min)(initialRows, (int)MaxRowsAtCompileTime);
+  int cols = MaxColsAtCompileTime == Dynamic ? initialCols : (std::min)(initialCols, (int)MaxColsAtCompileTime);
+
+  MatrixType m(rows, cols);
+  SVD_STATIC_OPTIONS(MatrixType, QRPreconditioner | ComputeThinU | ComputeThinV) thinSvd(m);
+  SVD_STATIC_OPTIONS(MatrixType, QRPreconditioner | ComputeThinU | ComputeFullV) mixedSvd1(m);
+  SVD_STATIC_OPTIONS(MatrixType, QRPreconditioner | ComputeFullU | ComputeThinV) mixedSvd2(m);
+  SVD_STATIC_OPTIONS(MatrixType, QRPreconditioner | ComputeFullU | ComputeFullV) fullSvd(m);
+
+  MatrixType n(MaxRowsAtCompileTime, MaxColsAtCompileTime);
+  thinSvd.compute(n);
+  mixedSvd1.compute(n);
+  mixedSvd2.compute(n);
+  fullSvd.compute(n);
+
+  MatrixX<typename MatrixType::Scalar> dynamicMatrix(MaxRowsAtCompileTime + 1, MaxColsAtCompileTime + 1);
+
+  VERIFY_RAISES_ASSERT(thinSvd.compute(dynamicMatrix));
+  VERIFY_RAISES_ASSERT(mixedSvd1.compute(dynamicMatrix));
+  VERIFY_RAISES_ASSERT(mixedSvd2.compute(dynamicMatrix));
+  VERIFY_RAISES_ASSERT(fullSvd.compute(dynamicMatrix));
+}
+
 #undef SVD_DEFAULT
 #undef SVD_FOR_MIN_NORM
+#undef SVD_STATIC_OPTIONS
