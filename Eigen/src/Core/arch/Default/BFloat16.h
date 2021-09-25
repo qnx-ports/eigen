@@ -18,7 +18,7 @@ limitations under the License.
 
 #include "../../InternalHeaderCheck.h"
 
-#if defined(EIGEN_HAS_GPU_BF16)
+#if defined(EIGEN_HAS_GPU_BF16) && defined(EIGEN_HAS_HIP_BF16)
 // When compiling with GPU support, the "hip_bfloat16" base class as well as
 // some other routines are defined in the GPU compiler header files
 // (hip_bfloat16.h), and they are not tagged constexpr
@@ -45,6 +45,12 @@ limitations under the License.
 namespace Eigen {
 
 struct bfloat16;
+
+template <>
+EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Eigen::bfloat16 numext::bit_cast<Eigen::bfloat16, uint16_t>(const uint16_t& src);
+
+template <>
+EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC uint16_t numext::bit_cast<uint16_t, Eigen::bfloat16>(const Eigen::bfloat16& src);
 
 namespace bfloat16_impl {
 
@@ -183,8 +189,7 @@ namespace bfloat16_impl {
 // We need to provide emulated *host-side* BF16 operators for clang.
 #pragma push_macro("EIGEN_DEVICE_FUNC")
 #undef EIGEN_DEVICE_FUNC
-#if (defined(EIGEN_HAS_CUDA_BF16) && defined(EIGEN_HAS_NATIVE_BF16)) ||
-    (defined(EIGEN_HAS_HIP_BF16) && defined(EIGEN_HAS_NATIVE_BF16))
+#if (defined(EIGEN_HAS_HIP_BF16) && defined(EIGEN_HAS_NATIVE_BF16))
 #define EIGEN_DEVICE_FUNC __host__
 #else // both host and device need emulated ops.
 #define EIGEN_DEVICE_FUNC __host__ __device__
@@ -213,13 +218,8 @@ EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC bfloat16 operator / (const bfloat16& a, co
   return bfloat16(float(a) / float(b));
 }
 EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC bfloat16 operator - (const bfloat16& a) {
-  bfloat16 result;
-#if defined(EIGEN_USE_HIP_BF16)
-  result.data = a.data ^ 0x8000;
-#else
-  result.value = a.value ^ 0x8000;
-#endif
-  return result;
+  numext::uint16_t x = numext::bit_cast<uint16_t>(a) ^ 0x8000;
+  return numext::bit_cast<bfloat16>(x);
 }
 EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC bfloat16& operator += (bfloat16& a, const bfloat16& b) {
   a = bfloat16(float(a) + float(b));
@@ -512,7 +512,7 @@ EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC __bfloat16_raw float_to_bfloat16_rtne<true
 
 EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC float bfloat16_to_float(__bfloat16_raw h) {
 #if defined(EIGEN_USE_HIP_BF16)
-    return h; // uses HIP hip_bfloat16 to float conversion operator
+    return static_cast<float>(h);
 #else
     return numext::bit_cast<float>(static_cast<numext::uint32_t>(h.value) << 16);
 #endif
@@ -541,13 +541,8 @@ EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC bool (isfinite)(const bfloat16& a) {
 }
 
 EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC bfloat16 abs(const bfloat16& a) {
-  bfloat16 result;
-#if defined(EIGEN_USE_HIP_BF16)
-  result.data = a.data & 0x7FFF;
-#else
-  result.value = a.value & 0x7FFF;
-#endif
-  return result;
+  numext::uint16_t x = numext::bit_cast<numext::uint16_t>(a) & 0x7FFF;
+  return numext::bit_cast<bfloat16>(x);
 }
 EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC bfloat16 exp(const bfloat16& a) {
   return bfloat16(::expf(float(a)));
@@ -629,7 +624,7 @@ EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC bfloat16 fmod(const bfloat16& a, const bfl
 
 EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC bfloat16 (min)(const bfloat16& a, const bfloat16& b) {
 #if defined(EIGEN_USE_HIP_BF16)
-  return static_cast<__bfloat16_raw>(b) < static_cast<__bfloat16_raw>(a) ? b : a;
+  return b < a ? b : a;
 #else
   const float f1 = static_cast<float>(a);
   const float f2 = static_cast<float>(b);
@@ -639,7 +634,7 @@ EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC bfloat16 (min)(const bfloat16& a, const bf
 
 EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC bfloat16 (max)(const bfloat16& a, const bfloat16& b) {
 #if defined(EIGEN_USE_HIP_BF16)
-  return static_cast<__bfloat16_raw>(a) < static_cast<__bfloat16_raw>(b) ? b : a;
+  return a < b ? b : a;
 #else
   const float f1 = static_cast<float>(a);
   const float f2 = static_cast<float>(b);
@@ -728,7 +723,7 @@ template<> struct NumTraits<Eigen::bfloat16>
 } // namespace Eigen
 
 
-#if defined(EIGEN_HAS_GPU_BF16)
+#if defined(EIGEN_HAS_GPU_BF16) && defined(EIGEN_HAS_HIP_BF16)
   #pragma pop_macro("EIGEN_CONSTEXPR")
 #endif
 

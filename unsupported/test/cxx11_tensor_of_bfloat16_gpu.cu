@@ -478,7 +478,9 @@ EIGEN_DECLARE_TEST(cxx11_tensor_of_bfloat16_gpu)
   CALL_SUBTEST_4(test_gpu_elementwise<void>());
   CALL_SUBTEST_5(test_gpu_trancendental<void>());
   CALL_SUBTEST_6(test_gpu_contractions<void>());
-  CALL_SUBTEST_7(test_gpu_forced_evals<void>());
+  CALL_SUBTEST_7(test_gpu_reductions<void>());
+  CALL_SUBTEST_8(test_gpu_full_reductions<void>());
+  CALL_SUBTEST_9(test_gpu_forced_evals<void>());
 #else
   std::cout << "bfloat16 floats are not supported by this version of gpu: skipping the test" << std::endl;
 #endif
