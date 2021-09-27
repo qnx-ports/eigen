@@ -428,9 +428,9 @@ enum QRPreconditioners {
   /** Use a QR decomposition without pivoting as the first step. */
   HouseholderQRPreconditioner = 0x80,
   /** Use a QR decomposition with column pivoting as the first step. */
-  ColPivHouseholderQRPreconditioner = 0x100,
+  ColPivHouseholderQRPreconditioner = 0xC0,
   /** Use a QR decomposition with full pivoting as the first step. */
-  FullPivHouseholderQRPreconditioner = 0x200
+  FullPivHouseholderQRPreconditioner = 0x100
 };
 
 #ifdef Success

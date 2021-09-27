@@ -23,11 +23,13 @@ namespace Eigen {
 namespace internal {
 
 enum OptionsMasks {
-  QRPreconditionerMask = NoQRPreconditioner |
+  QRPreconditionerBits = NoQRPreconditioner |
                          HouseholderQRPreconditioner |
                          ColPivHouseholderQRPreconditioner |
                          FullPivHouseholderQRPreconditioner,
-  ComputationOptionsMask = ComputeFullU | ComputeThinU | ComputeFullV | ComputeThinV
+  ComputeUBits = ComputeFullU | ComputeThinU,
+  ComputeVBits = ComputeFullV | ComputeThinV,
+  ComputationOptionsBits = ComputeUBits | ComputeVBits
 };
 
 template<typename Derived> struct traits<SVDBase<Derived> >
@@ -43,24 +45,24 @@ template<typename MatrixType, int Options>
 struct svd_traits : traits<MatrixType>
 {
   enum {
-    ComputationOptions = Options & ComputationOptionsMask,
-    StaticComputeFullU = Options & ComputeFullU,
-    StaticComputeThinU = Options & ComputeThinU,
-    StaticComputeFullV = Options & ComputeFullV,
-    StaticComputeThinV = Options & ComputeThinV,
+    ComputationOptions = Options & ComputationOptionsBits,
+    ShouldComputeFullU = Options & ComputeFullU,
+    ShouldComputeThinU = Options & ComputeThinU,
+    ShouldComputeFullV = Options & ComputeFullV,
+    ShouldComputeThinV = Options & ComputeThinV,
     DiagSizeAtCompileTime = EIGEN_SIZE_MIN_PREFER_DYNAMIC(MatrixType::RowsAtCompileTime,MatrixType::ColsAtCompileTime),
     MaxDiagSizeAtCompileTime = EIGEN_SIZE_MIN_PREFER_DYNAMIC(MatrixType::MaxRowsAtCompileTime,MatrixType::MaxColsAtCompileTime),
-    MatrixUColsAtCompileTime = StaticComputeFullU ? MatrixType::RowsAtCompileTime
-                             : StaticComputeThinU ? DiagSizeAtCompileTime
+    MatrixUColsAtCompileTime = ShouldComputeFullU ? MatrixType::RowsAtCompileTime
+                             : ShouldComputeThinU ? DiagSizeAtCompileTime
                              : Dynamic,
-    MatrixVColsAtCompileTime = StaticComputeFullV ? MatrixType::ColsAtCompileTime
-                             : StaticComputeThinV ? DiagSizeAtCompileTime
+    MatrixVColsAtCompileTime = ShouldComputeFullV ? MatrixType::ColsAtCompileTime
+                             : ShouldComputeThinV ? DiagSizeAtCompileTime
                              : Dynamic,
-    MatrixUMaxColsAtCompileTime = StaticComputeFullU ? MatrixType::MaxRowsAtCompileTime
-                                : StaticComputeThinU ? MaxDiagSizeAtCompileTime
+    MatrixUMaxColsAtCompileTime = ShouldComputeFullU ? MatrixType::MaxRowsAtCompileTime
+                                : ShouldComputeThinU ? MaxDiagSizeAtCompileTime
                                 : Dynamic,
-    MatrixVMaxColsAtCompileTime = StaticComputeFullV ? MatrixType::MaxColsAtCompileTime
-                                : StaticComputeThinV ? MaxDiagSizeAtCompileTime
+    MatrixVMaxColsAtCompileTime = ShouldComputeFullV ? MatrixType::MaxColsAtCompileTime
+                                : ShouldComputeThinV ? MaxDiagSizeAtCompileTime
                                 : Dynamic
   };
 };
@@ -113,16 +115,21 @@ public:
   enum {
     RowsAtCompileTime = MatrixType::RowsAtCompileTime,
     ColsAtCompileTime = MatrixType::ColsAtCompileTime,
-    DiagSizeAtCompileTime = EIGEN_SIZE_MIN_PREFER_DYNAMIC(RowsAtCompileTime,ColsAtCompileTime),
     MaxRowsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
     MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime,
-    MaxDiagSizeAtCompileTime = EIGEN_SIZE_MIN_PREFER_FIXED(MaxRowsAtCompileTime,MaxColsAtCompileTime),
     MatrixOptions = MatrixType::Options,
+    ShouldComputeFullU = internal::traits<Derived>::ShouldComputeFullU,
+    ShouldComputeThinU = internal::traits<Derived>::ShouldComputeThinU,
+    ShouldComputeFullV = internal::traits<Derived>::ShouldComputeFullV,
+    ShouldComputeThinV = internal::traits<Derived>::ShouldComputeThinV,
     MatrixUColsAtCompileTime = internal::traits<Derived>::MatrixUColsAtCompileTime,
     MatrixVColsAtCompileTime = internal::traits<Derived>::MatrixVColsAtCompileTime,
     MatrixUMaxColsAtCompileTime = internal::traits<Derived>::MatrixUMaxColsAtCompileTime,
     MatrixVMaxColsAtCompileTime = internal::traits<Derived>::MatrixVMaxColsAtCompileTime
   };
+
+  EIGEN_STATIC_ASSERT(!(ShouldComputeFullU != 0 && ShouldComputeThinU != 0), "SVDBase: Cannot request both full and thin U")
+  EIGEN_STATIC_ASSERT(!(ShouldComputeFullV != 0 && ShouldComputeThinV != 0), "SVDBase: Cannot request both full and thin V")
 
   typedef typename internal::make_proper_matrix_type<
     Scalar, RowsAtCompileTime, MatrixUColsAtCompileTime, MatrixOptions, MaxRowsAtCompileTime, MatrixUMaxColsAtCompileTime
@@ -252,9 +259,9 @@ public:
   }
 
   /** \returns true if \a U (full or thin) is asked for in this SVD decomposition */
-  inline bool computeU() const { return m_computeFullU || m_computeThinU; }
+  EIGEN_CONSTEXPR inline bool computeU() const { return ShouldComputeFullU != 0 || ShouldComputeThinU != 0; }
   /** \returns true if \a V (full or thin) is asked for in this SVD decomposition */
-  inline bool computeV() const { return m_computeFullV || m_computeThinV; }
+  EIGEN_CONSTEXPR inline bool computeV() const { return ShouldComputeFullV != 0 || ShouldComputeThinV != 0; }
 
   inline Index rows() const { return m_rows; }
   inline Index cols() const { return m_cols; }
@@ -311,16 +318,13 @@ protected:
   }
 
   // return true if already allocated
-  bool allocate(Index rows, Index cols, unsigned int computationOptions) ;
+  bool allocate(Index rows, Index cols);
 
   MatrixUType m_matrixU;
   MatrixVType m_matrixV;
   SingularValuesType m_singularValues;
   ComputationInfo m_info;
   bool m_isInitialized, m_isAllocated, m_usePrescribedThreshold;
-  bool m_computeFullU, m_computeThinU;
-  bool m_computeFullV, m_computeThinV;
-  unsigned int m_computationOptions;
   Index m_nonzeroSingularValues, m_rows, m_cols, m_diagSize;
   RealScalar m_prescribedThreshold;
 
@@ -333,11 +337,6 @@ protected:
       m_isInitialized(false),
       m_isAllocated(false),
       m_usePrescribedThreshold(false),
-      m_computeFullU(false),
-      m_computeThinU(false),
-      m_computeFullV(false),
-      m_computeThinV(false),
-      m_computationOptions(0),
       m_rows(-1), m_cols(-1), m_diagSize(0)
   { }
 
@@ -376,25 +375,13 @@ void SVDBase<Derived>::_solve_impl_transposed(const RhsType &rhs, DstType &dst) 
 #endif
 
 template<typename Derived>
-bool SVDBase<Derived>::allocate(Index rows, Index cols, unsigned int computationOptions)
+bool SVDBase<Derived>::allocate(Index rows, Index cols)
 {
   eigen_assert(rows >= 0 && cols >= 0);
 
-  computationOptions &= internal::ComputationOptionsMask;
-  unsigned int staticComputationOptions = internal::traits<Derived>::ComputationOptions;
-
-  if (staticComputationOptions != 0)
-  {
-    eigen_assert((computationOptions == 0 || staticComputationOptions == computationOptions) &&
-                  "SVDBase: when both are provided, computation options provided through the Options template "
-                  "parameter and runtime argument must match exactly");
-    computationOptions = staticComputationOptions;
-  }
-
   if (m_isAllocated &&
       rows == m_rows &&
-      cols == m_cols &&
-      computationOptions == m_computationOptions)
+      cols == m_cols)
   {
     return true;
   }
@@ -404,26 +391,13 @@ bool SVDBase<Derived>::allocate(Index rows, Index cols, unsigned int computation
   m_info = Success;
   m_isInitialized = false;
   m_isAllocated = true;
-  m_computationOptions = computationOptions;
-  m_computeFullU = (computationOptions & ComputeFullU) != 0;
-  m_computeThinU = (computationOptions & ComputeThinU) != 0;
-  m_computeFullV = (computationOptions & ComputeFullV) != 0;
-  m_computeThinV = (computationOptions & ComputeThinV) != 0;
-  eigen_assert(!(m_computeFullU && m_computeThinU) && "SVDBase: you can't ask for both full and thin U");
-  eigen_assert(!(m_computeFullV && m_computeThinV) && "SVDBase: you can't ask for both full and thin V");
-  if (staticComputationOptions == 0) {
-     eigen_assert(EIGEN_IMPLIES(m_computeThinU || m_computeThinV, MatrixType::ColsAtCompileTime==Dynamic) &&
-                  "SVDBase: when using runtime computationOptions parameter, thin U and V are only available "
-                  "if your matrix has a dynamic number of columns. Consider using the Options "
-                  "template parameter instead.");
-  }
 
   m_diagSize = (std::min)(m_rows, m_cols);
   m_singularValues.resize(m_diagSize);
   if(RowsAtCompileTime==Dynamic)
-    m_matrixU.resize(m_rows, m_computeFullU ? m_rows : m_computeThinU ? m_diagSize : 0);
+    m_matrixU.resize(m_rows, ShouldComputeFullU ? m_rows : ShouldComputeThinU ? m_diagSize : 0);
   if(ColsAtCompileTime==Dynamic)
-    m_matrixV.resize(m_cols, m_computeFullV ? m_cols : m_computeThinV ? m_diagSize : 0);
+    m_matrixV.resize(m_cols, ShouldComputeFullV ? m_cols : ShouldComputeThinV ? m_diagSize : 0);
 
   return false;
 }

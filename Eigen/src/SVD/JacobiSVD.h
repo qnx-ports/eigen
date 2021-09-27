@@ -86,7 +86,7 @@ public:
       m_qr.~QRType();
       ::new (&m_qr) QRType(svd.rows(), svd.cols());
     }
-    if (svd.m_computeFullU) m_workspace.resize(svd.rows());
+    if (svd.ShouldComputeFullU) m_workspace.resize(svd.rows());
   }
 
   bool run(SVDType& svd, const MatrixType& matrix)
@@ -95,7 +95,7 @@ public:
     {
       m_qr.compute(matrix);
       svd.m_workMatrix = m_qr.matrixQR().block(0,0,matrix.cols(),matrix.cols()).template triangularView<Upper>();
-      if(svd.m_computeFullU) m_qr.matrixQ().evalTo(svd.m_matrixU, m_workspace);
+      if(svd.ShouldComputeFullU) m_qr.matrixQ().evalTo(svd.m_matrixU, m_workspace);
       if(svd.computeV()) svd.m_matrixV = m_qr.colsPermutation();
       return true;
     }
@@ -136,7 +136,7 @@ public:
       ::new (&m_qr) QRType(svd.cols(), svd.rows());
     }
     m_adjoint.resize(svd.cols(), svd.rows());
-    if (svd.m_computeFullV) m_workspace.resize(svd.cols());
+    if (svd.ShouldComputeFullV) m_workspace.resize(svd.cols());
   }
 
   bool run(SVDType& svd, const MatrixType& matrix)
@@ -146,7 +146,7 @@ public:
       m_adjoint = matrix.adjoint();
       m_qr.compute(m_adjoint);
       svd.m_workMatrix = m_qr.matrixQR().block(0,0,matrix.rows(),matrix.rows()).template triangularView<Upper>().adjoint();
-      if(svd.m_computeFullV) m_qr.matrixQ().evalTo(svd.m_matrixV, m_workspace);
+      if(svd.ShouldComputeFullV) m_qr.matrixQ().evalTo(svd.m_matrixV, m_workspace);
       if(svd.computeU()) svd.m_matrixU = m_qr.colsPermutation();
       return true;
     }
@@ -184,8 +184,8 @@ public:
       m_qr.~QRType();
       ::new (&m_qr) QRType(svd.rows(), svd.cols());
     }
-    if (svd.m_computeFullU) m_workspace.resize(svd.rows());
-    else if (svd.m_computeThinU) m_workspace.resize(svd.cols());
+    if (svd.ShouldComputeFullU) m_workspace.resize(svd.rows());
+    else if (svd.ShouldComputeThinU) m_workspace.resize(svd.cols());
   }
 
   bool run(SVDType& svd, const MatrixType& matrix)
@@ -194,8 +194,8 @@ public:
     {
       m_qr.compute(matrix);
       svd.m_workMatrix = m_qr.matrixQR().block(0,0,matrix.cols(),matrix.cols()).template triangularView<Upper>();
-      if(svd.m_computeFullU) m_qr.householderQ().evalTo(svd.m_matrixU, m_workspace);
-      else if(svd.m_computeThinU)
+      if(svd.ShouldComputeFullU) m_qr.householderQ().evalTo(svd.m_matrixU, m_workspace);
+      else if(svd.ShouldComputeThinU)
       {
         svd.m_matrixU.setIdentity(matrix.rows(), matrix.cols());
         m_qr.householderQ().applyThisOnTheLeft(svd.m_matrixU, m_workspace);
@@ -243,8 +243,8 @@ public:
       m_qr.~QRType();
       ::new (&m_qr) QRType(svd.cols(), svd.rows());
     }
-    if (svd.m_computeFullV) m_workspace.resize(svd.cols());
-    else if (svd.m_computeThinV) m_workspace.resize(svd.rows());
+    if (svd.ShouldComputeFullV) m_workspace.resize(svd.cols());
+    else if (svd.ShouldComputeThinV) m_workspace.resize(svd.rows());
     m_adjoint.resize(svd.cols(), svd.rows());
   }
 
@@ -256,8 +256,8 @@ public:
       m_qr.compute(m_adjoint);
 
       svd.m_workMatrix = m_qr.matrixQR().block(0,0,matrix.rows(),matrix.rows()).template triangularView<Upper>().adjoint();
-      if(svd.m_computeFullV) m_qr.householderQ().evalTo(svd.m_matrixV, m_workspace);
-      else if(svd.m_computeThinV)
+      if(svd.ShouldComputeFullV) m_qr.householderQ().evalTo(svd.m_matrixV, m_workspace);
+      else if(svd.ShouldComputeThinV)
       {
         svd.m_matrixV.setIdentity(matrix.cols(), matrix.rows());
         m_qr.householderQ().applyThisOnTheLeft(svd.m_matrixV, m_workspace);
@@ -299,8 +299,8 @@ public:
       m_qr.~QRType();
       ::new (&m_qr) QRType(svd.rows(), svd.cols());
     }
-    if (svd.m_computeFullU) m_workspace.resize(svd.rows());
-    else if (svd.m_computeThinU) m_workspace.resize(svd.cols());
+    if (svd.ShouldComputeFullU) m_workspace.resize(svd.rows());
+    else if (svd.ShouldComputeThinU) m_workspace.resize(svd.cols());
   }
 
   bool run(SVDType& svd, const MatrixType& matrix)
@@ -309,8 +309,8 @@ public:
     {
       m_qr.compute(matrix);
       svd.m_workMatrix = m_qr.matrixQR().block(0,0,matrix.cols(),matrix.cols()).template triangularView<Upper>();
-      if(svd.m_computeFullU) m_qr.householderQ().evalTo(svd.m_matrixU, m_workspace);
-      else if(svd.m_computeThinU)
+      if(svd.ShouldComputeFullU) m_qr.householderQ().evalTo(svd.m_matrixU, m_workspace);
+      else if(svd.ShouldComputeThinU)
       {
         svd.m_matrixU.setIdentity(matrix.rows(), matrix.cols());
         m_qr.householderQ().applyThisOnTheLeft(svd.m_matrixU, m_workspace);
@@ -358,8 +358,8 @@ public:
       m_qr.~QRType();
       ::new (&m_qr) QRType(svd.cols(), svd.rows());
     }
-    if (svd.m_computeFullV) m_workspace.resize(svd.cols());
-    else if (svd.m_computeThinV) m_workspace.resize(svd.rows());
+    if (svd.ShouldComputeFullV) m_workspace.resize(svd.cols());
+    else if (svd.ShouldComputeThinV) m_workspace.resize(svd.rows());
     m_adjoint.resize(svd.cols(), svd.rows());
   }
 
@@ -371,8 +371,8 @@ public:
       m_qr.compute(m_adjoint);
 
       svd.m_workMatrix = m_qr.matrixQR().block(0,0,matrix.rows(),matrix.rows()).template triangularView<Upper>().adjoint();
-      if(svd.m_computeFullV) m_qr.householderQ().evalTo(svd.m_matrixV, m_workspace);
-      else if(svd.m_computeThinV)
+      if(svd.ShouldComputeFullV) m_qr.householderQ().evalTo(svd.m_matrixV, m_workspace);
+      else if(svd.ShouldComputeThinV)
       {
         svd.m_matrixV.setIdentity(matrix.cols(), matrix.rows());
         m_qr.householderQ().applyThisOnTheLeft(svd.m_matrixV, m_workspace);
@@ -551,7 +551,7 @@ template<typename MatrixType_, int Options> class JacobiSVD
     typedef typename MatrixType::Scalar Scalar;
     typedef typename NumTraits<typename MatrixType::Scalar>::Real RealScalar;
     enum {
-      SelectedQRPreconditioner = Options & internal::QRPreconditionerMask,
+      SelectedQRPreconditioner = Options & internal::QRPreconditionerBits,
       QRPreconditioner = SelectedQRPreconditioner == 0 ? ColPivHouseholderQRPreconditioner : SelectedQRPreconditioner,
       RowsAtCompileTime = MatrixType::RowsAtCompileTime,
       ColsAtCompileTime = MatrixType::ColsAtCompileTime,
@@ -577,64 +577,31 @@ template<typename MatrixType_, int Options> class JacobiSVD
     JacobiSVD()
     {}
 
-
     /** \brief Default Constructor with memory preallocation
       *
       * Like the default constructor but with preallocation of the internal data
       * according to the specified problem size.
       * \sa JacobiSVD()
       */
-    JacobiSVD(Index rows, Index cols, unsigned int computationOptions = 0)
+    JacobiSVD(Index rows, Index cols)
     {
-      allocate(rows, cols, computationOptions);
+      allocate(rows, cols);
     }
 
     /** \brief Constructor performing the decomposition of given matrix.
      *
      * \param matrix the matrix to decompose
-     * \param computationOptions optional parameter allowing to specify if you want full or thin \a U or \a V unitaries to be computed.
-     *                           By default, the unitaries are not computed. This is a bit-field, the possible bits are #ComputeFullU, #ComputeThinU,
-     *                           #ComputeFullV, #ComputeThinV. Note that these can also be specified using the Options template parameter.
-     *
-     * Thin unitiaries are only available when your matrix type has a Dynamic number of columns (for example, MatrixXf), or when the
-     * unitaries were requested using the \a Options template parameter (for example, JacobiSVD<Matrix3d, ComputeThinU | ComputeThinV>(m)).
-     * Thin unitaries are also unavailable with the (non-default) FullPivHouseholderQR preconditioner.
-     *
-     * If unitaries are requested using both the Options template parameter and the computationOptions runtime argument, the settings must
-     * match exactly.
      */
-    explicit JacobiSVD(const MatrixType& matrix, unsigned int computationOptions = 0)
+    explicit JacobiSVD(const MatrixType& matrix)
     {
-      compute(matrix, computationOptions);
+      compute(matrix);
     }
 
     /** \brief Method performing the decomposition of given matrix using custom options.
      *
      * \param matrix the matrix to decompose
-     * \param computationOptions optional parameter allowing to specify if you want full or thin \a U or \a V unitaries to be computed.
-     *                           By default, the unitaries are not computed. This is a bit-field, the possible bits are #ComputeFullU, #ComputeThinU,
-     *                           #ComputeFullV, #ComputeThinV. Note that these can also be specified using the Options template parameter.
-     *
-     * Thin unitiaries are only available when your matrix type has a Dynamic number of columns (for example, MatrixXf), or when the
-     * unitaries were requested using the \a Options template parameter (for example, JacobiSVD<Matrix3d, ComputeThinU | ComputeThinV>(m)).
-     * Thin unitaries are also unavailable with the (non-default) FullPivHouseholderQR preconditioner.
-     *
-     * If unitaries are requested using both the Options template parameter and the \a computationOptions runtime argument, the settings must
-     * match exactly.
      */
-    JacobiSVD& compute(const MatrixType& matrix, unsigned int computationOptions);
-
-    /** \brief Method performing the decomposition of given matrix using current options.
-     *
-     * \param matrix the matrix to decompose
-     *
-     * This method uses the current \a computationOptions, as already passed to the \a Options template paramter, constructor, or to
-     * compute(const MatrixType&, unsigned int).
-     */
-    JacobiSVD& compute(const MatrixType& matrix)
-    {
-      return compute(matrix, m_computationOptions);
-    }
+    JacobiSVD& compute(const MatrixType& matrix);
 
     using Base::computeU;
     using Base::computeV;
@@ -643,7 +610,7 @@ template<typename MatrixType_, int Options> class JacobiSVD
     using Base::rank;
 
   private:
-    void allocate(Index rows, Index cols, unsigned int computationOptions);
+    void allocate(Index rows, Index cols);
 
   protected:
     using Base::m_matrixU;
@@ -653,17 +620,20 @@ template<typename MatrixType_, int Options> class JacobiSVD
     using Base::m_isInitialized;
     using Base::m_isAllocated;
     using Base::m_usePrescribedThreshold;
-    using Base::m_computeFullU;
-    using Base::m_computeThinU;
-    using Base::m_computeFullV;
-    using Base::m_computeThinV;
-    using Base::m_computationOptions;
+    using Base::ShouldComputeFullU;
+    using Base::ShouldComputeThinU;
+    using Base::ShouldComputeFullV;
+    using Base::ShouldComputeThinV;
     using Base::m_nonzeroSingularValues;
     using Base::m_rows;
     using Base::m_cols;
     using Base::m_diagSize;
     using Base::m_prescribedThreshold;
     WorkMatrixType m_workMatrix;
+
+    EIGEN_STATIC_ASSERT(EIGEN_IMPLIES((ShouldComputeThinU != 0 || ShouldComputeThinV != 0), QRPreconditioner != FullPivHouseholderQRPreconditioner),
+                    "JacobiSVD: can't compute thin U or thin V with the FullPivHouseholderQR preconditioner. "
+                    "Use the ColPivHouseholderQR preconditioner instead.")
 
     template<typename MatrixType__, int Options_, bool IsComplex_>
     friend struct internal::svd_precondition_2x2_block_to_be_real;
@@ -676,15 +646,10 @@ template<typename MatrixType_, int Options> class JacobiSVD
 };
 
 template<typename MatrixType, int Options>
-void JacobiSVD<MatrixType, Options>::allocate(Eigen::Index rows, Eigen::Index cols, unsigned int computationOptions)
+void JacobiSVD<MatrixType, Options>::allocate(Eigen::Index rows, Eigen::Index cols)
 {
-  if (Base::allocate(rows, cols, computationOptions))
+  if (Base::allocate(rows, cols))
     return;
-
-  if ((Options & internal::QRPreconditionerMask) == FullPivHouseholderQRPreconditioner)
-      eigen_assert(!(m_computeThinU || m_computeThinV) &&
-                   "JacobiSVD: can't compute thin U or thin V with the FullPivHouseholderQR preconditioner. "
-                   "Use the ColPivHouseholderQR preconditioner instead.");
 
   m_workMatrix.resize(m_diagSize, m_diagSize);
   if(m_cols>m_rows)   m_qr_precond_morecols.allocate(*this);
@@ -694,10 +659,10 @@ void JacobiSVD<MatrixType, Options>::allocate(Eigen::Index rows, Eigen::Index co
 
 template<typename MatrixType, int Options>
 JacobiSVD<MatrixType, Options>&
-JacobiSVD<MatrixType, Options>::compute(const MatrixType& matrix, unsigned int computationOptions)
+JacobiSVD<MatrixType, Options>::compute(const MatrixType& matrix)
 {
   using std::abs;
-  allocate(matrix.rows(), matrix.cols(), computationOptions);
+  allocate(matrix.rows(), matrix.cols());
 
   // currently we stop when we reach precision 2*epsilon as the last bit of precision can require an unreasonable number of iterations,
   // only worsening the precision of U and V as we accumulate more rotations
@@ -726,10 +691,10 @@ JacobiSVD<MatrixType, Options>::compute(const MatrixType& matrix, unsigned int c
   else
   {
     m_workMatrix = matrix.block(0,0,m_diagSize,m_diagSize) / scale;
-    if(m_computeFullU) m_matrixU.setIdentity(m_rows,m_rows);
-    if(m_computeThinU) m_matrixU.setIdentity(m_rows,m_diagSize);
-    if(m_computeFullV) m_matrixV.setIdentity(m_cols,m_cols);
-    if(m_computeThinV) m_matrixV.setIdentity(m_cols, m_diagSize);
+    if(ShouldComputeFullU) m_matrixU.setIdentity(m_rows,m_rows);
+    if(ShouldComputeThinU) m_matrixU.setIdentity(m_rows,m_diagSize);
+    if(ShouldComputeFullV) m_matrixV.setIdentity(m_cols,m_cols);
+    if(ShouldComputeThinV) m_matrixV.setIdentity(m_cols, m_diagSize);
   }
 
   /*** step 2. The main Jacobi SVD iteration. ***/
@@ -832,10 +797,11 @@ JacobiSVD<MatrixType, Options>::compute(const MatrixType& matrix, unsigned int c
   * \sa class JacobiSVD
   */
 template<typename Derived>
-JacobiSVD<typename MatrixBase<Derived>::PlainObject>
-MatrixBase<Derived>::jacobiSvd(unsigned int computationOptions) const
+template<int ComputationOptions>
+JacobiSVD<typename MatrixBase<Derived>::PlainObject, ComputationOptions>
+MatrixBase<Derived>::jacobiSvd() const
 {
-  return JacobiSVD<PlainObject>(*this, computationOptions);
+  return JacobiSVD<PlainObject, ComputationOptions>(*this);
 }
 
 } // end namespace Eigen
