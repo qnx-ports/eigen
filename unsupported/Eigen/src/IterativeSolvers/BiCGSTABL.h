@@ -118,7 +118,7 @@ bool bicgstabl(const MatrixType &mat, const Rhs &rhs, Dest &x,
 
       if (!(numext::isfinite)(rho1) || rho0 == RealScalar(0.0)) {
         // We cannot continue computing, return the best solution found.
-        x = x + x_prime;
+        x += x_prime;
 
         // Check if x is better than the best stored solution thus far.
         normr = (rhs - mat * (precond.solve(x) + x0)).norm();
@@ -132,7 +132,7 @@ bool bicgstabl(const MatrixType &mat, const Rhs &rhs, Dest &x,
         iters = k;
         // x contains the updates to x0, add those back to obtain the solution
         x = precond.solve(x);
-        x = x + x0;
+        x += x0;
         return (normr < tol * normb);
       }
 
@@ -144,7 +144,7 @@ bool bicgstabl(const MatrixType &mat, const Rhs &rhs, Dest &x,
       const Scalar sigma = rShadow.dot(uHat.col(j + 1));
       alpha = rho1 / sigma;
       // Update residuals
-      rHat.leftCols(j + 1) -= alpha * uHat.block(0, 1, N, j + 1);
+      rHat.leftCols(j + 1) -= alpha * uHat.middleCols(1, j + 1);
       rHat.col(j + 1) = mat * precond.solve(rHat.col(j));
       // Complete BiCG iteration by updating x
       x += alpha * uHat.col(0);
@@ -262,7 +262,7 @@ bool bicgstabl(const MatrixType &mat, const Rhs &rhs, Dest &x,
 
   // x contains the updates to x0, add those back to obtain the solution
   x = precond.solve(x);
-  x = x + x0;
+  x += x0;
   return true;
 }
 
