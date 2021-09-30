@@ -25,21 +25,7 @@
 #define SVD_STATIC_OPTIONS(M, O) BDCSVD<M, O>
 #include "svd_common.h"
 
-/*
-// Check all variants of JacobiSVD
-template<typename MatrixType>
-void bdcsvd(const MatrixType& a = MatrixType(), bool pickrandom = true)
-{
-  MatrixType m;
-  if(pickrandom) {
-    m.resizeLike(a);
-    svd_fill_random(m);
-  }
-  else
-    m = a;
 
-  CALL_SUBTEST(( svd_test_all_computation_options<BDCSVD<MatrixType> >(m, false)  ));
-}
 
 template<typename MatrixType>
 void bdcsvd_method()
@@ -51,23 +37,23 @@ void bdcsvd_method()
   VERIFY_IS_APPROX(m.bdcSvd().singularValues(), RealVecType::Ones());
   VERIFY_RAISES_ASSERT(m.bdcSvd().matrixU());
   VERIFY_RAISES_ASSERT(m.bdcSvd().matrixV());
-  VERIFY_IS_APPROX(m.bdcSvd(ComputeFullU|ComputeFullV).solve(m), m);
-  VERIFY_IS_APPROX(m.bdcSvd(ComputeFullU|ComputeFullV).transpose().solve(m), m);
-  VERIFY_IS_APPROX(m.bdcSvd(ComputeFullU|ComputeFullV).adjoint().solve(m), m);
+  VERIFY_IS_APPROX(m.template bdcSvd<ComputeFullU|ComputeFullV>().solve(m), m);
+  VERIFY_IS_APPROX(m.template bdcSvd<ComputeFullU|ComputeFullV>().transpose().solve(m), m);
+  VERIFY_IS_APPROX(m.template bdcSvd<ComputeFullU|ComputeFullV>().adjoint().solve(m), m);
 }
 
 // Compare the Singular values returned with Jacobi and Bdc.
-template<typename MatrixType>
+template<typename MatrixType, int Options>
 void compare_bdc_jacobi(const MatrixType& a = MatrixType(), unsigned int computationOptions = 0, int algoswap = 16, bool random = true)
 // compare the Singular values returned with Jacobi and Bdc
 {
   MatrixType m = random ? MatrixType::Random(a.rows(), a.cols()) : a;
 
-  BDCSVD<MatrixType> bdc_svd(m.rows(), m.cols(), computationOptions);
+  BDCSVD<MatrixType, Options> bdc_svd(m.rows(), m.cols());
   bdc_svd.setSwitchSize(algoswap);
   bdc_svd.compute(m);
 
-  JacobiSVD<MatrixType> jacobi_svd(m);
+  JacobiSVD<MatrixType, Options> jacobi_svd(m);
   VERIFY_IS_APPROX(bdc_svd.singularValues(), jacobi_svd.singularValues());
 
   if(computationOptions & ComputeFullU) VERIFY_IS_APPROX(bdc_svd.matrixU(), jacobi_svd.matrixU());
@@ -75,7 +61,6 @@ void compare_bdc_jacobi(const MatrixType& a = MatrixType(), unsigned int computa
   if(computationOptions & ComputeFullV) VERIFY_IS_APPROX(bdc_svd.matrixV(), jacobi_svd.matrixV());
   if(computationOptions & ComputeThinV) VERIFY_IS_APPROX(bdc_svd.matrixV(), jacobi_svd.matrixV());
 }
-*/
 
 // Verifies total deflation is **not** triggered.
 void compare_bdc_jacobi_instance(bool structure_as_m, int algoswap = 16)
@@ -108,53 +93,33 @@ void bdcsvd_static_all_options(const MatrixType& input = MatrixType())
 
 EIGEN_DECLARE_TEST(bdcsvd)
 {
-  /*
-  CALL_SUBTEST_3(( svd_verify_assert<BDCSVD<Matrix3f>  >(Matrix3f()) ));
-  CALL_SUBTEST_4(( svd_verify_assert<BDCSVD<Matrix4d>  >(Matrix4d()) ));
-  CALL_SUBTEST_7(( svd_verify_assert<BDCSVD<MatrixXf>  >(MatrixXf(10,12)) ));
-  CALL_SUBTEST_8(( svd_verify_assert<BDCSVD<MatrixXcd> >(MatrixXcd(7,5)) ));
-
-  CALL_SUBTEST_7(( svd_verify_assert<BDCSVD<MatrixXf>  >(MatrixXf(31, 53)) ));
-  CALL_SUBTEST_8(( svd_verify_assert<BDCSVD<MatrixXcd> >(MatrixXcd(53, 31)) ));
-  */
   CALL_SUBTEST_3(( svd_static_verify_assert<Matrix3f>() ));
   CALL_SUBTEST_4(( svd_static_verify_assert<Matrix4d>() ));
   CALL_SUBTEST_7(( svd_static_verify_assert<Matrix<float, 30, 21> >() ));
   CALL_SUBTEST_7(( svd_static_verify_assert<Matrix<float, 21, 30> >() ));
   CALL_SUBTEST_9(( svd_static_verify_assert<Matrix<std::complex<double>, 20, 27> >() ));
 
-  //CALL_SUBTEST_101(( svd_all_trivial_2x2(bdcsvd<Matrix2cd>) ));
-  //CALL_SUBTEST_102(( svd_all_trivial_2x2(bdcsvd<Matrix2d>) ));
+  CALL_SUBTEST_101(( svd_all_trivial_2x2(bdcsvd_static_all_options<Matrix2cd>) ));
+  CALL_SUBTEST_102(( svd_all_trivial_2x2(bdcsvd_static_all_options<Matrix2d>) ));
 
   for(int i = 0; i < g_repeat; i++) {
-    /*
-    CALL_SUBTEST_3(( bdcsvd<Matrix3f>() ));
-    CALL_SUBTEST_4(( bdcsvd<Matrix4d>() ));
-    CALL_SUBTEST_5(( bdcsvd<Matrix<float,3,5> >() ));
-*/
     int r = internal::random<int>(1, EIGEN_TEST_MAX_SIZE/2),
         c = internal::random<int>(1, EIGEN_TEST_MAX_SIZE/2);
 
     TEST_SET_BUT_UNUSED_VARIABLE(r)
     TEST_SET_BUT_UNUSED_VARIABLE(c)
 
-/*
-    CALL_SUBTEST_6((  bdcsvd(Matrix<double,Dynamic,2>(r,2)) ));
-    CALL_SUBTEST_7((  bdcsvd(MatrixXf(r,c)) ));
-    CALL_SUBTEST_7((  compare_bdc_jacobi(MatrixXf(r,c)) ));
-    CALL_SUBTEST_10(( bdcsvd(MatrixXd(r,c)) ));
-    CALL_SUBTEST_10(( compare_bdc_jacobi(MatrixXd(r,c)) ));
-    CALL_SUBTEST_8((  bdcsvd(MatrixXcd(r,c)) ));
-    CALL_SUBTEST_8((  compare_bdc_jacobi(MatrixXcd(r,c)) ));
-
+    CALL_SUBTEST_7((  compare_bdc_jacobi<MatrixXf, ComputeFullU | ComputeThinV>(MatrixXf(r,c)) ));
+    CALL_SUBTEST_10(( compare_bdc_jacobi<MatrixXd, ComputeFullU | ComputeFullV>(MatrixXd(r,c)) ));
+    CALL_SUBTEST_8((  compare_bdc_jacobi<MatrixXcd, ComputeThinU | ComputeThinV>(MatrixXcd(r,c)) ));
     // Test on inf/nan matrix
-    CALL_SUBTEST_7(  (svd_inf_nan<BDCSVD<MatrixXf>, MatrixXf>()) );
-    CALL_SUBTEST_10( (svd_inf_nan<BDCSVD<MatrixXd>, MatrixXd>()) );
-*/
+    CALL_SUBTEST_7(  (svd_inf_nan<MatrixXf>()) );
+    CALL_SUBTEST_10( (svd_inf_nan<MatrixXd>()) );
+
     // Verify some computations using all combinations of the Options template parameter.
     CALL_SUBTEST_3(( bdcsvd_static_all_options<Matrix3f>() ));
     CALL_SUBTEST_3(( bdcsvd_static_all_options<Matrix<float, 2, 3> >() ));
-    CALL_SUBTEST_4(( bdcsvd_static_all_options<Matrix<double, 20, 17> >() ));
+    // CALL_SUBTEST_4(( bdcsvd_static_all_options<Matrix<double, 20, 17> >() ));
     // CALL_SUBTEST_4(( bdcsvd_static_all_options<Matrix<double, 17, 20> >() ));
     CALL_SUBTEST_5(( bdcsvd_static_all_options<Matrix<double, Dynamic, 30> >(Matrix<double, Dynamic, 30>(r, 30)) ));
     CALL_SUBTEST_5(( bdcsvd_static_all_options<Matrix<double, 20, Dynamic> >(Matrix<double, 20, Dynamic>(20, c)) ));
@@ -171,18 +136,17 @@ EIGEN_DECLARE_TEST(bdcsvd)
   }
 
   // test matrixbase method
-  //CALL_SUBTEST_1(( bdcsvd_method<Matrix2cd>() ));
-  //CALL_SUBTEST_3(( bdcsvd_method<Matrix3f>() ));
+  CALL_SUBTEST_1(( bdcsvd_method<Matrix2cd>() ));
+  CALL_SUBTEST_3(( bdcsvd_method<Matrix3f>() ));
 
   // Test problem size constructors
-  //CALL_SUBTEST_7( BDCSVD<MatrixXf>(10,10) );
+  CALL_SUBTEST_7( BDCSVD<MatrixXf>(10,10) );
 
   // Check that preallocation avoids subsequent mallocs
   // Disabled because not supported by BDCSVD
   // CALL_SUBTEST_9( svd_preallocate<void>() );
 
   CALL_SUBTEST_2( svd_underoverflow<void>() );
-  //CALL_SUBTEST_2( svd_underoverflow<void>() );
 
   // Without total deflation issues.
   CALL_SUBTEST_11((  compare_bdc_jacobi_instance(true) ));
