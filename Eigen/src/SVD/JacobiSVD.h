@@ -632,8 +632,8 @@ template<typename MatrixType_, int Options> class JacobiSVD
     WorkMatrixType m_workMatrix;
 
     EIGEN_STATIC_ASSERT(EIGEN_IMPLIES((ShouldComputeThinU != 0 || ShouldComputeThinV != 0), QRPreconditioner != FullPivHouseholderQRPreconditioner),
-                    "JacobiSVD: can't compute thin U or thin V with the FullPivHouseholderQR preconditioner. "
-                    "Use the ColPivHouseholderQR preconditioner instead.")
+                        "JacobiSVD: can't compute thin U or thin V with the FullPivHouseholderQR preconditioner. "
+                        "Use the ColPivHouseholderQR preconditioner instead.")
 
     template<typename MatrixType__, int Options_, bool IsComplex_>
     friend struct internal::svd_precondition_2x2_block_to_be_real;

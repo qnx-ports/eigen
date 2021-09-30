@@ -370,10 +370,10 @@ template<typename Derived> class MatrixBase
 
 /////////// SVD module ///////////
 
-    template<int Options>
+    template<int Options = 0>
     inline JacobiSVD<PlainObject, Options> jacobiSvd() const;
 
-    template<int Options>
+    template<int Options = 0>
     inline BDCSVD<PlainObject, Options> bdcSvd() const;
 
 /////////// Geometry module ///////////
