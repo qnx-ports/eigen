@@ -277,7 +277,7 @@ template<typename MatrixType> class ColPivHouseholderQR;
 template<typename MatrixType> class FullPivHouseholderQR;
 template<typename MatrixType> class CompleteOrthogonalDecomposition;
 template<typename MatrixType> class SVDBase;
-template<typename MatrixType, int Options = ColPivHouseholderQRPreconditioner> class JacobiSVD;
+template<typename MatrixType, int Options = 0> class JacobiSVD;
 template<typename MatrixType, int Options = 0> class BDCSVD;
 template<typename MatrixType, int UpLo = Lower> class LLT;
 template<typename MatrixType, int UpLo = Lower> class LDLT;
