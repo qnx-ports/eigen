@@ -248,7 +248,7 @@ if(NOT MSVC)
 
   option(EIGEN_TEST_AVX512DQ "Enable/Disable AVX512DQ in tests/examples" OFF)
   if(EIGEN_TEST_AVX512DQ)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mavx512dq")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mavx512dq -mfma")
     message(STATUS "Enabling AVX512DQ in tests/examples")
   endif()
 
@@ -400,7 +400,8 @@ if(EIGEN_TEST_NO_EXCEPTIONS)
   message(STATUS "Disabling exceptions in tests/examples")
 endif()
 
-set(EIGEN_CUDA_COMPUTE_ARCH 30 CACHE STRING "The CUDA compute architecture level to target when compiling CUDA code")
+set(EIGEN_CUDA_CXX_FLAGS "" CACHE STRING "Additional flags to pass to the cuda compiler.")
+set(EIGEN_CUDA_COMPUTE_ARCH 30 CACHE STRING "The CUDA compute architecture(s) to target when compiling CUDA code")
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
