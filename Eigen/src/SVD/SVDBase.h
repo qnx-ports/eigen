@@ -27,9 +27,7 @@ enum OptionsMasks {
                          HouseholderQRPreconditioner |
                          ColPivHouseholderQRPreconditioner |
                          FullPivHouseholderQRPreconditioner,
-  ComputeUBits = ComputeFullU | ComputeThinU,
-  ComputeVBits = ComputeFullV | ComputeThinV,
-  ComputationOptionsBits = ComputeUBits | ComputeVBits
+  ComputationOptionsBits = ComputeFullU | ComputeThinU | ComputeFullV | ComputeThinV
 };
 
 template<typename Derived> struct traits<SVDBase<Derived> >
@@ -113,15 +111,15 @@ public:
   typedef typename Eigen::internal::traits<SVDBase>::StorageIndex StorageIndex;
   typedef Eigen::Index Index; ///< \deprecated since Eigen 3.3
   enum {
+    ShouldComputeFullU = internal::traits<Derived>::ShouldComputeFullU,
+    ShouldComputeThinU = internal::traits<Derived>::ShouldComputeThinU,
+    ShouldComputeFullV = internal::traits<Derived>::ShouldComputeFullV,
+    ShouldComputeThinV = internal::traits<Derived>::ShouldComputeThinV,
     RowsAtCompileTime = MatrixType::RowsAtCompileTime,
     ColsAtCompileTime = MatrixType::ColsAtCompileTime,
     MaxRowsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
     MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime,
     MatrixOptions = MatrixType::Options,
-    ShouldComputeFullU = internal::traits<Derived>::ShouldComputeFullU,
-    ShouldComputeThinU = internal::traits<Derived>::ShouldComputeThinU,
-    ShouldComputeFullV = internal::traits<Derived>::ShouldComputeFullV,
-    ShouldComputeThinV = internal::traits<Derived>::ShouldComputeThinV,
     MatrixUColsAtCompileTime = internal::traits<Derived>::MatrixUColsAtCompileTime,
     MatrixVColsAtCompileTime = internal::traits<Derived>::MatrixVColsAtCompileTime,
     MatrixUMaxColsAtCompileTime = internal::traits<Derived>::MatrixUMaxColsAtCompileTime,

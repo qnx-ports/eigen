@@ -63,7 +63,7 @@ struct traits<BDCSVD<MatrixType_,Options> >
  * \tparam MatrixType_ the type of the matrix of which we are computing the SVD decomposition
  * 
  * \tparam Options this optional parameter allows one to specify options for computing unitaries \a U and \a V
- *                  possible values are #ComputeThinU, #ComputeThinV, #ComputeFullU, #ComputeFullV. By default, 
+ *                  possible values are #ComputeThinU, #ComputeThinV, #ComputeFullU, #ComputeFullV. By default,
  *                  unitaries are not computed.
  *
  * This class first reduces the input matrix to bi-diagonal form using class UpperBidiagonalization,
@@ -178,7 +178,7 @@ private:
   void structured_update(Block<MatrixXr,Dynamic,Dynamic> A, const MatrixXr &B, Index n1);
   static RealScalar secularEq(RealScalar x, const ArrayRef& col0, const ArrayRef& diag, const IndicesRef &perm, const ArrayRef& diagShifted, RealScalar shift);
   template<typename SVDType>
-  void computeBaseCase(SVDType& svd, Index n, Index firstCol, Index firstRowW, Index firstColW, Index shift);
+  bool computeBaseCase(SVDType& svd, Index n, Index firstCol, Index firstRowW, Index firstColW, Index shift);
 
 protected:
   MatrixXr m_naiveU, m_naiveV;
@@ -388,14 +388,14 @@ void BDCSVD<MatrixType, Options>::structured_update(Block<MatrixXr,Dynamic,Dynam
 
 template<typename MatrixType, int Options>
 template<typename SVDType>
-void BDCSVD<MatrixType, Options>::computeBaseCase(SVDType& svd, Index n, Index firstCol, Index firstRowW, Index firstColW, Index shift)
+bool BDCSVD<MatrixType, Options>::computeBaseCase(SVDType& svd, Index n, Index firstCol, Index firstRowW, Index firstColW, Index shift)
 {
     svd.compute(m_computed.block(firstCol, firstCol, n + 1, n));
     m_info = svd.info();
-    if (m_info != Success && m_info != NoConvergence) return;
+    if (m_info != Success && m_info != NoConvergence) return true;
     if (m_compU)
       m_naiveU.block(firstCol, firstCol, n + 1, n + 1).real() = svd.matrixU();
-    else 
+    else
     {
       m_naiveU.row(0).segment(firstCol, n + 1).real() = svd.matrixU().row(0);
       m_naiveU.row(1).segment(firstCol, n + 1).real() = svd.matrixU().row(n);
@@ -403,6 +403,7 @@ void BDCSVD<MatrixType, Options>::computeBaseCase(SVDType& svd, Index n, Index f
     if (m_compV) m_naiveV.block(firstRowW, firstColW, n, n).real() = svd.matrixV();
     m_computed.block(firstCol + shift, firstCol + shift, n + 1, n).setZero();
     m_computed.diagonal().segment(firstCol + shift, n) = svd.singularValues().head(n);
+    return false;
 }
 
 // The divide algorithm is done "in place", we are always working on subsets of the same matrix. The divide methods takes as argument the 
@@ -444,16 +445,16 @@ void BDCSVD<MatrixType, Options>::divide(Eigen::Index firstCol, Eigen::Index las
     else
 =======
     // FIXME these lines involves temporaries
-    if (m_compV) 
+    if (m_compV)
     {
       JacobiSVD<MatrixXr, ComputeFullU | ComputeFullV> baseSvd;
-      computeBaseCase(baseSvd, n, firstCol, firstRowW, firstColW, shift);
+      if (computeBaseCase(baseSvd, n, firstCol, firstRowW, firstColW, shift)) return;
     } 
     else 
 >>>>>>> 9dcf141b3 (Fixup BDCSVD to use Options template parameter)
     {
       JacobiSVD<MatrixXr, ComputeFullU> baseSvd;
-      computeBaseCase(baseSvd, n, firstCol, firstRowW, firstColW, shift);
+      if (computeBaseCase(baseSvd, n, firstCol, firstRowW, firstColW, shift)) return;
     }
     return;
   }
