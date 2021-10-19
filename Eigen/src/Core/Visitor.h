@@ -10,7 +10,7 @@
 #ifndef EIGEN_VISITOR_H
 #define EIGEN_VISITOR_H
 
-#include <iostream>
+#include "./InternalHeaderCheck.h"
 
 namespace Eigen {
 
@@ -119,9 +119,7 @@ public:
 
 
   EIGEN_DEVICE_FUNC
-  explicit visitor_evaluator(const XprType &xpr) : m_evaluator(xpr), m_xpr(xpr) {
-    //  std::cerr << "Flags = " << demangle_flags(Evaluator::Flags) << std::endl;
-  }
+  explicit visitor_evaluator(const XprType &xpr) : m_evaluator(xpr), m_xpr(xpr) { }
 
   typedef typename XprType::Scalar Scalar;
   typedef typename XprType::CoeffReturnType CoeffReturnType;
