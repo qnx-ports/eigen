@@ -188,22 +188,29 @@ struct InnerMostDimReducer<Self, Op, true, false> {
     typename Self::PacketReturnType paccum0 = reducer0.template initializePacket<typename Self::PacketReturnType>();
     if (numValuesToReduce >= 4*packetSize) {
       const Index VectorizedSize4 = (numValuesToReduce / (4*packetSize)) * (4*packetSize);
-      typename Self::PacketReturnType paccum1 = reducer0.template initializePacket<typename Self::PacketReturnType>();
-      typename Self::PacketReturnType paccum2 = reducer0.template initializePacket<typename Self::PacketReturnType>();
-      typename Self::PacketReturnType paccum3 = reducer0.template initializePacket<typename Self::PacketReturnType>();
+      Op reducer1(reducer0);
+      Op reducer2(reducer0);
+      Op reducer3(reducer0);
+      typename Self::PacketReturnType paccum1 = reducer1.template initializePacket<typename Self::PacketReturnType>();
+      typename Self::PacketReturnType paccum2 = reducer2.template initializePacket<typename Self::PacketReturnType>();
+      typename Self::PacketReturnType paccum3 = reducer3.template initializePacket<typename Self::PacketReturnType>();
       const Index offset0 = firstIndex;
       const Index offset1 = firstIndex + packetSize;
       const Index offset2 = firstIndex + 2*packetSize;
       const Index offset3 = firstIndex + 3*packetSize;
       for (Index j = 0; j < VectorizedSize4; j += 4*packetSize) {
         reducer0.reducePacket(self.m_impl.template packet<Unaligned>(offset0 + j), &paccum0);
-        reducer0.reducePacket(self.m_impl.template packet<Unaligned>(offset1 + j), &paccum1);
-        reducer0.reducePacket(self.m_impl.template packet<Unaligned>(offset2 + j), &paccum2);
-        reducer0.reducePacket(self.m_impl.template packet<Unaligned>(offset3 + j), &paccum3);
+        reducer1.reducePacket(self.m_impl.template packet<Unaligned>(offset1 + j), &paccum1);
+        reducer2.reducePacket(self.m_impl.template packet<Unaligned>(offset2 + j), &paccum2);
+        reducer3.reducePacket(self.m_impl.template packet<Unaligned>(offset3 + j), &paccum3);
       }
+      // Form the final sum in reducer0 using a small tree reduction (r0 + r1) + (r2 + r3).
+      paccum1 = reducer1.finalizePacket(paccum1);
+      paccum3 = reducer3.finalizePacket(paccum3);
       reducer0.reducePacket(paccum1, &paccum0);
+      reducer2.reducePacket(paccum3, &paccum2);
+      paccum2 = reducer2.finalizePacket(paccum2);
       reducer0.reducePacket(paccum2, &paccum0);
-      reducer0.reducePacket(paccum3, &paccum0);
       start = VectorizedSize4;
     }
     if (start <= (numValuesToReduce - packetSize)) {
@@ -304,22 +311,28 @@ struct InnerMostDimPreserver<0, Self, Op, true> {
     const Index size = self.m_reducedDims[0];
     if (size >= 16) {
       const Index unrolled_size4 = (size / 4) * 4;
-      typename Self::PacketReturnType accum1 = reducer0.template initializePacket<typename Self::PacketReturnType>();
-      typename Self::PacketReturnType accum2 = reducer0.template initializePacket<typename Self::PacketReturnType>();
-      typename Self::PacketReturnType accum3 = reducer0.template initializePacket<typename Self::PacketReturnType>();
+      Op reducer1(reducer0);
+      Op reducer2(reducer0);
+      Op reducer3(reducer0);
+      typename Self::PacketReturnType accum1 = reducer1.template initializePacket<typename Self::PacketReturnType>();
+      typename Self::PacketReturnType accum2 = reducer2.template initializePacket<typename Self::PacketReturnType>();
+      typename Self::PacketReturnType accum3 = reducer3.template initializePacket<typename Self::PacketReturnType>();
       for (Index j = 0; j < unrolled_size4; j += 4) {
         const Index input0 = firstIndex + j * stride;
         reducer0.reducePacket(self.m_impl.template packet<Unaligned>(input0), accum0);
         const Index input1 = firstIndex + (j+1) * stride;
-        reducer0.reducePacket(self.m_impl.template packet<Unaligned>(input1), &accum1);
+        reducer1.reducePacket(self.m_impl.template packet<Unaligned>(input1), &accum1);
         const Index input2 = firstIndex + (j+2) * stride;
-        reducer0.reducePacket(self.m_impl.template packet<Unaligned>(input2), &accum2);
+        reducer2.reducePacket(self.m_impl.template packet<Unaligned>(input2), &accum2);
         const Index input3 = firstIndex + (j+3) * stride;
-        reducer0.reducePacket(self.m_impl.template packet<Unaligned>(input3), &accum3);
+        reducer3.reducePacket(self.m_impl.template packet<Unaligned>(input3), &accum3);
       }
+      accum1 = reducer1.finalizePacket(accum1);
+      accum3 = reducer3.finalizePacket(accum3);
       reducer0.reducePacket(accum1, accum0);
+      reducer2.reducePacket(accum3, &accum2); 
+      accum2 = reducer2.finalizePacket(accum2);
       reducer0.reducePacket(accum2, accum0);
-      reducer0.reducePacket(accum3, accum0);
       for (Index j = unrolled_size4; j < size; ++j) {
         Index input = firstIndex + j * stride;
         reducer0.reducePacket(self.m_impl.template packet<Unaligned>(input), accum0);
