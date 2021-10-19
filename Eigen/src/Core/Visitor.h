@@ -81,7 +81,7 @@ struct visitor_impl<Visitor, Derived, UnrollSize, /*Vectorize=*/true>
     visitor.init(mat.coeff(0,0), 0, 0);
     if (Derived::IsRowMajor) {
       for(Index i = 0; i < mat.rows(); ++i) {
-        Index j = 0;
+        Index j = i == 0 ? 1 : 0;
         for(; j+PacketSize-1 < mat.cols(); j += PacketSize) {
           Packet p = mat.packet(i, j);
           visitor.packet(p, i, j);
@@ -91,7 +91,7 @@ struct visitor_impl<Visitor, Derived, UnrollSize, /*Vectorize=*/true>
       }
     } else {
       for(Index j = 0; j < mat.cols(); ++j) {
-        Index i = 0;
+        Index i = j == 0 ? 1 : 0;
         for(; i+PacketSize-1 < mat.rows(); i += PacketSize) {
           Packet p = mat.packet(i, j);
           visitor.packet(p, i, j);
@@ -205,15 +205,15 @@ struct coeff_visitor
 template<typename Scalar, int NaNPropagation, bool is_min=true>
 struct minmax_compare {
   typedef typename packet_traits<Scalar>::type Packet;
-  static inline bool compare(Scalar a, Scalar b) { return a < b; }
-  static inline Scalar predux(const Packet& p) { return predux_min<NaNPropagation>(p);}
+  static EIGEN_DEVICE_FUNC inline bool compare(Scalar a, Scalar b) { return a < b; }
+  static EIGEN_DEVICE_FUNC inline Scalar predux(const Packet& p) { return predux_min<NaNPropagation>(p);}
 };
 
 template<typename Scalar, int NaNPropagation>
 struct minmax_compare<Scalar, NaNPropagation, false> {
   typedef typename packet_traits<Scalar>::type Packet;
-  static inline bool compare(Scalar a, Scalar b) { return a > b; }
-  static inline Scalar predux(const Packet& p) { return predux_max<NaNPropagation>(p);}
+  static EIGEN_DEVICE_FUNC inline bool compare(Scalar a, Scalar b) { return a > b; }
+  static EIGEN_DEVICE_FUNC inline Scalar predux(const Packet& p) { return predux_max<NaNPropagation>(p);}
 };
 
 template <typename Derived, bool is_min, int NaNPropagation>
