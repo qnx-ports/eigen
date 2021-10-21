@@ -178,7 +178,7 @@ private:
   void structured_update(Block<MatrixXr,Dynamic,Dynamic> A, const MatrixXr &B, Index n1);
   static RealScalar secularEq(RealScalar x, const ArrayRef& col0, const ArrayRef& diag, const IndicesRef &perm, const ArrayRef& diagShifted, RealScalar shift);
   template<typename SVDType>
-  bool computeBaseCase(SVDType& svd, Index n, Index firstCol, Index firstRowW, Index firstColW, Index shift);
+  void computeBaseCase(SVDType& svd, Index n, Index firstCol, Index firstRowW, Index firstColW, Index shift);
 
 protected:
   MatrixXr m_naiveU, m_naiveV;
@@ -388,22 +388,21 @@ void BDCSVD<MatrixType, Options>::structured_update(Block<MatrixXr,Dynamic,Dynam
 
 template<typename MatrixType, int Options>
 template<typename SVDType>
-bool BDCSVD<MatrixType, Options>::computeBaseCase(SVDType& svd, Index n, Index firstCol, Index firstRowW, Index firstColW, Index shift)
+void BDCSVD<MatrixType, Options>::computeBaseCase(SVDType& svd, Index n, Index firstCol, Index firstRowW, Index firstColW, Index shift)
 {
-    svd.compute(m_computed.block(firstCol, firstCol, n + 1, n));
-    m_info = svd.info();
-    if (m_info != Success && m_info != NoConvergence) return true;
-    if (m_compU)
-      m_naiveU.block(firstCol, firstCol, n + 1, n + 1).real() = svd.matrixU();
-    else
-    {
-      m_naiveU.row(0).segment(firstCol, n + 1).real() = svd.matrixU().row(0);
-      m_naiveU.row(1).segment(firstCol, n + 1).real() = svd.matrixU().row(n);
-    }
-    if (m_compV) m_naiveV.block(firstRowW, firstColW, n, n).real() = svd.matrixV();
-    m_computed.block(firstCol + shift, firstCol + shift, n + 1, n).setZero();
-    m_computed.diagonal().segment(firstCol + shift, n) = svd.singularValues().head(n);
-    return false;
+  svd.compute(m_computed.block(firstCol, firstCol, n + 1, n));
+  m_info = svd.info();
+  if (m_info != Success && m_info != NoConvergence) return;
+  if (m_compU)
+    m_naiveU.block(firstCol, firstCol, n + 1, n + 1).real() = svd.matrixU();
+  else
+  {
+    m_naiveU.row(0).segment(firstCol, n + 1).real() = svd.matrixU().row(0);
+    m_naiveU.row(1).segment(firstCol, n + 1).real() = svd.matrixU().row(n);
+  }
+  if (m_compV) m_naiveV.block(firstRowW, firstColW, n, n).real() = svd.matrixV();
+  m_computed.block(firstCol + shift, firstCol + shift, n + 1, n).setZero();
+  m_computed.diagonal().segment(firstCol + shift, n) = svd.singularValues().head(n);
 }
 
 // The divide algorithm is done "in place", we are always working on subsets of the same matrix. The divide methods takes as argument the 
@@ -435,26 +434,16 @@ void BDCSVD<MatrixType, Options>::divide(Eigen::Index firstCol, Eigen::Index las
   // matrices.
   if (n < m_algoswap)
   {
-<<<<<<< HEAD
-    // FIXME this line involves temporaries
-    JacobiSVD<MatrixXr> b(m_computed.block(firstCol, firstCol, n + 1, n), ComputeFullU | (m_compV ? ComputeFullV : 0));
-    m_info = b.info();
-    if (m_info != Success && m_info != NoConvergence) return;
-    if (m_compU)
-      m_naiveU.block(firstCol, firstCol, n + 1, n + 1).real() = b.matrixU();
-    else
-=======
-    // FIXME these lines involves temporaries
+    // FIXME this block involves temporaries
     if (m_compV)
     {
       JacobiSVD<MatrixXr, ComputeFullU | ComputeFullV> baseSvd;
-      if (computeBaseCase(baseSvd, n, firstCol, firstRowW, firstColW, shift)) return;
+      computeBaseCase(baseSvd, n, firstCol, firstRowW, firstColW, shift);
     } 
     else 
->>>>>>> 9dcf141b3 (Fixup BDCSVD to use Options template parameter)
     {
       JacobiSVD<MatrixXr, ComputeFullU> baseSvd;
-      if (computeBaseCase(baseSvd, n, firstCol, firstRowW, firstColW, shift)) return;
+      computeBaseCase(baseSvd, n, firstCol, firstRowW, firstColW, shift);
     }
     return;
   }

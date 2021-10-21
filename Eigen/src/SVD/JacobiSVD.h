@@ -620,15 +620,15 @@ template<typename MatrixType_, int Options> class JacobiSVD
     using Base::m_isInitialized;
     using Base::m_isAllocated;
     using Base::m_usePrescribedThreshold;
-    using Base::ShouldComputeFullU;
-    using Base::ShouldComputeThinU;
-    using Base::ShouldComputeFullV;
-    using Base::ShouldComputeThinV;
     using Base::m_nonzeroSingularValues;
     using Base::m_rows;
     using Base::m_cols;
     using Base::m_diagSize;
     using Base::m_prescribedThreshold;
+    using Base::ShouldComputeFullU;
+    using Base::ShouldComputeThinU;
+    using Base::ShouldComputeFullV;
+    using Base::ShouldComputeThinV;
     WorkMatrixType m_workMatrix;
 
     EIGEN_STATIC_ASSERT(EIGEN_IMPLIES((ShouldComputeThinU != 0 || ShouldComputeThinV != 0), QRPreconditioner != FullPivHouseholderQRPreconditioner),

@@ -337,8 +337,6 @@ protected:
       m_usePrescribedThreshold(false),
       m_rows(-1), m_cols(-1), m_diagSize(0)
   { }
-
-
 };
 
 #ifndef EIGEN_PARSED_BY_DOXYGEN
