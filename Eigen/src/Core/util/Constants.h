@@ -423,14 +423,14 @@ enum DecompositionOptions {
 /** \ingroup enums
   * Possible values for the \p QRPreconditioner template parameter of JacobiSVD. */
 enum QRPreconditioners {
+  /** Use a QR decomposition with column pivoting as the first step. */
+  ColPivHouseholderQRPreconditioner = 0x0,
   /** Do not specify what is to be done if the SVD of a non-square matrix is asked for. */
   NoQRPreconditioner = 0x40,
   /** Use a QR decomposition without pivoting as the first step. */
   HouseholderQRPreconditioner = 0x80,
-  /** Use a QR decomposition with column pivoting as the first step. */
-  ColPivHouseholderQRPreconditioner = 0xC0,
   /** Use a QR decomposition with full pivoting as the first step. */
-  FullPivHouseholderQRPreconditioner = 0x100
+  FullPivHouseholderQRPreconditioner = 0xC0
 };
 
 #ifdef Success

@@ -551,8 +551,8 @@ template<typename MatrixType_, int Options> class JacobiSVD
     typedef typename MatrixType::Scalar Scalar;
     typedef typename NumTraits<typename MatrixType::Scalar>::Real RealScalar;
     enum {
-      SelectedQRPreconditioner = Options & internal::QRPreconditionerBits,
-      QRPreconditioner = SelectedQRPreconditioner == 0 ? ColPivHouseholderQRPreconditioner : SelectedQRPreconditioner,
+      // SelectedQRPreconditioner = Options & internal::QRPreconditionerBits,
+      QRPreconditioner =  Options & internal::QRPreconditionerBits,
       RowsAtCompileTime = MatrixType::RowsAtCompileTime,
       ColsAtCompileTime = MatrixType::ColsAtCompileTime,
       DiagSizeAtCompileTime = EIGEN_SIZE_MIN_PREFER_DYNAMIC(RowsAtCompileTime,ColsAtCompileTime),

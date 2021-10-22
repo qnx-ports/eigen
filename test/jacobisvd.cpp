@@ -122,7 +122,6 @@ EIGEN_DECLARE_TEST(jacobisvd)
     CALL_SUBTEST_7(( jacobisvd_all_options<MatrixXf>( MatrixXf(r, c)  ) ));
     CALL_SUBTEST_8(( jacobisvd_all_options<MatrixXcd>( MatrixXcd(r, c)  ) ));
     CALL_SUBTEST_10(( jacobisvd_all_options<MatrixXd>( MatrixXd(r, c)  ) ));
-
     CALL_SUBTEST_14(( jacobisvd_all_options<Matrix<double, 5, 7, RowMajor>>() ));
     CALL_SUBTEST_14(( jacobisvd_all_options<Matrix<double, 7, 5, RowMajor>>() ));
 
