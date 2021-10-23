@@ -119,11 +119,15 @@ EIGEN_DECLARE_TEST(jacobisvd)
     CALL_SUBTEST_4(( jacobisvd_all_options<Matrix<double, 16, 10> >() ));
     CALL_SUBTEST_5(( jacobisvd_all_options<Matrix<double, Dynamic, 16> >(Matrix<double, Dynamic, 16>(r, 16)) ));
     CALL_SUBTEST_5(( jacobisvd_all_options<Matrix<double, 10, Dynamic> >(Matrix<double, 10, Dynamic>(10, c)) ));
-    CALL_SUBTEST_7(( jacobisvd_all_options<MatrixXf>( MatrixXf(r, c)  ) ));
-    CALL_SUBTEST_8(( jacobisvd_all_options<MatrixXcd>( MatrixXcd(r, c)  ) ));
-    CALL_SUBTEST_10(( jacobisvd_all_options<MatrixXd>( MatrixXd(r, c)  ) ));
+    CALL_SUBTEST_7(( jacobisvd_all_options<MatrixXf>( MatrixXf(r, c)) ));
+    CALL_SUBTEST_8(( jacobisvd_all_options<MatrixXcd>( MatrixXcd(r, c)) ));
+    CALL_SUBTEST_10(( jacobisvd_all_options<MatrixXd>( MatrixXd(r, c)) ));
     CALL_SUBTEST_14(( jacobisvd_all_options<Matrix<double, 5, 7, RowMajor>>() ));
     CALL_SUBTEST_14(( jacobisvd_all_options<Matrix<double, 7, 5, RowMajor>>() ));
+
+    CALL_SUBTEST_16(( svd_option_checks<MatrixXd, NoQRPreconditioner>( MatrixXd(r, r)) ));
+    CALL_SUBTEST_16(( svd_option_checks<MatrixXcd, NoQRPreconditioner>( MatrixXcd(r, r)) ));
+
 
     CALL_SUBTEST_15(( svd_check_max_size_matrix< Matrix<float, Dynamic, Dynamic, ColMajor, 13, 15>, ColPivHouseholderQRPreconditioner >(r, c) ));
     CALL_SUBTEST_15(( svd_check_max_size_matrix< Matrix<float, Dynamic, Dynamic, ColMajor, 15, 13>, HouseholderQRPreconditioner >(r, c) ));

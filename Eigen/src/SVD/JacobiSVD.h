@@ -17,6 +17,13 @@ namespace Eigen {
 
 namespace internal {
 
+enum OptionsMasks {
+  QRPreconditionerBits = NoQRPreconditioner |
+                         HouseholderQRPreconditioner |
+                         ColPivHouseholderQRPreconditioner |
+                         FullPivHouseholderQRPreconditioner
+};
+
 // forward declaration (needed by ICC)
 // the empty body is required by MSVC
 template<typename MatrixType, int Options,
@@ -551,8 +558,7 @@ template<typename MatrixType_, int Options> class JacobiSVD
     typedef typename MatrixType::Scalar Scalar;
     typedef typename NumTraits<typename MatrixType::Scalar>::Real RealScalar;
     enum {
-      // SelectedQRPreconditioner = Options & internal::QRPreconditionerBits,
-      QRPreconditioner =  Options & internal::QRPreconditionerBits,
+      QRPreconditioner = Options & internal::QRPreconditionerBits,
       RowsAtCompileTime = MatrixType::RowsAtCompileTime,
       ColsAtCompileTime = MatrixType::ColsAtCompileTime,
       DiagSizeAtCompileTime = EIGEN_SIZE_MIN_PREFER_DYNAMIC(RowsAtCompileTime,ColsAtCompileTime),
@@ -797,11 +803,11 @@ JacobiSVD<MatrixType, Options>::compute(const MatrixType& matrix)
   * \sa class JacobiSVD
   */
 template<typename Derived>
-template<int ComputationOptions>
-JacobiSVD<typename MatrixBase<Derived>::PlainObject, ComputationOptions>
+template<int Options>
+JacobiSVD<typename MatrixBase<Derived>::PlainObject, Options>
 MatrixBase<Derived>::jacobiSvd() const
 {
-  return JacobiSVD<PlainObject, ComputationOptions>(*this);
+  return JacobiSVD<PlainObject, Options>(*this);
 }
 
 } // end namespace Eigen

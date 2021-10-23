@@ -22,14 +22,6 @@ namespace Eigen {
 
 namespace internal {
 
-enum OptionsMasks {
-  QRPreconditionerBits = NoQRPreconditioner |
-                         HouseholderQRPreconditioner |
-                         ColPivHouseholderQRPreconditioner |
-                         FullPivHouseholderQRPreconditioner,
-  ComputationOptionsBits = ComputeFullU | ComputeThinU | ComputeFullV | ComputeThinV
-};
-
 template<typename Derived> struct traits<SVDBase<Derived> >
  : traits<Derived>
 {
@@ -43,7 +35,6 @@ template<typename MatrixType, int Options>
 struct svd_traits : traits<MatrixType>
 {
   enum {
-    ComputationOptions = Options & ComputationOptionsBits,
     ShouldComputeFullU = Options & ComputeFullU,
     ShouldComputeThinU = Options & ComputeThinU,
     ShouldComputeFullV = Options & ComputeFullV,

@@ -492,7 +492,9 @@ void svd_compute_checks(const MatrixType& m)
   {
     svd_test_solvers(m, staticSvd);
     svd_least_square<SVDType, MatrixType>(m);
-    svd_min_norm<MatrixType, Options>(m);
+    // svd_min_norm generates non-square matrices so it can't be used with NoQRPreconditioner
+    if ((Options & internal::QRPreconditionerBits) != NoQRPreconditioner)
+      svd_min_norm<MatrixType, Options>(m);
   }
 }
 
