@@ -17,7 +17,7 @@
 #endif
 
 #ifndef SVD_STATIC_OPTIONS
-#error a marco SVD_STATIC_OPTIONS(MatrixType, ComputationOptions) must be defined prior to including svd_common.h
+#error a macro SVD_STATIC_OPTIONS(MatrixType, ComputationOptions) must be defined prior to including svd_common.h
 #endif
 
 #include "svd_fill.h"
@@ -57,7 +57,6 @@ void svd_check_full(const MatrixType& m, const SvdType& svd)
   VERIFY_IS_UNITARY(u);
   VERIFY_IS_UNITARY(v);
 }
-
 
 // Compare partial SVD defined by computationOptions to a full SVD referenceSvd
 template<typename MatrixType, typename SvdType, int Options>
@@ -99,7 +98,6 @@ void svd_compare_to_full(const MatrixType& m,
   --g_test_level;
 }
 
-//
 template<typename SvdType, typename MatrixType>
 void svd_least_square(const MatrixType& m)
 {
@@ -165,7 +163,6 @@ void svd_least_square(const MatrixType& m)
     }
   }
 }
-
 
 // check minimal norm solutions, the input matrix m is only used to recover problem size
 template<typename MatrixType, int Options>
@@ -297,7 +294,6 @@ void svd_inf_nan()
   VERIFY(svd.info() == InvalidInput);
 }
 
-
 // Regression test for bug 286: JacobiSVD loops indefinitely with some
 // matrices containing denormal numbers.
 template<typename>
@@ -376,7 +372,6 @@ void svd_all_trivial_2x2( void (*cb)(const MatrixType&) )
   } while((id<int(value_set.size())).all());
 }
 
-
 template<typename>
 void svd_preallocate()
 {
@@ -454,7 +449,6 @@ void svd_verify_assert(const MatrixType& m = MatrixType())
 
   svd_verify_assert_full_only<MatrixType, QRPreconditioner>(m);
 }
-
 
 template<typename MatrixType, int Options>
 void svd_compute_checks(const MatrixType& m)

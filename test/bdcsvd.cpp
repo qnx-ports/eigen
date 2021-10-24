@@ -19,13 +19,10 @@
 #include <iostream>
 #include <Eigen/LU>
 
-
 #define SVD_DEFAULT(M) BDCSVD<M>
 #define SVD_FOR_MIN_NORM(M) BDCSVD<M>
 #define SVD_STATIC_OPTIONS(M, O) BDCSVD<M, O>
 #include "svd_common.h"
-
-
 
 template<typename MatrixType>
 void bdcsvd_method()
@@ -123,10 +120,10 @@ EIGEN_DECLARE_TEST(bdcsvd)
     CALL_SUBTEST_14(( bdcsvd_all_options<Matrix<double, 20, 27, RowMajor>>() ));
     CALL_SUBTEST_14(( bdcsvd_all_options<Matrix<double, 27, 20, RowMajor>>() ));
 
-    CALL_SUBTEST_15(( svd_check_max_size_matrix< Matrix<float, Dynamic, Dynamic, ColMajor, 20, 35>, ColPivHouseholderQRPreconditioner >(r, c) ));
-    CALL_SUBTEST_15(( svd_check_max_size_matrix< Matrix<float, Dynamic, Dynamic, ColMajor, 35, 20>, HouseholderQRPreconditioner >(r, c) ));
-    CALL_SUBTEST_15(( svd_check_max_size_matrix< Matrix<float, Dynamic, Dynamic, RowMajor, 20, 35>, ColPivHouseholderQRPreconditioner >(r, c) ));
-    CALL_SUBTEST_15(( svd_check_max_size_matrix< Matrix<float, Dynamic, Dynamic, RowMajor, 35, 20>, HouseholderQRPreconditioner >(r, c) ));
+    CALL_SUBTEST_15(( svd_check_max_size_matrix<Matrix<float, Dynamic, Dynamic, ColMajor, 20, 35>, ColPivHouseholderQRPreconditioner>(r, c) ));
+    CALL_SUBTEST_15(( svd_check_max_size_matrix<Matrix<float, Dynamic, Dynamic, ColMajor, 35, 20>, HouseholderQRPreconditioner>(r, c) ));
+    CALL_SUBTEST_15(( svd_check_max_size_matrix<Matrix<float, Dynamic, Dynamic, RowMajor, 20, 35>, ColPivHouseholderQRPreconditioner>(r, c) ));
+    CALL_SUBTEST_15(( svd_check_max_size_matrix<Matrix<float, Dynamic, Dynamic, RowMajor, 35, 20>, HouseholderQRPreconditioner>(r, c) ));
   }
 
   // test matrixbase method

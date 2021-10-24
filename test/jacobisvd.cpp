@@ -129,10 +129,10 @@ EIGEN_DECLARE_TEST(jacobisvd)
     CALL_SUBTEST_16(( svd_option_checks<MatrixXcd, NoQRPreconditioner>( MatrixXcd(r, r)) ));
 
 
-    CALL_SUBTEST_15(( svd_check_max_size_matrix< Matrix<float, Dynamic, Dynamic, ColMajor, 13, 15>, ColPivHouseholderQRPreconditioner >(r, c) ));
-    CALL_SUBTEST_15(( svd_check_max_size_matrix< Matrix<float, Dynamic, Dynamic, ColMajor, 15, 13>, HouseholderQRPreconditioner >(r, c) ));
-    CALL_SUBTEST_15(( svd_check_max_size_matrix< Matrix<float, Dynamic, Dynamic, RowMajor, 13, 15>, ColPivHouseholderQRPreconditioner >(r, c) ));
-    CALL_SUBTEST_15(( svd_check_max_size_matrix< Matrix<float, Dynamic, Dynamic, RowMajor, 15, 13>, HouseholderQRPreconditioner >(r, c) ));
+    CALL_SUBTEST_15(( svd_check_max_size_matrix<Matrix<float, Dynamic, Dynamic, ColMajor, 13, 15>, ColPivHouseholderQRPreconditioner>(r, c) ));
+    CALL_SUBTEST_15(( svd_check_max_size_matrix<Matrix<float, Dynamic, Dynamic, ColMajor, 15, 13>, HouseholderQRPreconditioner>(r, c) ));
+    CALL_SUBTEST_15(( svd_check_max_size_matrix<Matrix<float, Dynamic, Dynamic, RowMajor, 13, 15>, ColPivHouseholderQRPreconditioner>(r, c) ));
+    CALL_SUBTEST_15(( svd_check_max_size_matrix<Matrix<float, Dynamic, Dynamic, RowMajor, 15, 13>, HouseholderQRPreconditioner>(r, c) ));
 
     // Test on inf/nan matrix
     CALL_SUBTEST_7(  (svd_inf_nan<MatrixXf>()) );
