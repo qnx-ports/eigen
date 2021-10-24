@@ -536,13 +536,9 @@ struct traits<JacobiSVD<MatrixType_,Options> >
   *     faster compilation and smaller executable code. It won't significantly speed up computation, since JacobiSVD is always checking
   *     if QR preconditioning is needed before applying it anyway.
   *
-  * One may also use the Options template parameter to specify how the unitaries should be computed:
-  * \li ComputeThinU
-  * \li ComputeThinV
-  * \li ComputeFullU
-  * \li ComputeFullV
-  * 
-  * It is not possible to request both a thin and full unitary. So, it is not possible to use ComputeThinU | ComputeFullU or ComputeThinV | ComputeFullV.
+  * One may also use the Options template parameter to specify how the unitaries should be computed. The options are #ComputeThinU,
+  * #ComputeThinV, #ComputeFullU, #ComputeFullV. It is not possible to request both a thin and full unitary.
+  * So, it is not possible to use ComputeThinU | ComputeFullU or ComputeThinV | ComputeFullV. By default, unitaries will not be computed.
   *
   * You can set the QRPreconditioner and unitary options together: JacobiSVD<MatrixType, ColPivHouseholderQRPreconditioner | ComputeThinU | ComputeFullV>
   *
