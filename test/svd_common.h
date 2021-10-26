@@ -17,7 +17,7 @@
 #endif
 
 #ifndef SVD_STATIC_OPTIONS
-#error a macro SVD_STATIC_OPTIONS(MatrixType, ComputationOptions) must be defined prior to including svd_common.h
+#error a macro SVD_STATIC_OPTIONS(MatrixType, Options) must be defined prior to including svd_common.h
 #endif
 
 #include "svd_fill.h"

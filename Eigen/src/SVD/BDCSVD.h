@@ -62,9 +62,10 @@ struct traits<BDCSVD<MatrixType_,Options> >
  *
  * \tparam MatrixType_ the type of the matrix of which we are computing the SVD decomposition
  * 
- * \tparam Options this optional parameter allows one to specify options for computing unitaries \a U and \a V
- *                  possible values are #ComputeThinU, #ComputeThinV, #ComputeFullU, #ComputeFullV. By default,
- *                  unitaries are not computed.
+ * \tparam Options this optional parameter allows one to specify options for computing unitaries \a U and \a V.
+ *                  Possible values are #ComputeThinU, #ComputeThinV, #ComputeFullU, #ComputeFullV. 
+ *                  It is not possible to request the thin and full version of U or V.
+ *                  By default, unitaries are not computed.
  *
  * This class first reduces the input matrix to bi-diagonal form using class UpperBidiagonalization,
  * and then performs a divide-and-conquer diagonalization. Small blocks are diagonalized using class JacobiSVD.
