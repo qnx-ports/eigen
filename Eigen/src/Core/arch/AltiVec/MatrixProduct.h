@@ -1851,11 +1851,11 @@ EIGEN_ALWAYS_INLINE void gemm_unrolled_complex_row_iteration(
   const Packet& pMask)
 {
   const Scalar* rhs_ptr_real = rhs_base;
-  const Scalar* rhs_ptr_imag;
+  const Scalar* rhs_ptr_imag = NULL;
   if(!RhsIsReal) rhs_ptr_imag = rhs_base + accRows*strideB;
   else EIGEN_UNUSED_VARIABLE(rhs_ptr_imag);
   const Scalar* lhs_ptr_real = lhs_base + advanceRows*row*strideA + remaining_rows*offsetA;
-  const Scalar* lhs_ptr_imag;
+  const Scalar* lhs_ptr_imag = NULL;
   if(!LhsIsReal) lhs_ptr_imag = lhs_ptr_real + remaining_rows*strideA;
   else EIGEN_UNUSED_VARIABLE(lhs_ptr_imag);
   PacketBlock<Packet,accRows> accReal0, accImag0, accReal1, accImag1, accReal2, accImag2, accReal3, accImag3;
@@ -2078,7 +2078,7 @@ EIGEN_STRONG_INLINE void gemm_complex_unrolled_iteration(
   const Packet& pAlphaImag)
 {
   const Scalar* rhs_ptr_real = rhs_base;
-  const Scalar* rhs_ptr_imag;
+  const Scalar* rhs_ptr_imag = NULL;
   const Index imag_delta = accCols*strideA;
   if(!RhsIsReal) {
     rhs_ptr_imag = rhs_base + accRows*strideB;

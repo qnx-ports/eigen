@@ -492,7 +492,7 @@ EIGEN_ALWAYS_INLINE void gemm_complex_unrolled_MMA_iteration(
   const Packet& pAlphaImag)
 {
   const Scalar* rhs_ptr_real = rhs_base;
-  const Scalar* rhs_ptr_imag;
+  const Scalar* rhs_ptr_imag = NULL;
   const Index imag_delta = accCols*strideA;
   if(!RhsIsReal) {
     rhs_ptr_imag = rhs_base + accRows*strideB;
