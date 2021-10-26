@@ -509,7 +509,7 @@ void svd_option_checks(const MatrixType& m)
   svd_compute_checks<MatrixType, QRPreconditioner | ComputeThinU | ComputeFullV>(m);
   svd_compute_checks<MatrixType, QRPreconditioner | ComputeFullU | ComputeThinV>(m);
 
-  typedef JacobiSVD<MatrixType, QRPreconditioner | ComputeFullU | ComputeFullV> FullSvdType;
+  typedef SVD_STATIC_OPTIONS(MatrixType, QRPreconditioner | ComputeFullU | ComputeFullV) FullSvdType;
   FullSvdType fullSvd(m);
   svd_check_full(m, fullSvd);
   svd_compare_to_full<MatrixType, FullSvdType, QRPreconditioner | ComputeFullU | ComputeFullV>(m, fullSvd);
@@ -522,7 +522,7 @@ void svd_option_checks_full_only(const MatrixType& m)
   svd_compute_checks<MatrixType, QRPreconditioner | ComputeFullV>(m);
   svd_compute_checks<MatrixType, QRPreconditioner | ComputeFullU | ComputeFullV>(m);
 
-  JacobiSVD<MatrixType, QRPreconditioner | ComputeFullU | ComputeFullV> fullSvd(m);
+  SVD_STATIC_OPTIONS(MatrixType, QRPreconditioner | ComputeFullU | ComputeFullV) fullSvd(m);
   svd_check_full(m, fullSvd);
 }
 

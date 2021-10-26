@@ -124,10 +124,10 @@ EIGEN_DECLARE_TEST(jacobisvd)
     CALL_SUBTEST_10(( jacobisvd_all_options<MatrixXd>( MatrixXd(r, c)) ));
     CALL_SUBTEST_14(( jacobisvd_all_options<Matrix<double, 5, 7, RowMajor>>() ));
     CALL_SUBTEST_14(( jacobisvd_all_options<Matrix<double, 7, 5, RowMajor>>() ));
-
-    CALL_SUBTEST_16(( svd_option_checks<MatrixXd, NoQRPreconditioner>( MatrixXd(r, r)) ));
-    CALL_SUBTEST_16(( svd_option_checks<MatrixXcd, NoQRPreconditioner>( MatrixXcd(r, r)) ));
-
+    
+    MatrixXcd noQRTest = MatrixXcd(r, r);
+    svd_fill_random(noQRTest);
+    CALL_SUBTEST_16(( svd_option_checks<MatrixXcd, NoQRPreconditioner>(noQRTest) ));
 
     CALL_SUBTEST_15(( svd_check_max_size_matrix<Matrix<float, Dynamic, Dynamic, ColMajor, 13, 15>, ColPivHouseholderQRPreconditioner>(r, c) ));
     CALL_SUBTEST_15(( svd_check_max_size_matrix<Matrix<float, Dynamic, Dynamic, ColMajor, 15, 13>, HouseholderQRPreconditioner>(r, c) ));
