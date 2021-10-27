@@ -512,7 +512,7 @@ EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC __bfloat16_raw float_to_bfloat16_rtne<true
 
 EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC float bfloat16_to_float(__bfloat16_raw h) {
 #if defined(EIGEN_USE_HIP_BF16)
-    return h;
+    return static_cast<float>(h);
 #else
     return numext::bit_cast<float>(static_cast<numext::uint32_t>(h.value) << 16);
 #endif
@@ -623,43 +623,27 @@ EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC bfloat16 fmod(const bfloat16& a, const bfl
 }
 
 EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC bfloat16 (min)(const bfloat16& a, const bfloat16& b) {
-#if defined(EIGEN_USE_HIP_BF16)
-  return b < a ? b : a;
-#else
   const float f1 = static_cast<float>(a);
   const float f2 = static_cast<float>(b);
   return f2 < f1 ? b : a;
-#endif
 }
 
 EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC bfloat16 (max)(const bfloat16& a, const bfloat16& b) {
-#if defined(EIGEN_USE_HIP_BF16)
-  return a < b ? b : a;
-#else
   const float f1 = static_cast<float>(a);
   const float f2 = static_cast<float>(b);
   return f1 < f2 ? b : a;
-#endif
 }
 
 EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC bfloat16 fmin(const bfloat16& a, const bfloat16& b) {
-#if defined(EIGEN_USE_HIP_BF16)
-  return bfloat16(::fminf(a, b));
-#else
   const float f1 = static_cast<float>(a);
   const float f2 = static_cast<float>(b);
   return bfloat16(::fminf(f1, f2));
-#endif
 }
 
 EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC bfloat16 fmax(const bfloat16& a, const bfloat16& b) {
-#if defined(EIGEN_USE_HIP_BF16)
-  return bfloat16(::fmaxf(a, b));
-#else
   const float f1 = static_cast<float>(a);
   const float f2 = static_cast<float>(b);
   return bfloat16(::fmaxf(f1, f2));
-#endif
 }
 
 #ifndef EIGEN_NO_IO
