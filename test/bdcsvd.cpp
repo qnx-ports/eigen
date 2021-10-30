@@ -143,6 +143,6 @@ EIGEN_DECLARE_TEST(bdcsvd)
   CALL_SUBTEST_12((  compare_bdc_jacobi_instance(false) ));
 
   // With potential total deflation issues: The following 2 tests are failing.
-  // CALL_SUBTEST_13((  compare_bdc_jacobi_instance(true, 3) ));
-  // CALL_SUBTEST_14((  compare_bdc_jacobi_instance(false, 3) ));
+  CALL_SUBTEST_13((  compare_bdc_jacobi_instance(true, 3) ));
+  CALL_SUBTEST_14((  compare_bdc_jacobi_instance(false, 3) ));
 }

@@ -1243,9 +1243,9 @@ void BDCSVD<MatrixType>::deflation(Eigen::Index firstCol, Eigen::Index lastCol, 
   std::cout << "            : " << col0.transpose() << "\n\n";
 #endif
   {
-    // Check for total deflation
-    // If we have a total deflation, then we have to consider col0(0)==diag(0) as a singular value during sorting
-    bool total_deflation = (col0.tail(length-1).array()<considerZero).all();
+    // Check for total deflation:
+    // If we have a total deflation, then we have to consider col0(0)==diag(0) as a singular value during sorting.
+    const bool total_deflation = (col0.tail(length-1).array().abs()<considerZero).all();
 
     // Sort the diagonal entries, since diag(1:k-1) and diag(k:length) are already sorted, let's do a sorted merge.
     // First, compute the respective permutation.
