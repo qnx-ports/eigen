@@ -55,11 +55,11 @@ void bdcsvd_method()
 }
 
 // compare the Singular values returned with Jacobi and Bdc
-template<typename MatrixType> 
-void compare_bdc_jacobi(const MatrixType& a = MatrixType(), unsigned int computationOptions = 0)
+template<typename MatrixType>
+void compare_bdc_jacobi(const MatrixType& a = MatrixType(), unsigned int computationOptions = 0, int swapalgo = 16)
 {
   MatrixType m = MatrixType::Random(a.rows(), a.cols());
-  BDCSVD<MatrixType> bdc_svd(m);
+  BDCSVD<MatrixType> bdc_svd(m, computationOptions, swapalgo);
   JacobiSVD<MatrixType> jacobi_svd(m);
   VERIFY_IS_APPROX(bdc_svd.singularValues(), jacobi_svd.singularValues());
   if(computationOptions & ComputeFullU) VERIFY_IS_APPROX(bdc_svd.matrixU(), jacobi_svd.matrixU());
@@ -74,7 +74,7 @@ EIGEN_DECLARE_TEST(bdcsvd)
   CALL_SUBTEST_4(( svd_verify_assert<BDCSVD<Matrix4d>  >(Matrix4d()) ));
   CALL_SUBTEST_7(( svd_verify_assert<BDCSVD<MatrixXf>  >(MatrixXf(10,12)) ));
   CALL_SUBTEST_8(( svd_verify_assert<BDCSVD<MatrixXcd> >(MatrixXcd(7,5)) ));
-  
+
   CALL_SUBTEST_101(( svd_all_trivial_2x2(bdcsvd<Matrix2cd>) ));
   CALL_SUBTEST_102(( svd_all_trivial_2x2(bdcsvd<Matrix2d>) ));
 
@@ -85,10 +85,10 @@ EIGEN_DECLARE_TEST(bdcsvd)
 
     int r = internal::random<int>(1, EIGEN_TEST_MAX_SIZE/2),
         c = internal::random<int>(1, EIGEN_TEST_MAX_SIZE/2);
-    
+
     TEST_SET_BUT_UNUSED_VARIABLE(r)
     TEST_SET_BUT_UNUSED_VARIABLE(c)
-    
+
     CALL_SUBTEST_6((  bdcsvd(Matrix<double,Dynamic,2>(r,2)) ));
     CALL_SUBTEST_7((  bdcsvd(MatrixXf(r,c)) ));
     CALL_SUBTEST_7((  compare_bdc_jacobi(MatrixXf(r,c)) ));
