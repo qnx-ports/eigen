@@ -29,6 +29,10 @@
 
 #include "./InternalHeaderCheck.h"
 
+#ifdef EIGEN_BDCSVD_DEBUG_VERBOSE
+#include <iostream>
+#endif
+
 namespace Eigen {
 
 #ifdef EIGEN_BDCSVD_DEBUG_VERBOSE
@@ -901,7 +905,7 @@ void BDCSVD<MatrixType>::computeSingVals(const ArrayRef& col0, const ArrayRef& d
       RealScalar fLeft = secularEq(leftShifted, col0, diag, perm, diagShifted, shift);
       eigen_internal_assert(fLeft<Literal(0));
 
-#if defined EIGEN_INTERNAL_DEBUGGING || defined EIGEN_BDCSVD_SANITY_CHECKS
+#if defined EIGEN_BDCSVD_DEBUG_VERBOSE || defined EIGEN_BDCSVD_SANITY_CHECKS || defined EIGEN_INTERNAL_DEBUGGING
       RealScalar fRight = secularEq(rightShifted, col0, diag, perm, diagShifted, shift);
 #endif
 
