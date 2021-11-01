@@ -60,7 +60,10 @@ void compare_bdc_jacobi(const MatrixType& a = MatrixType(), unsigned int computa
 {
   MatrixType m = random ? MatrixType::Random(a.rows(), a.cols()) : a;
 
-  BDCSVD<MatrixType> bdc_svd(m, computationOptions, algoswap);
+  BDCSVD<MatrixType> bdc_svd(m.rows(), m.cols(), computationOptions);
+  bdc_svd.setSwitchSize(algoswap);
+  bdc_svd.compute(m);
+
   JacobiSVD<MatrixType> jacobi_svd(m);
   VERIFY_IS_APPROX(bdc_svd.singularValues(), jacobi_svd.singularValues());
 
@@ -142,7 +145,7 @@ EIGEN_DECLARE_TEST(bdcsvd)
   CALL_SUBTEST_11((  compare_bdc_jacobi_instance(true) ));
   CALL_SUBTEST_12((  compare_bdc_jacobi_instance(false) ));
 
-  // With potential total deflation issues: The following 2 tests are failing.
+  // With total deflation issues before, when it shouldn't be triggered.
   CALL_SUBTEST_13((  compare_bdc_jacobi_instance(true, 3) ));
   CALL_SUBTEST_14((  compare_bdc_jacobi_instance(false, 3) ));
 }

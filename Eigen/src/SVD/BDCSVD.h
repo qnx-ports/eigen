@@ -143,8 +143,8 @@ public:
    * Thin unitaries are only available if your matrix type has a Dynamic number of columns (for example MatrixXf). They also are not
    * available with the (non - default) FullPivHouseholderQR preconditioner.
    */
-  BDCSVD(const MatrixType& matrix, unsigned int computationOptions = 0, int algoswap = 16)
-    : m_algoswap(algoswap), m_numIters(0)
+  BDCSVD(const MatrixType& matrix, unsigned int computationOptions = 0)
+    : m_algoswap(16), m_numIters(0)
   {
     compute(matrix, computationOptions);
   }
@@ -178,7 +178,7 @@ public:
 
   void setSwitchSize(int s)
   {
-    eigen_assert(s>3 && "BDCSVD the size of the algo switch has to be greater than 3");
+    eigen_assert(s>=3 && "BDCSVD the size of the algo switch has to be at least 3.");
     m_algoswap = s;
   }
 
