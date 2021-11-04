@@ -39,6 +39,20 @@ void bdcsvd_method()
   VERIFY_IS_APPROX(m.template bdcSvd<ComputeFullU|ComputeFullV>().adjoint().solve(m), m);
 }
 
+// compare the Singular values returned with Jacobi and Bdc
+template<typename MatrixType>
+void compare_bdc_jacobi(const MatrixType& a = MatrixType(), int algoswap = 16, bool random = true)
+{
+  MatrixType m = random ? MatrixType::Random(a.rows(), a.cols()) : a;
+
+  BDCSVD<MatrixType> bdc_svd(m.rows(), m.cols());
+  bdc_svd.setSwitchSize(algoswap);
+  bdc_svd.compute(m);
+  
+  JacobiSVD<MatrixType> jacobi_svd(m);
+  VERIFY_IS_APPROX(bdc_svd.singularValues(), jacobi_svd.singularValues());
+}
+
 // Verifies total deflation is **not** triggered.
 void compare_bdc_jacobi_instance(bool structure_as_m, int algoswap = 16)
 {
@@ -57,21 +71,7 @@ void compare_bdc_jacobi_instance(bool structure_as_m, int algoswap = 16)
          -20.794, 8.68496, -4.83103,
          -8.4981, -10.5451, 23.9072;
   }
-  compare_bdc_jacobi(m, 0, algoswap, false);
-}
-
-// compare the Singular values returned with Jacobi and Bdc
-template<typename MatrixType>
-void compare_bdc_jacobi(const MatrixType& a = MatrixType(), int algoswap = 16, bool random = true)
-{
-  MatrixType m = random ? MatrixType::Random(a.rows(), a.cols()) : a;
-
-  BDCSVD<MatrixType, Options> bdc_svd(m.rows(), m.cols());
-  bdc_svd.setSwitchSize(algoswap);
-  bdc_svd.compute(m);
-  
-  JacobiSVD<MatrixType> jacobi_svd(m);
-  VERIFY_IS_APPROX(bdc_svd.singularValues(), jacobi_svd.singularValues());
+  compare_bdc_jacobi(m, algoswap, false);
 }
 
 template<typename MatrixType>

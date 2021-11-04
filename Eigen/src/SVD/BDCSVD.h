@@ -441,7 +441,7 @@ void BDCSVD<MatrixType, Options>::divide(Eigen::Index firstCol, Eigen::Index las
       JacobiSVD<MatrixXr, ComputeFullU | ComputeFullV> baseSvd;
       computeBaseCase(baseSvd, n, firstCol, firstRowW, firstColW, shift);
     } 
-    else 
+    else
     {
       JacobiSVD<MatrixXr, ComputeFullU> baseSvd;
       computeBaseCase(baseSvd, n, firstCol, firstRowW, firstColW, shift);
