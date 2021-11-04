@@ -11,6 +11,7 @@
 // discard stack allocation as that too bypasses malloc
 #define EIGEN_STACK_ALLOCATION_LIMIT 0
 #define EIGEN_RUNTIME_NO_MALLOC
+#include <fenv.h>
 #include "main.h"
 #include <Eigen/SVD>
 
@@ -57,6 +58,19 @@ template<typename MatrixType> void jacobisvd_verify_assert(const MatrixType& m)
     VERIFY_RAISES_ASSERT(svd_fullqr.compute(a, ComputeThinU|ComputeThinV))
     VERIFY_RAISES_ASSERT(svd_fullqr.compute(a, ComputeThinU|ComputeFullV))
   }
+}
+
+// With overflow issue before.
+void jacobisvd_verify_assert_instance()
+{
+    feenableexcept(FE_OVERFLOW);
+
+    Eigen::Matrix3f m;
+    m <<
+         3.7855173218304116745e-07, 0,  500                      ,
+        -4.9999995231628417969    , 0, -1.9106853686029490191e-12,
+        -8.6602544784545898438    , 0,  2.1855694285477511585    ;
+    jacobisvd_verify_assert(m);
 }
 
 template<typename MatrixType>
@@ -142,6 +156,8 @@ EIGEN_DECLARE_TEST(jacobisvd)
   CALL_SUBTEST_9( svd_preallocate<void>() );
 
   CALL_SUBTEST_2( svd_underoverflow<void>() );
+
+  CALL_SUBTEST_14( jacobisvd_verify_assert_instance() );
 
   msvc_workaround();
 }

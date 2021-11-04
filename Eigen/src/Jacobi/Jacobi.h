@@ -98,32 +98,37 @@ bool JacobiRotation<Scalar>::makeJacobi(const RealScalar& x, const Scalar& y, co
   using std::sqrt;
   using std::abs;
 
-  RealScalar deno = RealScalar(2)*abs(y);
-  if(deno < (std::numeric_limits<RealScalar>::min)())
-  {
+  const auto max_scalar = (std::numeric_limits<RealScalar>::max)();
+  const auto max_tau_abs = sqrt(sqrt(max_scalar) * sqrt(max_scalar - 1));
+
+  const RealScalar deno = RealScalar(2) * abs(y);
+  // Checks for the following:
+  //   1. `deno` is small
+  //   2. `tau` abs is large, i.e. `sqrt(tau^2 + 1) >= max_scalar` or `abs(tau) >= max_tau_abs`
+  if((deno < (std::numeric_limits<RealScalar>::min)())
+     || ((deno <= 1) && (abs(x - z) >= max_tau_abs * deno))
+     || ((deno > 1) && (abs(x - z) / deno >= max_tau_abs))) {
     m_c = Scalar(1);
     m_s = Scalar(0);
     return false;
   }
+
+  const RealScalar tau = (x - z) / deno;
+  RealScalar w = sqrt(numext::abs2(tau) + RealScalar(1));
+  RealScalar t;
+  if(tau>RealScalar(0))
+  {
+    t = RealScalar(1) / (tau + w);
+  }
   else
   {
-    RealScalar tau = (x-z)/deno;
-    RealScalar w = sqrt(numext::abs2(tau) + RealScalar(1));
-    RealScalar t;
-    if(tau>RealScalar(0))
-    {
-      t = RealScalar(1) / (tau + w);
-    }
-    else
-    {
-      t = RealScalar(1) / (tau - w);
-    }
-    RealScalar sign_t = t > RealScalar(0) ? RealScalar(1) : RealScalar(-1);
-    RealScalar n = RealScalar(1) / sqrt(numext::abs2(t)+RealScalar(1));
-    m_s = - sign_t * (numext::conj(y) / abs(y)) * abs(t) * n;
-    m_c = n;
-    return true;
+    t = RealScalar(1) / (tau - w);
   }
+  RealScalar sign_t = t > RealScalar(0) ? RealScalar(1) : RealScalar(-1);
+  RealScalar n = RealScalar(1) / sqrt(numext::abs2(t)+RealScalar(1));
+  m_s = - sign_t * (numext::conj(y) / abs(y)) * abs(t) * n;
+  m_c = n;
+  return true;
 }
 
 /** Makes \c *this as a Jacobi rotation \c J such that applying \a J on both the right and left sides of the 2x2 selfadjoint matrix
