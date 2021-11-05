@@ -11,6 +11,12 @@
 #ifndef EIGEN_JACOBI_H
 #define EIGEN_JACOBI_H
 
+// #define EIGEN_JACOBI_DEBUG_VERBOSE
+
+#ifdef EIGEN_JACOBI_DEBUG_VERBOSE
+#include <iostream>
+#endif
+
 #include "./InternalHeaderCheck.h"
 
 namespace Eigen {
@@ -98,32 +104,43 @@ bool JacobiRotation<Scalar>::makeJacobi(const RealScalar& x, const Scalar& y, co
   using std::sqrt;
   using std::abs;
 
-  RealScalar deno = RealScalar(2)*abs(y);
-  if(deno < (std::numeric_limits<RealScalar>::min)())
-  {
+  const static auto safeMin = (std::numeric_limits<RealScalar>::min)();
+  RealScalar g = RealScalar(2) * y;
+  if(abs(g)< safeMin) {
     m_c = Scalar(1);
     m_s = Scalar(0);
     return false;
   }
-  else
-  {
-    RealScalar tau = (x-z)/deno;
-    RealScalar w = sqrt(numext::abs2(tau) + RealScalar(1));
-    RealScalar t;
-    if(tau>RealScalar(0))
-    {
-      t = RealScalar(1) / (tau + w);
-    }
-    else
-    {
-      t = RealScalar(1) / (tau - w);
-    }
-    RealScalar sign_t = t > RealScalar(0) ? RealScalar(1) : RealScalar(-1);
-    RealScalar n = RealScalar(1) / sqrt(numext::abs2(t)+RealScalar(1));
-    m_s = - sign_t * (numext::conj(y) / abs(y)) * abs(t) * n;
-    m_c = n;
-    return true;
+
+  const static auto safeMax = RealScalar(1) / safeMin;
+  const static auto rootMin = sqrt(safeMin);
+  const static auto rootMax = RealScalar(1) / rootMin;
+
+  RealScalar f = x - z;
+  const auto abs_f = abs(f);
+  const auto abs_g = abs(g);
+  if (abs_f <= rootMin || abs_f >= rootMax
+      || abs_g <= rootMin || abs_g >= rootMax) {
+    // Applies scaling as needed.
+    RealScalar u = (std::min)(safeMax, (std::max)(safeMin, (std::max)(abs_f, abs_g)));
+#ifdef EIGEN_JACOBI_DEBUG_VERBOSE
+    std::cout << "Apply scaling (f, g, scale) = (" << f << ", " << g << ", " << u << ")." << std::endl;
+#endif
+    f /= u;
+    g /= u;
+#ifdef EIGEN_JACOBI_DEBUG_VERBOSE
+    std::cout << "After scaling (f, g) = (" << f << ", " << g << ")." << std::endl;
+#endif
   }
+
+  RealScalar w = sqrt(numext::abs2(f) + numext::abs2(g));
+  RealScalar t = (g / (abs(f) + w)
+      * (f >= RealScalar(0) ? RealScalar(1) : RealScalar(-1))
+      * (g >= RealScalar(0) ? RealScalar(1) : RealScalar(-1)));
+  RealScalar n = RealScalar(1) / sqrt(numext::abs2(t)+RealScalar(1));
+  m_c = n;
+  m_s = t * n;
+  return true;
 }
 
 /** Makes \c *this as a Jacobi rotation \c J such that applying \a J on both the right and left sides of the 2x2 selfadjoint matrix
