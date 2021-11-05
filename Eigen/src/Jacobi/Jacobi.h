@@ -122,7 +122,7 @@ bool JacobiRotation<Scalar>::makeJacobi(const RealScalar& x, const Scalar& y, co
   if (abs_f <= rootMin || abs_f >= rootMax
       || abs_g <= rootMin || abs_g >= rootMax) {
     // Applies scaling as needed.
-    RealScalar u = std::min(safeMax, std::max(safeMin, std::max(abs_f, abs_g)));
+    RealScalar u = (std::min)(safeMax, (std::max)(safeMin, (std::max)(abs_f, abs_g)));
 #ifdef EIGEN_JACOBI_DEBUG_VERBOSE
     std::cout << "Apply scaling (f, g, scale) = (" << f << ", " << g << ", " << u << ")." << std::endl;
 #endif
