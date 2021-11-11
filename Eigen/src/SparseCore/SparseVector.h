@@ -210,7 +210,7 @@ class SparseVector
 
     /** \copydoc SparseMatrix::prune(const Scalar&,const RealScalar&) */
     Index prune(const Scalar& reference, const RealScalar& epsilon = NumTraits<RealScalar>::dummy_precision()) {
-        return prune([&](Scalar val){ return internal::isMuchSmallerThan(val, reference, epsilon); });
+        return prune([&](const Scalar& val){ return internal::isMuchSmallerThan(val, reference, epsilon); });
     }
 
     /**
@@ -229,7 +229,7 @@ class SparseVector
         {
             if (!predicate(m_data.value(i)))
             {
-                m_data.value(k) = m_data.value(i);
+                m_data.value(k) = std::move(m_data.value(i));
                 m_data.index(k) = m_data.index(i);
                 ++k;
             }
