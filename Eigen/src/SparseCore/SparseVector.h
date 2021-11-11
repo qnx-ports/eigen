@@ -210,24 +210,24 @@ class SparseVector
 
     /** \copydoc SparseMatrix::prune(const Scalar&,const RealScalar&) */
     Index prune(const Scalar& reference, const RealScalar& epsilon = NumTraits<RealScalar>::dummy_precision()) {
-        return prune([&](const Scalar& val){ return internal::isMuchSmallerThan(val, reference, epsilon); });
+        return prune([&](const Scalar& val){ return !internal::isMuchSmallerThan(val, reference, epsilon); });
     }
 
     /**
      * \brief Prunes the entries of the vector based on a `predicate`
      * \tparam F Type of the predicate.
-     * \param predicate The predicate that is used to test whether a value should be removed. A callable that
-     * gets passed om a `Scalar` value and returns a boolean. If the predicate returns true, the value is pruned.
+     * \param keep_predicate The predicate that is used to test whether a value should be kept. A callable that
+     * gets passed om a `Scalar` value and returns a boolean. If the predicate returns true, the value is kept.
      * \return The new number of structural non-zeros.
      */
     template<class F>
-    Index prune(F&& predicate)
+    Index prune(F&& keep_predicate)
     {
         Index k = 0;
         Index n = m_data.size();
         for (Index i = 0; i < n; ++i)
         {
-            if (!predicate(m_data.value(i)))
+            if (predicate(m_data.value(i)))
             {
                 m_data.value(k) = std::move(m_data.value(i));
                 m_data.index(k) = m_data.index(i);
