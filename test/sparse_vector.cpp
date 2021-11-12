@@ -164,7 +164,7 @@ void test_pruning() {
     VERIFY_IS_EQUAL(vec.coeff(9), -0.2);
 
     init_vec();
-    VERIFY_IS_EQUAL(vec.prune([](double v) { return v < 0; }), 2);
+    VERIFY_IS_EQUAL(vec.prune([](double v) { return v >= 0; }), 2);
     VERIFY_IS_EQUAL(vec.nonZeros(), 2);
     VERIFY_IS_EQUAL(vec.coeff(3), 0.1);
     VERIFY_IS_EQUAL(vec.coeff(5), 1.0);
