@@ -14,6 +14,7 @@
 
 namespace Eigen {
 
+template<typename Scalar_, int _Flags = 0, typename StorageIndex_ = int>  class MappedSparseMatrix;
 /** \deprecated Use Map<SparseMatrix<> >
   * \class MappedSparseMatrix
   *
