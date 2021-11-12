@@ -100,8 +100,9 @@ __device__ inline void atomicReduce(half2* output, half2 accum, R& reducer) {
     }
   }
 }
-#ifdef EIGEN_GPU_COMPILE_PHASE
+#if ((defined(EIGEN_GPU_COMPILE_PHASE) && defined(EIGEN_HAS_CUDA_FP16)) || defined(EIGEN_HAS_HIP_FP16))
 // reduction should be associative since reduction is not atomic in wide vector but atomic in half2 operations
+// This still needs to be defined on the host as well in HIP environments
 template <typename R>
 __device__ inline void atomicReduce(Packet4h2* output, Packet4h2 accum, R& reducer) {
   half2* houtput=reinterpret_cast<half2*>(output);
@@ -110,7 +111,7 @@ __device__ inline void atomicReduce(Packet4h2* output, Packet4h2 accum, R& reduc
     atomicReduce(houtput+i,*(haccum+i),reducer);
   }
 }
-#endif  // EIGEN_GPU_COMPILE_PHASE
+#endif  // ((defined(EIGEN_GPU_COMPILE_PHASE) && defined(EIGEN_HAS_CUDA_FP16)) || defined(EIGEN_HAS_HIP_FP16))
 #endif  // EIGEN_HAS_GPU_FP16
 
 template <>
