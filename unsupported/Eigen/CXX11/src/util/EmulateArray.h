@@ -23,6 +23,34 @@ template <typename T, size_t n> class array {
   typedef const T* const_iterator;
 
   EIGEN_DEVICE_FUNC
+  EIGEN_STRONG_INLINE iterator begin() { return values; }
+  EIGEN_DEVICE_FUNC
+  EIGEN_STRONG_INLINE const_iterator begin() const { return values; }
+
+  EIGEN_DEVICE_FUNC
+  EIGEN_STRONG_INLINE iterator end() { return values + n; }
+  EIGEN_DEVICE_FUNC
+  EIGEN_STRONG_INLINE const_iterator end() const { return values + n; }
+
+  EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+  static std::size_t size() { return n; }
+
+#if !defined(EIGEN_GPUCC)
+  typedef std::reverse_iterator<iterator> reverse_iterator;
+  typedef std::reverse_iterator<const_iterator> const_reverse_iterator;
+
+  EIGEN_DEVICE_FUNC
+  EIGEN_STRONG_INLINE reverse_iterator rbegin() { return reverse_iterator(end());}
+  EIGEN_DEVICE_FUNC
+  EIGEN_STRONG_INLINE const_reverse_iterator rbegin() const { return const_reverse_iterator(end()); }
+
+  EIGEN_DEVICE_FUNC
+  EIGEN_STRONG_INLINE reverse_iterator rend() { return reverse_iterator(begin()); }
+  EIGEN_DEVICE_FUNC
+  EIGEN_STRONG_INLINE const_reverse_iterator rend() const { return const_reverse_iterator(begin()); }
+#endif
+
+  EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE T& operator[] (size_t index) { eigen_internal_assert(index < size()); return values[index]; }
   EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE const T& operator[] (size_t index) const { eigen_internal_assert(index < size()); return values[index]; }
@@ -41,19 +69,6 @@ template <typename T, size_t n> class array {
   EIGEN_STRONG_INLINE T& back() { return values[n-1]; }
   EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE const T& back() const { return values[n-1]; }
-
-  EIGEN_DEVICE_FUNC
-  EIGEN_STRONG_INLINE iterator begin() { return values; }
-  EIGEN_DEVICE_FUNC
-  EIGEN_STRONG_INLINE const_iterator begin() const { return values; }
-
-  EIGEN_DEVICE_FUNC
-  EIGEN_STRONG_INLINE iterator end() { return values + n; }
-  EIGEN_DEVICE_FUNC
-  EIGEN_STRONG_INLINE const_iterator end() const { return values + n; }
-
-  EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
-  static std::size_t size() { return n; }
 
   T values[n];
 
