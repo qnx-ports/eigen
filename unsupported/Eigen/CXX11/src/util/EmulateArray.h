@@ -17,6 +17,7 @@
 
 namespace Eigen {
 template <typename T, size_t n> class array {
+
  public:
   typedef T value_type;
   typedef T* iterator;
@@ -32,8 +33,6 @@ template <typename T, size_t n> class array {
   EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE const_iterator end() const { return values + n; }
 
-  EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
-  static std::size_t size() { return n; }
 
 #if !defined(EIGEN_GPUCC)
   typedef std::reverse_iterator<iterator> reverse_iterator;
@@ -69,6 +68,10 @@ template <typename T, size_t n> class array {
   EIGEN_STRONG_INLINE T& back() { return values[n-1]; }
   EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE const T& back() const { return values[n-1]; }
+
+
+  EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+  static std::size_t size() { return n; }
 
   T values[n];
 
