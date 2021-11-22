@@ -231,25 +231,29 @@ template<typename Derived> class MatrixBase
     EIGEN_DEVICE_FUNC
     ConstDiagonalDynamicIndexReturnType diagonal(Index index) const;
 
-    template<unsigned int Mode> struct TriangularViewReturnType { typedef TriangularView<Derived, Mode> Type; };
-    template<unsigned int Mode> struct ConstTriangularViewReturnType { typedef const TriangularView<const Derived, Mode> Type; };
+    template<unsigned int Mode>
+    using TriangularViewReturnType = TriangularView<Derived, Mode>;
+    template<unsigned int Mode>
+    using ConstTriangularViewReturnType = TriangularView<const Derived, Mode>;
 
     template<unsigned int Mode>
     EIGEN_DEVICE_FUNC
-    typename TriangularViewReturnType<Mode>::Type triangularView(internal::MatrixStructure<Mode> = {});
+    TriangularViewReturnType<Mode> triangularView(internal::MatrixStructure<Mode> = {});
     template<unsigned int Mode>
     EIGEN_DEVICE_FUNC
-    typename ConstTriangularViewReturnType<Mode>::Type triangularView(internal::MatrixStructure<Mode> = {}) const;
+    ConstTriangularViewReturnType<Mode> triangularView(internal::MatrixStructure<Mode> = {}) const;
 
-    template<unsigned int UpLo> struct SelfAdjointViewReturnType { typedef SelfAdjointView<Derived, UpLo> Type; };
-    template<unsigned int UpLo> struct ConstSelfAdjointViewReturnType { typedef const SelfAdjointView<const Derived, UpLo> Type; };
+    template<unsigned int UpLo>
+    using SelfAdjointViewReturnType = SelfAdjointView<Derived, UpLo>;
+    template<unsigned int UpLo>
+    using ConstSelfAdjointViewReturnType = SelfAdjointView<const Derived, UpLo>;
 
     template<unsigned int UpLo>
     EIGEN_DEVICE_FUNC
-    typename SelfAdjointViewReturnType<UpLo>::Type selfadjointView(internal::MatrixStructure<UpLo> = {});
+    SelfAdjointViewReturnType<UpLo> selfadjointView(internal::MatrixStructure<UpLo> = {});
     template<unsigned int UpLo>
     EIGEN_DEVICE_FUNC
-    typename ConstSelfAdjointViewReturnType<UpLo>::Type selfadjointView(internal::MatrixStructure<UpLo> = {}) const;
+    ConstSelfAdjointViewReturnType<UpLo> selfadjointView(internal::MatrixStructure<UpLo> = {}) const;
 
     const SparseView<Derived> sparseView(const Scalar& m_reference = Scalar(0),
                                          const typename NumTraits<Scalar>::Real& m_epsilon = NumTraits<Scalar>::dummy_precision()) const;

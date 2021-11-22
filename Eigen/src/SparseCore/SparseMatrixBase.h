@@ -336,16 +336,18 @@ template<typename Derived> class SparseMatrixBase
     template<typename OtherDerived>
     Derived& operator*=(const SparseMatrixBase<OtherDerived>& other);
 
-    template<int Mode>
-    inline const TriangularView<const Derived, Mode> triangularView() const;
+    template<unsigned int Mode>
+    inline const TriangularView<const Derived, Mode> triangularView(internal::MatrixStructure<Mode> = {}) const;
     
-    template<unsigned int UpLo> struct SelfAdjointViewReturnType { typedef SparseSelfAdjointView<Derived, UpLo> Type; };
-    template<unsigned int UpLo> struct ConstSelfAdjointViewReturnType { typedef const SparseSelfAdjointView<const Derived, UpLo> Type; };
+    template<unsigned int UpLo>
+    using SelfAdjointViewReturnType = SparseSelfAdjointView<Derived, UpLo>;
+    template<unsigned int UpLo>
+    using ConstSelfAdjointViewReturnType = SparseSelfAdjointView<const Derived, UpLo>;
 
     template<unsigned int UpLo> inline 
-    typename ConstSelfAdjointViewReturnType<UpLo>::Type selfadjointView(internal::MatrixStructure<UpLo> = {}) const;
+    ConstSelfAdjointViewReturnType<UpLo> selfadjointView(internal::MatrixStructure<UpLo> = {}) const;
     template<unsigned int UpLo> inline
-    typename SelfAdjointViewReturnType<UpLo>::Type selfadjointView(internal::MatrixStructure<UpLo> = {});
+    SelfAdjointViewReturnType<UpLo> selfadjointView(internal::MatrixStructure<UpLo> = {});
 
     template<typename OtherDerived> Scalar dot(const MatrixBase<OtherDerived>& other) const;
     template<typename OtherDerived> Scalar dot(const SparseMatrixBase<OtherDerived>& other) const;

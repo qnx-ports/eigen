@@ -239,14 +239,6 @@ namespace internal {
     UnitDiag=0x4,
     /** %Matrix has zeros on the diagonal; to be used in combination with #Lower or #Upper. */
     ZeroDiag=0x8,
-    /** View matrix as a lower triangular matrix with ones on the diagonal. */
-    UnitLower=UnitDiag|Lower,
-    /** View matrix as an upper triangular matrix with ones on the diagonal. */
-    UnitUpper=UnitDiag|Upper,
-    /** View matrix as a lower triangular matrix with zeros on the diagonal. */
-    StrictlyLower=ZeroDiag|Lower,
-    /** View matrix as an upper triangular matrix with zeros on the diagonal. */
-    StrictlyUpper=ZeroDiag|Upper,
     /** Used in BandMatrix and SelfAdjointView to indicate that the matrix is self-adjoint. */
     SelfAdjoint=0x10,
     /** Used to support symmetric, non-selfadjoint, complex matrices. */
@@ -263,7 +255,7 @@ namespace internal {
       constexpr static bool is_symmetric() { return Flags & (unsigned)internal::MatrixStructureFlag::Symmetric; }
 
       // Check that the flags make sense
-      static_assert(!(is_lower() && is_upper()), "Upper and Lower specified at the same time");
+      // static_assert(!(is_lower() && is_upper()), "Upper and Lower specified at the same time");
       static_assert(!(has_unit_diag() && has_zero_diag()), "Upper and Lower specified at the same time");
   };
 

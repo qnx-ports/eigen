@@ -179,9 +179,9 @@ protected:
 } // end namespace internal
 
 template<typename Derived>
-template<int Mode>
+template<unsigned int Mode>
 inline const TriangularView<const Derived, Mode>
-SparseMatrixBase<Derived>::triangularView() const
+SparseMatrixBase<Derived>::triangularView(internal::MatrixStructure<Mode>) const
 {
   return TriangularView<const Derived, Mode>(derived());
 }

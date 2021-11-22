@@ -337,10 +337,10 @@ public:
 /** This is the const version of MatrixBase::selfadjointView() */
 template<typename Derived>
 template<unsigned int UpLo>
-EIGEN_DEVICE_FUNC typename MatrixBase<Derived>::template ConstSelfAdjointViewReturnType<UpLo>::Type
-MatrixBase<Derived>::selfadjointView(internal::MatrixStructure<UpLo>) const
+EIGEN_DEVICE_FUNC
+auto MatrixBase<Derived>::selfadjointView(internal::MatrixStructure<UpLo>) const -> ConstSelfAdjointViewReturnType<UpLo>
 {
-  return typename ConstSelfAdjointViewReturnType<UpLo>::Type(derived());
+  return ConstSelfAdjointViewReturnType<UpLo>(derived());
 }
 
 /** \returns an expression of a symmetric/self-adjoint view extracted from the upper or lower triangular part of the current matrix
@@ -354,10 +354,10 @@ MatrixBase<Derived>::selfadjointView(internal::MatrixStructure<UpLo>) const
   */
 template<typename Derived>
 template<unsigned int UpLo>
-EIGEN_DEVICE_FUNC typename MatrixBase<Derived>::template SelfAdjointViewReturnType<UpLo>::Type
-MatrixBase<Derived>::selfadjointView(internal::MatrixStructure<UpLo>)
+EIGEN_DEVICE_FUNC
+auto MatrixBase<Derived>::selfadjointView(internal::MatrixStructure<UpLo>) -> SelfAdjointViewReturnType<UpLo>
 {
-  return typename SelfAdjointViewReturnType<UpLo>::Type(derived());
+  return SelfAdjointViewReturnType<UpLo>(derived());
 }
 
 } // end namespace Eigen

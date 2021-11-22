@@ -643,20 +643,18 @@ EIGEN_DEVICE_FUNC void TriangularBase<Derived>::evalTo(MatrixBase<DenseDerived> 
 template<typename Derived>
 template<unsigned int Mode>
 EIGEN_DEVICE_FUNC
-typename MatrixBase<Derived>::template TriangularViewReturnType<Mode>::Type
-MatrixBase<Derived>::triangularView(internal::MatrixStructure<Mode>)
+auto MatrixBase<Derived>::triangularView(internal::MatrixStructure<Mode>) -> TriangularViewReturnType<Mode>
 {
-  return typename TriangularViewReturnType<Mode>::Type(derived());
+  return TriangularViewReturnType<Mode>(derived());
 }
 
 /** This is the const version of MatrixBase::triangularView() */
 template<typename Derived>
 template<unsigned int Mode>
 EIGEN_DEVICE_FUNC
-typename MatrixBase<Derived>::template ConstTriangularViewReturnType<Mode>::Type
-MatrixBase<Derived>::triangularView(internal::MatrixStructure<Mode>) const
+auto MatrixBase<Derived>::triangularView(internal::MatrixStructure<Mode>) const -> ConstTriangularViewReturnType<Mode>
 {
-  return typename ConstTriangularViewReturnType<Mode>::Type(derived());
+  return ConstTriangularViewReturnType<Mode>(derived());
 }
 
 /** \returns true if *this is approximately equal to an upper triangular matrix,
