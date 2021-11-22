@@ -464,7 +464,7 @@ template<typename Solver> void check_sparse_spd_solving(Solver& solver, int maxS
           if(Solver::UpLo == (Lower|Upper))
             halfA = A;
           else
-            halfA.template selfadjointView<Solver::UpLo>() = A.template triangularView<Eigen::Lower>().twistedBy(pnull);
+            halfA.template selfadjointView<Solver::UpLo>() = A.triangularView(Lower_t{}).twistedBy(pnull);
           
           std::cout << "INFO | Testing " << sym_to_string(it.sym()) << "sparse problem " << it.matname()
                   << " (" << A.rows() << "x" << A.cols() << ") using " << typeid(Solver).name() << "..." << std::endl;

@@ -86,13 +86,13 @@ template<typename MatrixType> void selfadjointeigensolver(const MatrixType& m)
   
   svd_fill_random(symmA,Symmetric);
 
-  symmA.template triangularView<StrictlyUpper>().setZero();
-  symmC.template triangularView<StrictlyUpper>().setZero();
+  symmA.triangularView(StrictlyUpper_t{}).setZero();
+  symmC.triangularView(StrictlyUpper_t{}).setZero();
 
   MatrixType b = MatrixType::Random(rows,cols);
   MatrixType b1 = MatrixType::Random(rows,cols);
   MatrixType symmB = b.adjoint() * b + b1.adjoint() * b1;
-  symmB.template triangularView<StrictlyUpper>().setZero();
+  symmB.triangularView(StrictlyUpper_t{}).setZero();
   
   CALL_SUBTEST( selfadjointeigensolver_essential_check(symmA) );
 
@@ -150,7 +150,7 @@ template<typename MatrixType> void selfadjointeigensolver(const MatrixType& m)
   Matrix<RealScalar,Dynamic,Dynamic> T = tridiag.matrixT();
   if(rows>1 && cols>1) {
     // FIXME check that upper and lower part are 0:
-    //VERIFY(T.topRightCorner(rows-2, cols-2).template triangularView<Upper>().isZero());
+    //VERIFY(T.topRightCorner(rows-2, cols-2).triangularView(Upper_t{}).isZero());
   }
   VERIFY_IS_APPROX(tridiag.diagonal(), T.diagonal());
   VERIFY_IS_APPROX(tridiag.subDiagonal(), T.template diagonal<1>());

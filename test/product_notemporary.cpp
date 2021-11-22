@@ -103,18 +103,18 @@ template<typename MatrixType> void product_notemporary(const MatrixType& m)
   // NOTE this is because the Block expression is not handled yet by our expression analyser
   VERIFY_EVALUATION_COUNT(( m3.block(r0,r0,r1,r1).noalias() = s1 * m1.block(r0,c0,r1,c1) * (s1*m2).block(c0,r0,c1,r1) ), 1);
 
-  VERIFY_EVALUATION_COUNT( m3.noalias() -= (s1 * m1).template triangularView<Lower>() * m2, 0);
-  VERIFY_EVALUATION_COUNT( rm3.noalias() = (s1 * m1.adjoint()).template triangularView<Upper>() * (m2+m2), 1);
-  VERIFY_EVALUATION_COUNT( rm3.noalias() = (s1 * m1.adjoint()).template triangularView<UnitUpper>() * m2.adjoint(), 0);
+  VERIFY_EVALUATION_COUNT( m3.noalias() -= (s1 * m1).triangularView(Lower_t{}) * m2, 0);
+  VERIFY_EVALUATION_COUNT( rm3.noalias() = (s1 * m1.adjoint()).triangularView(Upper_t{}) * (m2+m2), 1);
+  VERIFY_EVALUATION_COUNT( rm3.noalias() = (s1 * m1.adjoint()).triangularView(UnitUpper_t{}) * m2.adjoint(), 0);
 
-  VERIFY_EVALUATION_COUNT( m3.template triangularView<Upper>() = (m1 * m2.adjoint()), 0);
-  VERIFY_EVALUATION_COUNT( m3.template triangularView<Upper>() -= (m1 * m2.adjoint()), 0);
+  VERIFY_EVALUATION_COUNT( m3.triangularView(Upper_t{}) = (m1 * m2.adjoint()), 0);
+  VERIFY_EVALUATION_COUNT( m3.triangularView(Upper_t{}) -= (m1 * m2.adjoint()), 0);
 
   // NOTE this is because the blas_traits require innerstride==1 to avoid a temporary, but that doesn't seem to be actually needed for the triangular products
-  VERIFY_EVALUATION_COUNT( rm3.col(c0).noalias() = (s1 * m1.adjoint()).template triangularView<UnitUpper>() * (s2*m2.row(c0)).adjoint(), 1);
+  VERIFY_EVALUATION_COUNT( rm3.col(c0).noalias() = (s1 * m1.adjoint()).triangularView(UnitUpper_t{}) * (s2*m2.row(c0)).adjoint(), 1);
 
-  VERIFY_EVALUATION_COUNT( m1.template triangularView<Lower>().solveInPlace(m3), 0);
-  VERIFY_EVALUATION_COUNT( m1.adjoint().template triangularView<Lower>().solveInPlace(m3.transpose()), 0);
+  VERIFY_EVALUATION_COUNT( m1.triangularView(Lower_t{}).solveInPlace(m3), 0);
+  VERIFY_EVALUATION_COUNT( m1.adjoint().triangularView(Lower_t{}).solveInPlace(m3.transpose()), 0);
 
   VERIFY_EVALUATION_COUNT( m3.noalias() -= (s1 * m1).adjoint().selfadjointView(Lower_t{}) * (-m2*s3).adjoint(), 0);
   VERIFY_EVALUATION_COUNT( m3.noalias() = s2 * m2.adjoint() * (s1 * m1.adjoint()).selfadjointView(Upper_t{}), 0);
@@ -133,7 +133,7 @@ template<typename MatrixType> void product_notemporary(const MatrixType& m)
   m3.resize(1,1);
   VERIFY_EVALUATION_COUNT( m3.noalias() = m1.block(r0,r0,r1,r1).selfadjointView(Lower_t{}) * m2.block(r0,c0,r1,c1), 1);
   m3.resize(1,1);
-  VERIFY_EVALUATION_COUNT( m3.noalias() = m1.block(r0,r0,r1,r1).template triangularView<UnitUpper>()  * m2.block(r0,c0,r1,c1), 1);
+  VERIFY_EVALUATION_COUNT( m3.noalias() = m1.block(r0,r0,r1,r1).triangularView(UnitUpper_t{})  * m2.block(r0,c0,r1,c1), 1);
 
   // Zero temporaries for lazy products ...
   m3.setRandom(rows,cols);

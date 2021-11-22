@@ -32,7 +32,7 @@ template<typename Scalar, int Size, int OtherSize> void symm(int size = Size, in
   Scalar s1 = internal::random<Scalar>(),
          s2 = internal::random<Scalar>();
 
-  m2 = m1.template triangularView<Lower>();
+  m2 = m1.triangularView(Lower_t{});
   m3 = m2.selfadjointView(Lower_t{});
   VERIFY_IS_EQUAL(m1, m3);
   VERIFY_IS_APPROX(rhs12 = (s1*m2).selfadjointView(Lower_t{}) * (s2*rhs1),
@@ -56,39 +56,39 @@ template<typename Scalar, int Size, int OtherSize> void symm(int size = Size, in
   VERIFY_IS_APPROX(rhs12 = (s1*m2).selfadjointView(Lower_t{}).adjoint() * (s2*rhs1),
                    rhs13 = (s1*m1).adjoint() * (s2*rhs1));
 
-  m2 = m1.template triangularView<Upper>(); rhs12.setRandom(); rhs13 = rhs12;
+  m2 = m1.triangularView(Upper_t{}); rhs12.setRandom(); rhs13 = rhs12;
   m3 = m2.selfadjointView(Upper_t{});
   VERIFY_IS_EQUAL(m1, m3);
   VERIFY_IS_APPROX(rhs12 += (s1*m2).selfadjointView(Upper_t{}) * (s2*rhs1),
                    rhs13 += (s1*m1) * (s2*rhs1));
 
-  m2 = m1.template triangularView<Lower>();
+  m2 = m1.triangularView(Lower_t{});
   VERIFY_IS_APPROX(rhs12 = (s1*m2).selfadjointView(Lower_t{}) * (s2*rhs2.adjoint()),
                    rhs13 = (s1*m1) * (s2*rhs2.adjoint()));
 
-  m2 = m1.template triangularView<Upper>();
+  m2 = m1.triangularView(Upper_t{});
   VERIFY_IS_APPROX(rhs12 = (s1*m2).selfadjointView(Upper_t{}) * (s2*rhs2.adjoint()),
                    rhs13 = (s1*m1) * (s2*rhs2.adjoint()));
 
-  m2 = m1.template triangularView<Upper>();
+  m2 = m1.triangularView(Upper_t{});
   VERIFY_IS_APPROX(rhs12 = (s1*m2.adjoint()).selfadjointView(Lower_t{}) * (s2*rhs2.adjoint()),
                    rhs13 = (s1*m1.adjoint()) * (s2*rhs2.adjoint()));
 
   // test row major = <...>
-  m2 = m1.template triangularView<Lower>(); rhs32.setRandom(); rhs13 = rhs32;
+  m2 = m1.triangularView(Lower_t{}); rhs32.setRandom(); rhs13 = rhs32;
   VERIFY_IS_APPROX(rhs32.noalias() -= (s1*m2).selfadjointView(Lower_t{}) * (s2*rhs3),
                    rhs13 -= (s1*m1) * (s2 * rhs3));
 
-  m2 = m1.template triangularView<Upper>();
+  m2 = m1.triangularView(Upper_t{});
   VERIFY_IS_APPROX(rhs32.noalias() = (s1*m2.adjoint()).selfadjointView(Lower_t{}) * (s2*rhs3).conjugate(),
                    rhs13 = (s1*m1.adjoint()) * (s2*rhs3).conjugate());
 
 
-  m2 = m1.template triangularView<Upper>(); rhs13 = rhs12;
+  m2 = m1.triangularView(Upper_t{}); rhs13 = rhs12;
   VERIFY_IS_APPROX(rhs12.noalias() += s1 * ((m2.adjoint()).selfadjointView(Lower_t{}) * (s2*rhs3).conjugate()),
                    rhs13 += (s1*m1.adjoint()) * (s2*rhs3).conjugate());
 
-  m2 = m1.template triangularView<Lower>();
+  m2 = m1.triangularView(Lower_t{});
   VERIFY_IS_APPROX(rhs22 = (rhs2) * (m2).selfadjointView(Lower_t{}), rhs23 = (rhs2) * (m1));
   VERIFY_IS_APPROX(rhs22 = (s2*rhs2) * (s1*m2).selfadjointView(Lower_t{}), rhs23 = (s2*rhs2) * (s1*m1));
 

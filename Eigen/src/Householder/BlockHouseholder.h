@@ -41,7 +41,7 @@ namespace internal {
 //                                        * vectors.col(i).tail(rs);
 //     *Vii_ptr = Vii;
 //     // FIXME add .noalias() once the triangular product can work inplace
-//     triFactor.col(i).head(i) = triFactor.block(0,0,i,i).template triangularView<Upper>()
+//     triFactor.col(i).head(i) = triFactor.block(0,0,i,i).triangularView(Upper_t{})
 //                              * triFactor.col(i).head(i);
 //     triFactor(i,i) = hCoeffs(i);
 //   }
@@ -63,10 +63,10 @@ void make_block_householder_triangular_factor(TriangularFactorType& triFactor, c
     if(rt>0)
     {
       triFactor.row(i).tail(rt).noalias() = -hCoeffs(i) * vectors.col(i).tail(rs).adjoint()
-                                                        * vectors.bottomRightCorner(rs, rt).template triangularView<UnitLower>();
+                                                        * vectors.bottomRightCorner(rs, rt).triangularView(UnitLower_t{});
             
       // FIXME use the following line with .noalias() once the triangular product can work inplace
-      // triFactor.row(i).tail(rt) = triFactor.row(i).tail(rt) * triFactor.bottomRightCorner(rt,rt).template triangularView<Upper>();
+      // triFactor.row(i).tail(rt) = triFactor.row(i).tail(rt) * triFactor.bottomRightCorner(rt,rt).triangularView(Upper_t{});
       for(Index j=nbVecs-1; j>i; --j)
       {
         typename TriangularFactorType::Scalar z = triFactor(i,j);
@@ -100,8 +100,8 @@ void apply_block_householder_on_the_left(MatrixType& mat, const VectorsType& vec
          (VectorsType::MaxColsAtCompileTime==1 && MatrixType::MaxColsAtCompileTime!=1)?RowMajor:ColMajor,
          VectorsType::MaxColsAtCompileTime,MatrixType::MaxColsAtCompileTime> tmp = V.adjoint() * mat;
   // FIXME add .noalias() once the triangular product can work inplace
-  if(forward) tmp = T.template triangularView<Upper>()           * tmp;
-  else        tmp = T.template triangularView<Upper>().adjoint() * tmp;
+  if(forward) tmp = T.triangularView(Upper_t{})           * tmp;
+  else        tmp = T.triangularView(Upper_t{}).adjoint() * tmp;
   mat.noalias() -= V * tmp;
 }
 

@@ -321,16 +321,16 @@ template<typename SparseMatrixType> void sparse_product()
                      refX = refS * refLo.selfadjointView(Lower_t{}));
 
     // sparse triangularView with dense matrices
-    VERIFY_IS_APPROX(x=mA.template triangularView<Upper>()*b, refX=refA.template triangularView<Upper>()*b);
-    VERIFY_IS_APPROX(x=mA.template triangularView<Lower>()*b, refX=refA.template triangularView<Lower>()*b);
-    VERIFY_IS_APPROX(x=b*mA.template triangularView<Upper>(), refX=b*refA.template triangularView<Upper>());
-    VERIFY_IS_APPROX(x=b*mA.template triangularView<Lower>(), refX=b*refA.template triangularView<Lower>());
+    VERIFY_IS_APPROX(x=mA.triangularView(Upper_t{})*b, refX=refA.triangularView(Upper_t{})*b);
+    VERIFY_IS_APPROX(x=mA.triangularView(Lower_t{})*b, refX=refA.triangularView(Lower_t{})*b);
+    VERIFY_IS_APPROX(x=b*mA.triangularView(Upper_t{}), refX=b*refA.triangularView(Upper_t{}));
+    VERIFY_IS_APPROX(x=b*mA.triangularView(Lower_t{}), refX=b*refA.triangularView(Lower_t{}));
 
     // sparse triangularView with sparse matrices
-    VERIFY_IS_APPROX(mSres = mA.template triangularView<Lower>()*mS,   refX = refA.template triangularView<Lower>()*refS);
-    VERIFY_IS_APPROX(mSres = mS * mA.template triangularView<Lower>(), refX = refS * refA.template triangularView<Lower>());
-    VERIFY_IS_APPROX(mSres = mA.template triangularView<Upper>()*mS,   refX = refA.template triangularView<Upper>()*refS);
-    VERIFY_IS_APPROX(mSres = mS * mA.template triangularView<Upper>(), refX = refS * refA.template triangularView<Upper>());
+    VERIFY_IS_APPROX(mSres = mA.triangularView(Lower_t{})*mS,   refX = refA.triangularView(Lower_t{})*refS);
+    VERIFY_IS_APPROX(mSres = mS * mA.triangularView(Lower_t{}), refX = refS * refA.triangularView(Lower_t{}));
+    VERIFY_IS_APPROX(mSres = mA.triangularView(Upper_t{})*mS,   refX = refA.triangularView(Upper_t{})*refS);
+    VERIFY_IS_APPROX(mSres = mS * mA.triangularView(Upper_t{}), refX = refS * refA.triangularView(Upper_t{}));
   }
 }
 

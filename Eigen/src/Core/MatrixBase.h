@@ -236,10 +236,10 @@ template<typename Derived> class MatrixBase
 
     template<unsigned int Mode>
     EIGEN_DEVICE_FUNC
-    typename TriangularViewReturnType<Mode>::Type triangularView();
+    typename TriangularViewReturnType<Mode>::Type triangularView(internal::MatrixStructure<Mode> = {});
     template<unsigned int Mode>
     EIGEN_DEVICE_FUNC
-    typename ConstTriangularViewReturnType<Mode>::Type triangularView() const;
+    typename ConstTriangularViewReturnType<Mode>::Type triangularView(internal::MatrixStructure<Mode> = {}) const;
 
     template<unsigned int UpLo> struct SelfAdjointViewReturnType { typedef SelfAdjointView<Derived, UpLo> Type; };
     template<unsigned int UpLo> struct ConstSelfAdjointViewReturnType { typedef const SelfAdjointView<const Derived, UpLo> Type; };

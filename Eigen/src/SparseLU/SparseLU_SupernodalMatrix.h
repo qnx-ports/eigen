@@ -277,7 +277,7 @@ void MappedSuperNodalMatrix<Scalar,Index_>::solveInPlace( MatrixBase<Dest>&X) co
         // Triangular solve 
         Map<const Matrix<Scalar,Dynamic,Dynamic, ColMajor>, 0, OuterStride<> > A( &(Lval[luptr]), nsupc, nsupc, OuterStride<>(lda) );
         Map< Matrix<Scalar,Dynamic,Dest::ColsAtCompileTime, ColMajor>, 0, OuterStride<> > U (&(X(fsupc,0)), nsupc, nrhs, OuterStride<>(n) );
-        U = A.template triangularView<UnitLower>().solve(U); 
+        U = A.triangularView(UnitLower_t{}).solve(U);
         
         // Matrix-vector product 
         new (&A) Map<const Matrix<Scalar,Dynamic,Dynamic, ColMajor>, 0, OuterStride<> > ( &(Lval[luptr+nsupc]), nrow, nsupc, OuterStride<>(lda) );
@@ -360,9 +360,9 @@ void MappedSuperNodalMatrix<Scalar,Index_>::solveTransposedInPlace( MatrixBase<D
       // Triangular solve (of transposed diagonal block)
       new (&A) Map<const Matrix<Scalar,Dynamic,Dynamic, ColMajor>, 0, OuterStride<> > ( &(Lval[luptr]), nsupc, nsupc, OuterStride<>(lda) );
       if(Conjugate)
-        U = A.adjoint().template triangularView<UnitUpper>().solve(U);
+        U = A.adjoint().triangularView(UnitUpper_t{}).solve(U);
       else
-        U = A.transpose().template triangularView<UnitUpper>().solve(U);
+        U = A.transpose().triangularView(UnitUpper_t{}).solve(U);
 
     }
 

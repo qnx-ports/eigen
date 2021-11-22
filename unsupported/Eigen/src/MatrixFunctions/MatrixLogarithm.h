@@ -217,7 +217,7 @@ void matrix_log_compute_pade(MatrixType& result, const MatrixType& T, int degree
     RealScalar weight = weights[degree-minPadeDegree][k];
     RealScalar node = nodes[degree-minPadeDegree][k];
     result += weight * (MatrixType::Identity(T.rows(), T.rows()) + node * TminusI)
-                       .template triangularView<Upper>().solve(TminusI);
+                       .triangularView(Upper_t{}).solve(TminusI);
   }
 } 
 
@@ -253,7 +253,7 @@ void matrix_log_compute_big(const MatrixType& A, MatrixType& result)
       ++numberOfExtraSquareRoots;
     }
     matrix_sqrt_triangular(T, sqrtT);
-    T = sqrtT.template triangularView<Upper>();
+    T = sqrtT.triangularView(Upper_t{});
     ++numberOfSquareRoots;
   }
 

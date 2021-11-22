@@ -90,7 +90,7 @@ public:
     if(matrix.rows() > matrix.cols())
     {
       m_qr.compute(matrix);
-      svd.m_workMatrix = m_qr.matrixQR().block(0,0,matrix.cols(),matrix.cols()).template triangularView<Upper>();
+      svd.m_workMatrix = m_qr.matrixQR().block(0,0,matrix.cols(),matrix.cols()).triangularView(Upper_t{});
       if(svd.m_computeFullU) m_qr.matrixQ().evalTo(svd.m_matrixU, m_workspace);
       if(svd.computeV()) svd.m_matrixV = m_qr.colsPermutation();
       return true;
@@ -138,7 +138,7 @@ public:
     {
       m_adjoint = matrix.adjoint();
       m_qr.compute(m_adjoint);
-      svd.m_workMatrix = m_qr.matrixQR().block(0,0,matrix.rows(),matrix.rows()).template triangularView<Upper>().adjoint();
+      svd.m_workMatrix = m_qr.matrixQR().block(0,0,matrix.rows(),matrix.rows()).triangularView(Upper_t{}).adjoint();
       if(svd.m_computeFullV) m_qr.matrixQ().evalTo(svd.m_matrixV, m_workspace);
       if(svd.computeU()) svd.m_matrixU = m_qr.colsPermutation();
       return true;
@@ -174,7 +174,7 @@ public:
     if(matrix.rows() > matrix.cols())
     {
       m_qr.compute(matrix);
-      svd.m_workMatrix = m_qr.matrixQR().block(0,0,matrix.cols(),matrix.cols()).template triangularView<Upper>();
+      svd.m_workMatrix = m_qr.matrixQR().block(0,0,matrix.cols(),matrix.cols()).triangularView(Upper_t{});
       if(svd.m_computeFullU) m_qr.householderQ().evalTo(svd.m_matrixU, m_workspace);
       else if(svd.m_computeThinU)
       {
@@ -230,7 +230,7 @@ public:
       m_adjoint = matrix.adjoint();
       m_qr.compute(m_adjoint);
 
-      svd.m_workMatrix = m_qr.matrixQR().block(0,0,matrix.rows(),matrix.rows()).template triangularView<Upper>().adjoint();
+      svd.m_workMatrix = m_qr.matrixQR().block(0,0,matrix.rows(),matrix.rows()).triangularView(Upper_t{}).adjoint();
       if(svd.m_computeFullV) m_qr.householderQ().evalTo(svd.m_matrixV, m_workspace);
       else if(svd.m_computeThinV)
       {
@@ -272,7 +272,7 @@ public:
     if(matrix.rows() > matrix.cols())
     {
       m_qr.compute(matrix);
-      svd.m_workMatrix = m_qr.matrixQR().block(0,0,matrix.cols(),matrix.cols()).template triangularView<Upper>();
+      svd.m_workMatrix = m_qr.matrixQR().block(0,0,matrix.cols(),matrix.cols()).triangularView(Upper_t{});
       if(svd.m_computeFullU) m_qr.householderQ().evalTo(svd.m_matrixU, m_workspace);
       else if(svd.m_computeThinU)
       {
@@ -327,7 +327,7 @@ public:
       m_adjoint = matrix.adjoint();
       m_qr.compute(m_adjoint);
 
-      svd.m_workMatrix = m_qr.matrixQR().block(0,0,matrix.rows(),matrix.rows()).template triangularView<Upper>().adjoint();
+      svd.m_workMatrix = m_qr.matrixQR().block(0,0,matrix.rows(),matrix.rows()).triangularView(Upper_t{}).adjoint();
       if(svd.m_computeFullV) m_qr.householderQ().evalTo(svd.m_matrixV, m_workspace);
       else if(svd.m_computeThinV)
       {

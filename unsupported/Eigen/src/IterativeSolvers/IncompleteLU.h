@@ -79,8 +79,8 @@ class IncompleteLU : public SparseSolverBase<IncompleteLU<Scalar_> >
     template<typename Rhs, typename Dest>
     void _solve_impl(const Rhs& b, Dest& x) const
     {
-      x = m_lu.template triangularView<UnitLower>().solve(b);
-      x = m_lu.template triangularView<Upper>().solve(x);
+      x = m_lu.triangularView(UnitLower_t{}).solve(b);
+      x = m_lu.triangularView(Upper_t{}).solve(x);
     }
 
   protected:

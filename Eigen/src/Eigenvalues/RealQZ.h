@@ -227,7 +227,7 @@ namespace Eigen {
       // perform QR decomposition of T, overwrite T with R, save Q
       HouseholderQR<MatrixType> qrT(m_T);
       m_T = qrT.matrixQR();
-      m_T.template triangularView<StrictlyLower>().setZero();
+      m_T.triangularView(StrictlyLower_t{}).setZero();
       m_Q = qrT.householderQ();
       // overwrite S with Q* S
       m_S.applyOnTheLeft(m_Q.adjoint());
@@ -324,7 +324,7 @@ namespace Eigen {
       if (j==i-1)
       {
         // block of (S T^{-1})
-        Matrix2s STi = m_T.template block<2,2>(i,i).template triangularView<Upper>().
+        Matrix2s STi = m_T.template block<2,2>(i,i).triangularView(Upper_t{}).
           template solve<OnTheRight>(m_S.template block<2,2>(i,i));
         Scalar p = Scalar(0.5)*(STi(0,0)-STi(1,1));
         Scalar q = p*p + STi(1,0)*STi(0,1);

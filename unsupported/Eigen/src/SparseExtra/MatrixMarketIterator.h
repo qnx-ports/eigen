@@ -91,8 +91,8 @@ class MatrixMarketIterator
       {
         // Check whether we need to restore a full matrix:
         RealScalar diag_norm  = m_mat.diagonal().norm();
-        RealScalar lower_norm = m_mat.template triangularView<Lower>().norm();
-        RealScalar upper_norm = m_mat.template triangularView<Upper>().norm();
+        RealScalar lower_norm = m_mat.triangularView(Lower_t{}).norm();
+        RealScalar upper_norm = m_mat.triangularView(Upper_t{}).norm();
         if(lower_norm>diag_norm && upper_norm==diag_norm)
         {
           // only the lower part is stored

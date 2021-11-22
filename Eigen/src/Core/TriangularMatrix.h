@@ -644,7 +644,7 @@ template<typename Derived>
 template<unsigned int Mode>
 EIGEN_DEVICE_FUNC
 typename MatrixBase<Derived>::template TriangularViewReturnType<Mode>::Type
-MatrixBase<Derived>::triangularView()
+MatrixBase<Derived>::triangularView(internal::MatrixStructure<Mode>)
 {
   return typename TriangularViewReturnType<Mode>::Type(derived());
 }
@@ -654,7 +654,7 @@ template<typename Derived>
 template<unsigned int Mode>
 EIGEN_DEVICE_FUNC
 typename MatrixBase<Derived>::template ConstTriangularViewReturnType<Mode>::Type
-MatrixBase<Derived>::triangularView() const
+MatrixBase<Derived>::triangularView(internal::MatrixStructure<Mode>) const
 {
   return typename ConstTriangularViewReturnType<Mode>::Type(derived());
 }

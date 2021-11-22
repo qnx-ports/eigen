@@ -75,7 +75,7 @@ void covar(
     }
 
     /* symmetrize the covariance matrix in r. */
-    r.topLeftCorner(n,n).template triangularView<StrictlyUpper>() = r.topLeftCorner(n,n).transpose();
+    r.topLeftCorner(n,n).triangularView(StrictlyUpper_t{}) = r.topLeftCorner(n,n).transpose();
     r.diagonal() = wa;
 }
 

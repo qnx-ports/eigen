@@ -54,15 +54,15 @@ template<typename MatrixType> void nomalloc(const MatrixType& m)
   m2.row(0).noalias() -= m1.col(0).adjoint() * m1.adjoint();
   VERIFY_IS_APPROX(m2,m2);
   
-  m2.col(0).noalias() = m1.template triangularView<Upper>() * m1.col(0);
-  m2.col(0).noalias() -= m1.adjoint().template triangularView<Upper>() * m1.col(0);
-  m2.col(0).noalias() -= m1.template triangularView<Upper>() * m1.row(0).adjoint();
-  m2.col(0).noalias() -= m1.adjoint().template triangularView<Upper>() * m1.row(0).adjoint();
+  m2.col(0).noalias() = m1.triangularView(Upper_t{}) * m1.col(0);
+  m2.col(0).noalias() -= m1.adjoint().triangularView(Upper_t{}) * m1.col(0);
+  m2.col(0).noalias() -= m1.triangularView(Upper_t{}) * m1.row(0).adjoint();
+  m2.col(0).noalias() -= m1.adjoint().triangularView(Upper_t{}) * m1.row(0).adjoint();
 
-  m2.row(0).noalias() = m1.row(0) * m1.template triangularView<Upper>();
-  m2.row(0).noalias() -= m1.row(0) * m1.adjoint().template triangularView<Upper>();
-  m2.row(0).noalias() -= m1.col(0).adjoint() * m1.template triangularView<Upper>();
-  m2.row(0).noalias() -= m1.col(0).adjoint() * m1.adjoint().template triangularView<Upper>();
+  m2.row(0).noalias() = m1.row(0) * m1.triangularView(Upper_t{});
+  m2.row(0).noalias() -= m1.row(0) * m1.adjoint().triangularView(Upper_t{});
+  m2.row(0).noalias() -= m1.col(0).adjoint() * m1.triangularView(Upper_t{});
+  m2.row(0).noalias() -= m1.col(0).adjoint() * m1.adjoint().triangularView(Upper_t{});
   VERIFY_IS_APPROX(m2,m2);
   
   m2.col(0).noalias() = m1.selfadjointView(Upper_t{}) * m1.col(0);
@@ -82,8 +82,8 @@ template<typename MatrixType> void nomalloc(const MatrixType& m)
 
   // The following fancy matrix-matrix products are not safe yet regarding static allocation
   m2.selfadjointView(Lower_t{}).rankUpdate(m1);
-  m2 += m2.template triangularView<Upper>() * m1;
-  m2.template triangularView<Upper>() = m2 * m2;
+  m2 += m2.triangularView(Upper_t{}) * m1;
+  m2.triangularView(Upper_t{}) = m2 * m2;
   m1 += m1.selfadjointView(Lower_t{}) * m2;
   VERIFY_IS_APPROX(m2,m2);
 }

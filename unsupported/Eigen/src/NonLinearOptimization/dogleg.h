@@ -73,7 +73,7 @@ void dogleg(
     /* at which the quadratic is minimized. */
     wa1.array() /= (diag*gnorm).array();
     // TODO : once unit tests cover this part,:
-    // wa2 = qrfac.template triangularView<Upper>() * wa1;
+    // wa2 = qrfac.triangularView(Upper_t{}) * wa1;
     for (j = 0; j < n; ++j) {
         sum = 0.;
         for (i = j; i < n; ++i) {

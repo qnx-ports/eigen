@@ -449,35 +449,35 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
     DenseMatrix refMat2(rows, cols), refMat3(rows, cols);
     SparseMatrixType m2(rows, cols), m3(rows, cols);
     initSparse<Scalar>(density, refMat2, m2);
-    refMat3 = refMat2.template triangularView<Lower>();
-    m3 = m2.template triangularView<Lower>();
+    refMat3 = refMat2.triangularView(Lower_t{});
+    m3 = m2.triangularView(Lower_t{});
     VERIFY_IS_APPROX(m3, refMat3);
 
-    refMat3 = refMat2.template triangularView<Upper>();
-    m3 = m2.template triangularView<Upper>();
+    refMat3 = refMat2.triangularView(Upper_t{});
+    m3 = m2.triangularView(Upper_t{});
     VERIFY_IS_APPROX(m3, refMat3);
 
     {
-      refMat3 = refMat2.template triangularView<UnitUpper>();
-      m3 = m2.template triangularView<UnitUpper>();
+      refMat3 = refMat2.triangularView(UnitUpper_t{});
+      m3 = m2.triangularView(UnitUpper_t{});
       VERIFY_IS_APPROX(m3, refMat3);
 
-      refMat3 = refMat2.template triangularView<UnitLower>();
-      m3 = m2.template triangularView<UnitLower>();
+      refMat3 = refMat2.triangularView(UnitLower_t{});
+      m3 = m2.triangularView(UnitLower_t{});
       VERIFY_IS_APPROX(m3, refMat3);
     }
 
-    refMat3 = refMat2.template triangularView<StrictlyUpper>();
-    m3 = m2.template triangularView<StrictlyUpper>();
+    refMat3 = refMat2.triangularView(StrictlyUpper_t{});
+    m3 = m2.triangularView(StrictlyUpper_t{});
     VERIFY_IS_APPROX(m3, refMat3);
 
-    refMat3 = refMat2.template triangularView<StrictlyLower>();
-    m3 = m2.template triangularView<StrictlyLower>();
+    refMat3 = refMat2.triangularView(StrictlyLower_t{});
+    m3 = m2.triangularView(StrictlyLower_t{});
     VERIFY_IS_APPROX(m3, refMat3);
 
     // check sparse-triangular to dense
-    refMat3 = m2.template triangularView<StrictlyUpper>();
-    VERIFY_IS_APPROX(refMat3, DenseMatrix(refMat2.template triangularView<StrictlyUpper>()));
+    refMat3 = m2.triangularView(StrictlyUpper_t{});
+    VERIFY_IS_APPROX(refMat3, DenseMatrix(refMat2.triangularView(StrictlyUpper_t{})));
   }
   
   // test selfadjointView
