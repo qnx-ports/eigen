@@ -64,8 +64,8 @@ template<int OtherStorage, typename SparseMatrixType> void sparse_permutations(c
   up = mat.template triangularView<Upper>();
   lo = mat.template triangularView<Lower>();
   
-  up_sym_d = mat_d.template selfadjointView<Upper>();
-  lo_sym_d = mat_d.template selfadjointView<Lower>();
+  up_sym_d = mat_d.selfadjointView(Upper_t{});
+  lo_sym_d = mat_d.selfadjointView(Lower_t{});
   
   VERIFY_IS_APPROX(mat, mat_d);
   VERIFY_IS_APPROX(up, DenseMatrix(mat_d.template triangularView<Upper>()));
@@ -108,106 +108,106 @@ template<int OtherStorage, typename SparseMatrixType> void sparse_permutations(c
   VERIFY(res.isApprox(res_d) && "p*mat*inv(p)");
 
   
-  VERIFY( is_sorted( res = mat.template selfadjointView<Upper>().twistedBy(p_null) ));
+  VERIFY( is_sorted( res = mat.selfadjointView(Upper_t{}).twistedBy(p_null) ));
   res_d = up_sym_d;
   VERIFY(res.isApprox(res_d) && "full selfadjoint upper to full");
   
-  VERIFY( is_sorted( res = mat.template selfadjointView<Lower>().twistedBy(p_null) ));
+  VERIFY( is_sorted( res = mat.selfadjointView(Lower_t{}).twistedBy(p_null) ));
   res_d = lo_sym_d;
   VERIFY(res.isApprox(res_d) && "full selfadjoint lower to full");
   
   
-  VERIFY( is_sorted( res = up.template selfadjointView<Upper>().twistedBy(p_null) ));
+  VERIFY( is_sorted( res = up.selfadjointView(Upper_t{}).twistedBy(p_null) ));
   res_d = up_sym_d;
   VERIFY(res.isApprox(res_d) && "upper selfadjoint to full");
   
-  VERIFY( is_sorted( res = lo.template selfadjointView<Lower>().twistedBy(p_null) ));
+  VERIFY( is_sorted( res = lo.selfadjointView(Lower_t{}).twistedBy(p_null) ));
   res_d = lo_sym_d;
   VERIFY(res.isApprox(res_d) && "lower selfadjoint full");
 
 
-  VERIFY( is_sorted( res = mat.template selfadjointView<Upper>() ));
+  VERIFY( is_sorted( res = mat.selfadjointView(Upper_t{}) ));
   res_d = up_sym_d;
   VERIFY(res.isApprox(res_d) && "full selfadjoint upper to full");
 
-  VERIFY( is_sorted( res = mat.template selfadjointView<Lower>() ));
+  VERIFY( is_sorted( res = mat.selfadjointView(Lower_t{}) ));
   res_d = lo_sym_d;
   VERIFY(res.isApprox(res_d) && "full selfadjoint lower to full");
 
-  VERIFY( is_sorted( res = up.template selfadjointView<Upper>() ));
+  VERIFY( is_sorted( res = up.selfadjointView(Upper_t{}) ));
   res_d = up_sym_d;
   VERIFY(res.isApprox(res_d) && "upper selfadjoint to full");
 
-  VERIFY( is_sorted( res = lo.template selfadjointView<Lower>() ));
+  VERIFY( is_sorted( res = lo.selfadjointView(Lower_t{}) ));
   res_d = lo_sym_d;
   VERIFY(res.isApprox(res_d) && "lower selfadjoint full");
 
 
-  res.template selfadjointView<Upper>() = mat.template selfadjointView<Upper>();
+  res.selfadjointView(Upper_t{}) = mat.selfadjointView(Upper_t{});
   res_d = up_sym_d.template triangularView<Upper>();
   VERIFY(res.isApprox(res_d) && "full selfadjoint upper to upper");
 
-  res.template selfadjointView<Lower>() = mat.template selfadjointView<Upper>();
+  res.selfadjointView(Lower_t{}) = mat.selfadjointView(Upper_t{});
   res_d = up_sym_d.template triangularView<Lower>();
   VERIFY(res.isApprox(res_d) && "full selfadjoint upper to lower");
 
-  res.template selfadjointView<Upper>() = mat.template selfadjointView<Lower>();
+  res.selfadjointView(Upper_t{}) = mat.selfadjointView(Lower_t{});
   res_d = lo_sym_d.template triangularView<Upper>();
   VERIFY(res.isApprox(res_d) && "full selfadjoint lower to upper");
 
-  res.template selfadjointView<Lower>() = mat.template selfadjointView<Lower>();
+  res.selfadjointView(Lower_t{}) = mat.selfadjointView(Lower_t{});
   res_d = lo_sym_d.template triangularView<Lower>();
   VERIFY(res.isApprox(res_d) && "full selfadjoint lower to lower");
 
   
   
-  res.template selfadjointView<Upper>() = mat.template selfadjointView<Upper>().twistedBy(p);
+  res.selfadjointView(Upper_t{}) = mat.selfadjointView(Upper_t{}).twistedBy(p);
   res_d = ((p * up_sym_d) * p.inverse()).eval().template triangularView<Upper>();
   VERIFY(res.isApprox(res_d) && "full selfadjoint upper twisted to upper");
   
-  res.template selfadjointView<Upper>() = mat.template selfadjointView<Lower>().twistedBy(p);
+  res.selfadjointView(Upper_t{}) = mat.selfadjointView(Lower_t{}).twistedBy(p);
   res_d = ((p * lo_sym_d) * p.inverse()).eval().template triangularView<Upper>();
   VERIFY(res.isApprox(res_d) && "full selfadjoint lower twisted to upper");
   
-  res.template selfadjointView<Lower>() = mat.template selfadjointView<Lower>().twistedBy(p);
+  res.selfadjointView(Lower_t{}) = mat.selfadjointView(Lower_t{}).twistedBy(p);
   res_d = ((p * lo_sym_d) * p.inverse()).eval().template triangularView<Lower>();
   VERIFY(res.isApprox(res_d) && "full selfadjoint lower twisted to lower");
   
-  res.template selfadjointView<Lower>() = mat.template selfadjointView<Upper>().twistedBy(p);
+  res.selfadjointView(Lower_t{}) = mat.selfadjointView(Upper_t{}).twistedBy(p);
   res_d = ((p * up_sym_d) * p.inverse()).eval().template triangularView<Lower>();
   VERIFY(res.isApprox(res_d) && "full selfadjoint upper twisted to lower");
   
   
-  res.template selfadjointView<Upper>() = up.template selfadjointView<Upper>().twistedBy(p);
+  res.selfadjointView(Upper_t{}) = up.selfadjointView(Upper_t{}).twistedBy(p);
   res_d = ((p * up_sym_d) * p.inverse()).eval().template triangularView<Upper>();
   VERIFY(res.isApprox(res_d) && "upper selfadjoint twisted to upper");
   
-  res.template selfadjointView<Upper>() = lo.template selfadjointView<Lower>().twistedBy(p);
+  res.selfadjointView(Upper_t{}) = lo.selfadjointView(Lower_t{}).twistedBy(p);
   res_d = ((p * lo_sym_d) * p.inverse()).eval().template triangularView<Upper>();
   VERIFY(res.isApprox(res_d) && "lower selfadjoint twisted to upper");
   
-  res.template selfadjointView<Lower>() = lo.template selfadjointView<Lower>().twistedBy(p);
+  res.selfadjointView(Lower_t{}) = lo.selfadjointView(Lower_t{}).twistedBy(p);
   res_d = ((p * lo_sym_d) * p.inverse()).eval().template triangularView<Lower>();
   VERIFY(res.isApprox(res_d) && "lower selfadjoint twisted to lower");
   
-  res.template selfadjointView<Lower>() = up.template selfadjointView<Upper>().twistedBy(p);
+  res.selfadjointView(Lower_t{}) = up.selfadjointView(Upper_t{}).twistedBy(p);
   res_d = ((p * up_sym_d) * p.inverse()).eval().template triangularView<Lower>();
   VERIFY(res.isApprox(res_d) && "upper selfadjoint twisted to lower");
 
   
-  VERIFY( is_sorted( res = mat.template selfadjointView<Upper>().twistedBy(p) ));
+  VERIFY( is_sorted( res = mat.selfadjointView(Upper_t{}).twistedBy(p) ));
   res_d = (p * up_sym_d) * p.inverse();
   VERIFY(res.isApprox(res_d) && "full selfadjoint upper twisted to full");
   
-  VERIFY( is_sorted( res = mat.template selfadjointView<Lower>().twistedBy(p) ));
+  VERIFY( is_sorted( res = mat.selfadjointView(Lower_t{}).twistedBy(p) ));
   res_d = (p * lo_sym_d) * p.inverse();
   VERIFY(res.isApprox(res_d) && "full selfadjoint lower twisted to full");
   
-  VERIFY( is_sorted( res = up.template selfadjointView<Upper>().twistedBy(p) ));
+  VERIFY( is_sorted( res = up.selfadjointView(Upper_t{}).twistedBy(p) ));
   res_d = (p * up_sym_d) * p.inverse();
   VERIFY(res.isApprox(res_d) && "upper selfadjoint twisted to full");
   
-  VERIFY( is_sorted( res = lo.template selfadjointView<Lower>().twistedBy(p) ));
+  VERIFY( is_sorted( res = lo.selfadjointView(Lower_t{}).twistedBy(p) ));
   res_d = (p * lo_sym_d) * p.inverse();
   VERIFY(res.isApprox(res_d) && "lower selfadjoint twisted to full");
 }

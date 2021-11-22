@@ -246,10 +246,10 @@ template<typename Derived> class MatrixBase
 
     template<unsigned int UpLo>
     EIGEN_DEVICE_FUNC
-    typename SelfAdjointViewReturnType<UpLo>::Type selfadjointView();
+    typename SelfAdjointViewReturnType<UpLo>::Type selfadjointView(internal::MatrixStructure<UpLo> = {});
     template<unsigned int UpLo>
     EIGEN_DEVICE_FUNC
-    typename ConstSelfAdjointViewReturnType<UpLo>::Type selfadjointView() const;
+    typename ConstSelfAdjointViewReturnType<UpLo>::Type selfadjointView(internal::MatrixStructure<UpLo> = {}) const;
 
     const SparseView<Derived> sparseView(const Scalar& m_reference = Scalar(0),
                                          const typename NumTraits<Scalar>::Real& m_epsilon = NumTraits<Scalar>::dummy_precision()) const;

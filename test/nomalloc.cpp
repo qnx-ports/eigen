@@ -65,26 +65,26 @@ template<typename MatrixType> void nomalloc(const MatrixType& m)
   m2.row(0).noalias() -= m1.col(0).adjoint() * m1.adjoint().template triangularView<Upper>();
   VERIFY_IS_APPROX(m2,m2);
   
-  m2.col(0).noalias() = m1.template selfadjointView<Upper>() * m1.col(0);
-  m2.col(0).noalias() -= m1.adjoint().template selfadjointView<Upper>() * m1.col(0);
-  m2.col(0).noalias() -= m1.template selfadjointView<Upper>() * m1.row(0).adjoint();
-  m2.col(0).noalias() -= m1.adjoint().template selfadjointView<Upper>() * m1.row(0).adjoint();
+  m2.col(0).noalias() = m1.selfadjointView(Upper_t{}) * m1.col(0);
+  m2.col(0).noalias() -= m1.adjoint().selfadjointView(Upper_t{}) * m1.col(0);
+  m2.col(0).noalias() -= m1.selfadjointView(Upper_t{}) * m1.row(0).adjoint();
+  m2.col(0).noalias() -= m1.adjoint().selfadjointView(Upper_t{}) * m1.row(0).adjoint();
 
-  m2.row(0).noalias() = m1.row(0) * m1.template selfadjointView<Upper>();
-  m2.row(0).noalias() -= m1.row(0) * m1.adjoint().template selfadjointView<Upper>();
-  m2.row(0).noalias() -= m1.col(0).adjoint() * m1.template selfadjointView<Upper>();
-  m2.row(0).noalias() -= m1.col(0).adjoint() * m1.adjoint().template selfadjointView<Upper>();
+  m2.row(0).noalias() = m1.row(0) * m1.selfadjointView(Upper_t{});
+  m2.row(0).noalias() -= m1.row(0) * m1.adjoint().selfadjointView(Upper_t{});
+  m2.row(0).noalias() -= m1.col(0).adjoint() * m1.selfadjointView(Upper_t{});
+  m2.row(0).noalias() -= m1.col(0).adjoint() * m1.adjoint().selfadjointView(Upper_t{});
   VERIFY_IS_APPROX(m2,m2);
   
-  m2.template selfadjointView<Lower>().rankUpdate(m1.col(0),-1);
-  m2.template selfadjointView<Upper>().rankUpdate(m1.row(0),-1);
-  m2.template selfadjointView<Lower>().rankUpdate(m1.col(0), m1.col(0)); // rank-2
+  m2.selfadjointView(Lower_t{}).rankUpdate(m1.col(0),-1);
+  m2.selfadjointView(Upper_t{}).rankUpdate(m1.row(0),-1);
+  m2.selfadjointView(Lower_t{}).rankUpdate(m1.col(0), m1.col(0)); // rank-2
 
   // The following fancy matrix-matrix products are not safe yet regarding static allocation
-  m2.template selfadjointView<Lower>().rankUpdate(m1);
+  m2.selfadjointView(Lower_t{}).rankUpdate(m1);
   m2 += m2.template triangularView<Upper>() * m1;
   m2.template triangularView<Upper>() = m2 * m2;
-  m1 += m1.template selfadjointView<Lower>() * m2;
+  m1 += m1.selfadjointView(Lower_t{}) * m2;
   VERIFY_IS_APPROX(m2,m2);
 }
 

@@ -486,22 +486,22 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
     DenseMatrix refMat2(rows, rows), refMat3(rows, rows);
     SparseMatrixType m2(rows, rows), m3(rows, rows);
     initSparse<Scalar>(density, refMat2, m2);
-    refMat3 = refMat2.template selfadjointView<Lower>();
-    m3 = m2.template selfadjointView<Lower>();
+    refMat3 = refMat2.selfadjointView(Lower_t{});
+    m3 = m2.selfadjointView(Lower_t{});
     VERIFY_IS_APPROX(m3, refMat3);
 
-    refMat3 += refMat2.template selfadjointView<Lower>();
-    m3 += m2.template selfadjointView<Lower>();
+    refMat3 += refMat2.selfadjointView(Lower_t{});
+    m3 += m2.selfadjointView(Lower_t{});
     VERIFY_IS_APPROX(m3, refMat3);
 
-    refMat3 -= refMat2.template selfadjointView<Lower>();
-    m3 -= m2.template selfadjointView<Lower>();
+    refMat3 -= refMat2.selfadjointView(Lower_t{});
+    m3 -= m2.selfadjointView(Lower_t{});
     VERIFY_IS_APPROX(m3, refMat3);
 
     // selfadjointView only works for square matrices:
     SparseMatrixType m4(rows, rows+1);
-    VERIFY_RAISES_ASSERT(m4.template selfadjointView<Lower>());
-    VERIFY_RAISES_ASSERT(m4.template selfadjointView<Upper>());
+    VERIFY_RAISES_ASSERT(m4.selfadjointView(Lower_t{}));
+    VERIFY_RAISES_ASSERT(m4.selfadjointView(Upper_t{}));
   }
   
   // test sparseView

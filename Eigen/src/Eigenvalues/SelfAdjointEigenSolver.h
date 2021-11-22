@@ -662,7 +662,7 @@ template<typename SolverType> struct direct_selfadjoint_eigenvalues<SolverType,3
     // Shift the matrix to the mean eigenvalue and map the matrix coefficients to [-1:1] to avoid over- and underflow.
     Scalar shift = mat.trace() / Scalar(3);
     // TODO Avoid this copy. Currently it is necessary to suppress bogus values when determining maxCoeff and for computing the eigenvectors later
-    MatrixType scaledMat = mat.template selfadjointView<Lower>();
+    MatrixType scaledMat = mat.selfadjointView(Lower_t{});
     scaledMat.diagonal().array() -= shift;
     Scalar scale = scaledMat.cwiseAbs().maxCoeff();
     if(scale > 0) scaledMat /= scale;   // TODO for scale==0 we could save the remaining operations

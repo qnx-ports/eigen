@@ -301,24 +301,24 @@ template<typename SparseMatrixType> void sparse_product()
     VERIFY_IS_APPROX(x=mS*b, refX=refS*b);
 
     // sparse selfadjointView with dense matrices
-    VERIFY_IS_APPROX(x=mUp.template selfadjointView<Upper>()*b, refX=refS*b);
-    VERIFY_IS_APPROX(x=mLo.template selfadjointView<Lower>()*b, refX=refS*b);
+    VERIFY_IS_APPROX(x=mUp.selfadjointView(Upper_t{})*b, refX=refS*b);
+    VERIFY_IS_APPROX(x=mLo.selfadjointView(Lower_t{})*b, refX=refS*b);
     VERIFY_IS_APPROX(x=mS.template selfadjointView<Upper|Lower>()*b, refX=refS*b);
 
-    VERIFY_IS_APPROX(x=b * mUp.template selfadjointView<Upper>(),       refX=b*refS);
-    VERIFY_IS_APPROX(x=b * mLo.template selfadjointView<Lower>(),       refX=b*refS);
+    VERIFY_IS_APPROX(x=b * mUp.selfadjointView(Upper_t{}),       refX=b*refS);
+    VERIFY_IS_APPROX(x=b * mLo.selfadjointView(Lower_t{}),       refX=b*refS);
     VERIFY_IS_APPROX(x=b * mS.template selfadjointView<Upper|Lower>(),  refX=b*refS);
 
-    VERIFY_IS_APPROX(x.noalias()+=mUp.template selfadjointView<Upper>()*b, refX+=refS*b);
-    VERIFY_IS_APPROX(x.noalias()-=mLo.template selfadjointView<Lower>()*b, refX-=refS*b);
+    VERIFY_IS_APPROX(x.noalias()+=mUp.selfadjointView(Upper_t{})*b, refX+=refS*b);
+    VERIFY_IS_APPROX(x.noalias()-=mLo.selfadjointView(Lower_t{})*b, refX-=refS*b);
     VERIFY_IS_APPROX(x.noalias()+=mS.template selfadjointView<Upper|Lower>()*b, refX+=refS*b);
 
     // sparse selfadjointView with sparse matrices
     SparseMatrixType mSres(rows,rows);
-    VERIFY_IS_APPROX(mSres = mLo.template selfadjointView<Lower>()*mS,
-                     refX = refLo.template selfadjointView<Lower>()*refS);
-    VERIFY_IS_APPROX(mSres = mS * mLo.template selfadjointView<Lower>(),
-                     refX = refS * refLo.template selfadjointView<Lower>());
+    VERIFY_IS_APPROX(mSres = mLo.selfadjointView(Lower_t{})*mS,
+                     refX = refLo.selfadjointView(Lower_t{})*refS);
+    VERIFY_IS_APPROX(mSres = mS * mLo.selfadjointView(Lower_t{}),
+                     refX = refS * refLo.selfadjointView(Lower_t{}));
 
     // sparse triangularView with dense matrices
     VERIFY_IS_APPROX(x=mA.template triangularView<Upper>()*b, refX=refA.template triangularView<Upper>()*b);

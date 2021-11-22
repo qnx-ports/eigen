@@ -127,17 +127,17 @@ template<typename MatrixType> void cholesky(const MatrixType& m)
     // test some special use cases of SelfCwiseBinaryOp:
     MatrixType m1 = MatrixType::Random(rows,cols), m2(rows,cols);
     m2 = m1;
-    m2 += symmLo.template selfadjointView<Lower>().llt().solve(matB);
-    VERIFY_IS_APPROX(m2, m1 + symmLo.template selfadjointView<Lower>().llt().solve(matB));
+    m2 += symmLo.selfadjointView(Lower_t{}).llt().solve(matB);
+    VERIFY_IS_APPROX(m2, m1 + symmLo.selfadjointView(Lower_t{}).llt().solve(matB));
     m2 = m1;
-    m2 -= symmLo.template selfadjointView<Lower>().llt().solve(matB);
-    VERIFY_IS_APPROX(m2, m1 - symmLo.template selfadjointView<Lower>().llt().solve(matB));
+    m2 -= symmLo.selfadjointView(Lower_t{}).llt().solve(matB);
+    VERIFY_IS_APPROX(m2, m1 - symmLo.selfadjointView(Lower_t{}).llt().solve(matB));
     m2 = m1;
-    m2.noalias() += symmLo.template selfadjointView<Lower>().llt().solve(matB);
-    VERIFY_IS_APPROX(m2, m1 + symmLo.template selfadjointView<Lower>().llt().solve(matB));
+    m2.noalias() += symmLo.selfadjointView(Lower_t{}).llt().solve(matB);
+    VERIFY_IS_APPROX(m2, m1 + symmLo.selfadjointView(Lower_t{}).llt().solve(matB));
     m2 = m1;
-    m2.noalias() -= symmLo.template selfadjointView<Lower>().llt().solve(matB);
-    VERIFY_IS_APPROX(m2, m1 - symmLo.template selfadjointView<Lower>().llt().solve(matB));
+    m2.noalias() -= symmLo.selfadjointView(Lower_t{}).llt().solve(matB);
+    VERIFY_IS_APPROX(m2, m1 - symmLo.selfadjointView(Lower_t{}).llt().solve(matB));
   }
 
   // LDLT

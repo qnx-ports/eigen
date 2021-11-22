@@ -97,13 +97,13 @@ class MatrixMarketIterator
         {
           // only the lower part is stored
           MatrixType tmp(m_mat);
-          m_mat = tmp.template selfadjointView<Lower>();
+          m_mat = tmp.selfadjointView(Lower_t{});
         }
         else if(upper_norm>diag_norm && lower_norm==diag_norm)
         {
           // only the upper part is stored
           MatrixType tmp(m_mat);
-          m_mat = tmp.template selfadjointView<Upper>();
+          m_mat = tmp.selfadjointView(Upper_t{});
         }
       }
       return m_mat; 

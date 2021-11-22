@@ -204,16 +204,16 @@ template<int SizeAtCompileType> void mixingtypes(int size = SizeAtCompileType)
 //   VERIFY_IS_APPROX(scd*md*mcd.template triangularView<Upper>(), scd*md.template cast<CD>().eval()*mcd.template triangularView<Upper>());
 
   // Not supported yet: symv
-//   VERIFY_IS_APPROX(sd*vcd.adjoint()*md.template selfadjointView<Upper>(),  sd*vcd.adjoint()*md.template cast<CD>().eval().template selfadjointView<Upper>());
-//   VERIFY_IS_APPROX(scd*vcd.adjoint()*md.template selfadjointView<Lower>(), scd*vcd.adjoint()*md.template cast<CD>().eval().template selfadjointView<Lower>());
-//   VERIFY_IS_APPROX(sd*vd.adjoint()*mcd.template selfadjointView<Lower>(),  sd*vd.adjoint().template cast<CD>().eval()*mcd.template selfadjointView<Lower>());
-//   VERIFY_IS_APPROX(scd*vd.adjoint()*mcd.template selfadjointView<Upper>(), scd*vd.adjoint().template cast<CD>().eval()*mcd.template selfadjointView<Upper>());
+//   VERIFY_IS_APPROX(sd*vcd.adjoint()*md.selfadjointView(Upper_t{}),  sd*vcd.adjoint()*md.template cast<CD>().eval().selfadjointView(Upper_t{}));
+//   VERIFY_IS_APPROX(scd*vcd.adjoint()*md.selfadjointView(Lower_t{}), scd*vcd.adjoint()*md.template cast<CD>().eval().selfadjointView(Lower_t{}));
+//   VERIFY_IS_APPROX(sd*vd.adjoint()*mcd.selfadjointView(Lower_t{}),  sd*vd.adjoint().template cast<CD>().eval()*mcd.selfadjointView(Lower_t{}));
+//   VERIFY_IS_APPROX(scd*vd.adjoint()*mcd.selfadjointView(Upper_t{}), scd*vd.adjoint().template cast<CD>().eval()*mcd.selfadjointView(Upper_t{}));
 
   // Not supported yet: symm
-//   VERIFY_IS_APPROX(sd*vcd.adjoint()*md.template selfadjointView<Upper>(),  sd*vcd.adjoint()*md.template cast<CD>().eval().template selfadjointView<Upper>());
-//   VERIFY_IS_APPROX(scd*vcd.adjoint()*md.template selfadjointView<Upper>(), scd*vcd.adjoint()*md.template cast<CD>().eval().template selfadjointView<Upper>());
-//   VERIFY_IS_APPROX(sd*vd.adjoint()*mcd.template selfadjointView<Upper>(),  sd*vd.adjoint().template cast<CD>().eval()*mcd.template selfadjointView<Upper>());
-//   VERIFY_IS_APPROX(scd*vd.adjoint()*mcd.template selfadjointView<Upper>(), scd*vd.adjoint().template cast<CD>().eval()*mcd.template selfadjointView<Upper>());
+//   VERIFY_IS_APPROX(sd*vcd.adjoint()*md.selfadjointView(Upper_t{}),  sd*vcd.adjoint()*md.template cast<CD>().eval().selfadjointView(Upper_t{}));
+//   VERIFY_IS_APPROX(scd*vcd.adjoint()*md.selfadjointView(Upper_t{}), scd*vcd.adjoint()*md.template cast<CD>().eval().selfadjointView(Upper_t{}));
+//   VERIFY_IS_APPROX(sd*vd.adjoint()*mcd.selfadjointView(Upper_t{}),  sd*vd.adjoint().template cast<CD>().eval()*mcd.selfadjointView(Upper_t{}));
+//   VERIFY_IS_APPROX(scd*vd.adjoint()*mcd.selfadjointView(Upper_t{}), scd*vd.adjoint().template cast<CD>().eval()*mcd.selfadjointView(Upper_t{}));
 
   rcd.setZero();
   VERIFY_IS_APPROX(Mat_cd(rcd.template triangularView<Upper>() = sd * mcd * md),

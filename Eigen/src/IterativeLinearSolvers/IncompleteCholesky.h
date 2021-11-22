@@ -202,11 +202,11 @@ void IncompleteCholesky<Scalar,UpLo_, OrderingType>::factorize(const MatrixType_
     // The temporary is needed to make sure that the diagonal entry is properly sorted
     FactorType tmp(mat.rows(), mat.cols());
     tmp = mat.template selfadjointView<UpLo_>().twistedBy(m_perm);
-    m_L.template selfadjointView<Lower>() = tmp.template selfadjointView<Lower>();
+    m_L.selfadjointView(Lower_t{}) = tmp.selfadjointView(Lower_t{});
   }
   else
   {
-    m_L.template selfadjointView<Lower>() = mat.template selfadjointView<UpLo_>();
+    m_L.selfadjointView(Lower_t{}) = mat.template selfadjointView<UpLo_>();
   }
 
   Index n = m_L.cols();

@@ -585,7 +585,7 @@ class PastixLLT : public PastixBase< PastixLLT<MatrixType_, UpLo_> >
     {
       out.resize(matrix.rows(), matrix.cols());
       // Pastix supports only lower, column-major matrices 
-      out.template selfadjointView<Lower>() = matrix.template selfadjointView<UpLo>();
+      out.selfadjointView(Lower_{}) = matrix.template selfadjointView<UpLo>();
       internal::c_to_fortran_numbering(out);
     }
 };
@@ -670,7 +670,7 @@ class PastixLDLT : public PastixBase< PastixLDLT<MatrixType_, UpLo_> >
     {
       // Pastix supports only lower, column-major matrices 
       out.resize(matrix.rows(), matrix.cols());
-      out.template selfadjointView<Lower>() = matrix.template selfadjointView<UpLo>();
+      out.selfadjointView(Lower_t{}) = matrix.template selfadjointView<UpLo>();
       internal::c_to_fortran_numbering(out);
     }
 };

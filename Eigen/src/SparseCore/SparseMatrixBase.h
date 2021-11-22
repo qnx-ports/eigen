@@ -343,9 +343,9 @@ template<typename Derived> class SparseMatrixBase
     template<unsigned int UpLo> struct ConstSelfAdjointViewReturnType { typedef const SparseSelfAdjointView<const Derived, UpLo> Type; };
 
     template<unsigned int UpLo> inline 
-    typename ConstSelfAdjointViewReturnType<UpLo>::Type selfadjointView() const;
+    typename ConstSelfAdjointViewReturnType<UpLo>::Type selfadjointView(internal::MatrixStructure<UpLo> = {}) const;
     template<unsigned int UpLo> inline
-    typename SelfAdjointViewReturnType<UpLo>::Type selfadjointView();
+    typename SelfAdjointViewReturnType<UpLo>::Type selfadjointView(internal::MatrixStructure<UpLo> = {});
 
     template<typename OtherDerived> Scalar dot(const MatrixBase<OtherDerived>& other) const;
     template<typename OtherDerived> Scalar dot(const SparseMatrixBase<OtherDerived>& other) const;

@@ -229,6 +229,62 @@ enum UpLoType {
   Symmetric=0x20
 };
 
+namespace internal {
+  enum class MatrixStructureFlag {
+    /** View matrix as a lower triangular matrix. */
+    Lower=0x1,
+    /** View matrix as an upper triangular matrix. */
+    Upper=0x2,
+    /** %Matrix has ones on the diagonal; to be used in combination with #Lower or #Upper. */
+    UnitDiag=0x4,
+    /** %Matrix has zeros on the diagonal; to be used in combination with #Lower or #Upper. */
+    ZeroDiag=0x8,
+    /** View matrix as a lower triangular matrix with ones on the diagonal. */
+    UnitLower=UnitDiag|Lower,
+    /** View matrix as an upper triangular matrix with ones on the diagonal. */
+    UnitUpper=UnitDiag|Upper,
+    /** View matrix as a lower triangular matrix with zeros on the diagonal. */
+    StrictlyLower=ZeroDiag|Lower,
+    /** View matrix as an upper triangular matrix with zeros on the diagonal. */
+    StrictlyUpper=ZeroDiag|Upper,
+    /** Used in BandMatrix and SelfAdjointView to indicate that the matrix is self-adjoint. */
+    SelfAdjoint=0x10,
+    /** Used to support symmetric, non-selfadjoint, complex matrices. */
+    Symmetric=0x20
+  };
+
+  template<unsigned int Flags>
+  struct MatrixStructure {
+      constexpr static bool is_lower() { return Flags & (unsigned)internal::MatrixStructureFlag::Lower; }
+      constexpr static bool is_upper() { return Flags & (unsigned)internal::MatrixStructureFlag::Upper; }
+      constexpr static bool has_unit_diag() { return Flags & (unsigned)internal::MatrixStructureFlag::UnitDiag; }
+      constexpr static bool has_zero_diag() { return Flags & (unsigned)internal::MatrixStructureFlag::ZeroDiag; }
+      constexpr static bool is_self_adjoint() { return Flags & (unsigned)internal::MatrixStructureFlag::SelfAdjoint; }
+      constexpr static bool is_symmetric() { return Flags & (unsigned)internal::MatrixStructureFlag::Symmetric; }
+
+      // Check that the flags make sense
+      static_assert(!(is_lower() && is_upper()), "Upper and Lower specified at the same time");
+      static_assert(!(has_unit_diag() && has_zero_diag()), "Upper and Lower specified at the same time");
+  };
+
+  namespace structure_tag_types {
+  using Lower_t = MatrixStructure<(unsigned) MatrixStructureFlag::Lower>;
+  using Upper_t = MatrixStructure<(unsigned) MatrixStructureFlag::Upper>;
+  using UnitDiag_t = MatrixStructure<(unsigned) MatrixStructureFlag::UnitDiag>;
+  using ZeroDiag_t = MatrixStructure<(unsigned) MatrixStructureFlag::ZeroDiag>;
+  using UnitLower_t = MatrixStructure<(unsigned) MatrixStructureFlag::UnitDiag | (unsigned) MatrixStructureFlag::Lower>;
+  using UnitUpper_t = MatrixStructure<(unsigned) MatrixStructureFlag::UnitDiag | (unsigned) MatrixStructureFlag::Upper>;
+  using StrictlyLower_t = MatrixStructure<
+          (unsigned) MatrixStructureFlag::ZeroDiag | (unsigned) MatrixStructureFlag::Lower>;
+  using StrictlyUpper_t = MatrixStructure<
+          (unsigned) MatrixStructureFlag::ZeroDiag | (unsigned) MatrixStructureFlag::Upper>;
+  using SelfAdjoint_t = MatrixStructure<(unsigned) MatrixStructureFlag::SelfAdjoint>;
+  using Symmetric_t = MatrixStructure<(unsigned) MatrixStructureFlag::Symmetric>;
+  }
+}
+
+using namespace internal::structure_tag_types;
+
 /** \ingroup enums
   * Enum for indicating whether a buffer is aligned or not. */
 enum AlignmentType {

@@ -116,22 +116,22 @@ template<typename MatrixType> void product_notemporary(const MatrixType& m)
   VERIFY_EVALUATION_COUNT( m1.template triangularView<Lower>().solveInPlace(m3), 0);
   VERIFY_EVALUATION_COUNT( m1.adjoint().template triangularView<Lower>().solveInPlace(m3.transpose()), 0);
 
-  VERIFY_EVALUATION_COUNT( m3.noalias() -= (s1 * m1).adjoint().template selfadjointView<Lower>() * (-m2*s3).adjoint(), 0);
-  VERIFY_EVALUATION_COUNT( m3.noalias() = s2 * m2.adjoint() * (s1 * m1.adjoint()).template selfadjointView<Upper>(), 0);
-  VERIFY_EVALUATION_COUNT( rm3.noalias() = (s1 * m1.adjoint()).template selfadjointView<Lower>() * m2.adjoint(), 0);
+  VERIFY_EVALUATION_COUNT( m3.noalias() -= (s1 * m1).adjoint().selfadjointView(Lower_t{}) * (-m2*s3).adjoint(), 0);
+  VERIFY_EVALUATION_COUNT( m3.noalias() = s2 * m2.adjoint() * (s1 * m1.adjoint()).selfadjointView(Upper_t{}), 0);
+  VERIFY_EVALUATION_COUNT( rm3.noalias() = (s1 * m1.adjoint()).selfadjointView(Lower_t{}) * m2.adjoint(), 0);
 
   // NOTE this is because the blas_traits require innerstride==1 to avoid a temporary, but that doesn't seem to be actually needed for the triangular products
-  VERIFY_EVALUATION_COUNT( m3.col(c0).noalias() = (s1 * m1).adjoint().template selfadjointView<Lower>() * (-m2.row(c0)*s3).adjoint(), 1);
-  VERIFY_EVALUATION_COUNT( m3.col(c0).noalias() -= (s1 * m1).adjoint().template selfadjointView<Upper>() * (-m2.row(c0)*s3).adjoint(), 1);
+  VERIFY_EVALUATION_COUNT( m3.col(c0).noalias() = (s1 * m1).adjoint().selfadjointView(Lower_t{}) * (-m2.row(c0)*s3).adjoint(), 1);
+  VERIFY_EVALUATION_COUNT( m3.col(c0).noalias() -= (s1 * m1).adjoint().selfadjointView(Upper_t{}) * (-m2.row(c0)*s3).adjoint(), 1);
 
-  VERIFY_EVALUATION_COUNT( m3.block(r0,c0,r1,c1).noalias() += m1.block(r0,r0,r1,r1).template selfadjointView<Upper>() * (s1*m2.block(r0,c0,r1,c1)), 0);
-  VERIFY_EVALUATION_COUNT( m3.block(r0,c0,r1,c1).noalias() = m1.block(r0,r0,r1,r1).template selfadjointView<Upper>() * m2.block(r0,c0,r1,c1), 0);
+  VERIFY_EVALUATION_COUNT( m3.block(r0,c0,r1,c1).noalias() += m1.block(r0,r0,r1,r1).selfadjointView(Upper_t{}) * (s1*m2.block(r0,c0,r1,c1)), 0);
+  VERIFY_EVALUATION_COUNT( m3.block(r0,c0,r1,c1).noalias() = m1.block(r0,r0,r1,r1).selfadjointView(Upper_t{}) * m2.block(r0,c0,r1,c1), 0);
 
-  VERIFY_EVALUATION_COUNT( m3.template selfadjointView<Lower>().rankUpdate(m2.adjoint()), 0);
+  VERIFY_EVALUATION_COUNT( m3.selfadjointView(Lower_t{}).rankUpdate(m2.adjoint()), 0);
 
   // Here we will get 1 temporary for each resize operation of the lhs operator; resize(r1,c1) would lead to zero temporaries
   m3.resize(1,1);
-  VERIFY_EVALUATION_COUNT( m3.noalias() = m1.block(r0,r0,r1,r1).template selfadjointView<Lower>() * m2.block(r0,c0,r1,c1), 1);
+  VERIFY_EVALUATION_COUNT( m3.noalias() = m1.block(r0,r0,r1,r1).selfadjointView(Lower_t{}) * m2.block(r0,c0,r1,c1), 1);
   m3.resize(1,1);
   VERIFY_EVALUATION_COUNT( m3.noalias() = m1.block(r0,r0,r1,r1).template triangularView<UnitUpper>()  * m2.block(r0,c0,r1,c1), 1);
 
