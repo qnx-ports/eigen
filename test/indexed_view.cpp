@@ -39,11 +39,8 @@
 using Eigen::placeholders::all;
 using Eigen::placeholders::last;
 using Eigen::placeholders::lastp1;
-
-#if EIGEN_HAS_CXX11
 using Eigen::placeholders::lastN;
 #include <array>
-#endif
 
 typedef std::pair<Index,Index> IndexPair;
 
@@ -225,7 +222,6 @@ void check_indexed_view()
   VERIFY( is_same_seq_type( seqN(2,fix<5>(5),fix<-2>), seqN(2,fix<5>,fix<-2>()) ) );
 
   VERIFY( is_same_seq_type( seq(2,fix<5>), seqN(2,4) ) );
-  #if EIGEN_HAS_CXX11
   VERIFY( is_same_seq_type( seq(fix<2>,fix<5>), seqN(fix<2>,fix<4>) ) );
   VERIFY( is_same_seq( seqN(2,std::integral_constant<int,5>(),std::integral_constant<int,-2>()), seqN(2,fix<5>,fix<-2>()) ) );
   VERIFY( is_same_seq( seq(std::integral_constant<int,1>(),std::integral_constant<int,5>(),std::integral_constant<int,2>()),
@@ -236,10 +232,6 @@ void check_indexed_view()
 
   VERIFY( is_same_seq_type( seqN(2,std::integral_constant<int,5>()), seqN(2,fix<5>) ) );
   VERIFY( is_same_seq_type( seq(std::integral_constant<int,1>(),std::integral_constant<int,5>()), seq(fix<1>,fix<5>) ) );
-#else
-  // sorry, no compile-time size recovery in c++98/03
-  VERIFY( is_same_seq( seq(fix<2>,fix<5>), seqN(fix<2>,fix<4>) ) );
-#endif
 
   VERIFY( (A(seqN(2,fix<5>), 5)).RowsAtCompileTime == 5);
   VERIFY( (A(4, all)).ColsAtCompileTime == Dynamic);
@@ -315,7 +307,6 @@ void check_indexed_view()
                       A(seq(last-5,last-1,2), seqN(last-3,3,fix<-2>)).reverse() );
   }
 
-#if EIGEN_HAS_CXX11
   // check lastN
   VERIFY_IS_APPROX( a(lastN(3)), a.tail(3) );
   VERIFY( MATCH( a(lastN(3)), "7\n8\n9" ) );
@@ -341,8 +332,6 @@ void check_indexed_view()
 
   VERIFY_IS_APPROX( b({3, 1, 6, 5}), b(std::array<int,4>{{3, 1, 6, 5}}) );
   VERIFY_IS_EQUAL( b({1,3,5}).SizeAtCompileTime, 3 );
-#endif
-
 #endif
 
   // check mat(i,j) with weird types for i and j
@@ -401,13 +390,11 @@ void check_indexed_view()
   a(XX) = 1;
   A(XX,YY) = 1;
   // Anonymous enums only work with C++11
-#if EIGEN_HAS_CXX11
   enum { X=0, Y=1 };
   a(X) = 1;
   A(X,Y) = 1;
   A(XX,Y) = 1;
   A(X,YY) = 1;
-#endif
 
   // Check compilation of varying integer types as index types:
   Index i = n/2;
@@ -447,13 +434,11 @@ void check_indexed_view()
     VERIFY( MATCH( A(all,1)(1), "101"));
   }
 
-#if EIGEN_HAS_CXX11
   //Bug IndexView with a single static row should be RowMajor:
   {
     // A(1, seq(0,2,1)).cwiseAbs().colwise().replicate(2).eval();
     STATIC_CHECK(( (internal::evaluator<decltype( A(1,seq(0,2,1)) )>::Flags & RowMajorBit) == RowMajorBit ));
   }
-#endif
 
 }
 
