@@ -647,17 +647,6 @@
 #define EIGEN_HAS_CXX14 0
 #endif
 
-// Do we support r-value references?
-#ifndef EIGEN_HAS_RVALUE_REFERENCES
-#if EIGEN_MAX_CPP_VER>=11 && \
-    (__has_feature(cxx_rvalue_references) || \
-     (EIGEN_COMP_CXXVER >= 11) || (EIGEN_COMP_MSVC >= 1600))
-  #define EIGEN_HAS_RVALUE_REFERENCES 1
-#else
-  #define EIGEN_HAS_RVALUE_REFERENCES 0
-#endif
-#endif
-
 // Does the compiler support C99?
 // Need to include <cmath> to make sure _GLIBCXX_USE_C99 gets defined
 #include <cmath>
