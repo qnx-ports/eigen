@@ -637,7 +637,8 @@
 // individual features as defined later.
 // This is why there is no EIGEN_HAS_CXX17.
 // FIXME: get rid of EIGEN_HAS_CXX14.
-#if EIGEN_MAX_CPP_VER<11 || EIGEN_COMP_CXXVER<11 || (EIGEN_COMP_MSVC && EIGEN_COMP_MSVC < 1700) || (EIGEN_COMP_ICC && EIGEN_COMP_ICC < 1400)
+#if EIGEN_MAX_CPP_VER<11 || EIGEN_COMP_CXXVER<11 || (EIGEN_COMP_MSVC && EIGEN_COMP_MSVC < 1700) || \
+  (EIGEN_COMP_ICC && EIGEN_COMP_ICC < 1400) || (EIGEN_COMP_NVCC && EIGEN_COMP_NVCC < 80000)
 #error This compiler appears to be too old to be supported by Eigen
 #endif
 
@@ -715,19 +716,6 @@
 #define EIGEN_INCLUDE_TYPE_TRAITS
 #else
 #define EIGEN_HAS_TYPE_TRAITS 0
-#endif
-#endif
-
-// Does the compiler support variadic templates?
-#ifndef EIGEN_HAS_VARIADIC_TEMPLATES
-#if (!defined(__NVCC__) || !EIGEN_ARCH_ARM_OR_ARM64 || (EIGEN_COMP_NVCC >= 80000) )
-    // ^^ Disable the use of variadic templates when compiling with versions of nvcc older than 8.0 on ARM devices:
-    //    this prevents nvcc from crashing when compiling Eigen on Tegra X1
-#define EIGEN_HAS_VARIADIC_TEMPLATES 1
-#elif defined(SYCL_DEVICE_ONLY)
-#define EIGEN_HAS_VARIADIC_TEMPLATES 1
-#else
-#define EIGEN_HAS_VARIADIC_TEMPLATES 0
 #endif
 #endif
 
@@ -1314,7 +1302,6 @@ namespace Eigen {
 #define EIGEN_EXCEPTION_SPEC(X) noexcept(false)
 
 
-#if EIGEN_HAS_VARIADIC_TEMPLATES
 // The all function is used to enable a variadic version of eigen_assert which can take a parameter pack as its input.
 namespace Eigen {
 namespace internal {
@@ -1326,7 +1313,6 @@ bool all(T t, Ts ... ts){ return t && all(ts...); }
 
 }
 }
-#endif
 
 // provide override and final specifiers if they are available:
 #define EIGEN_OVERRIDE override

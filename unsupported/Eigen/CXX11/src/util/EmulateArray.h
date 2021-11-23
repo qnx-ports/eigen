@@ -152,13 +152,11 @@ template <typename T, size_t n> class array {
     values[7] = v8;
   }
 
-#if EIGEN_HAS_VARIADIC_TEMPLATES
   EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE array(std::initializer_list<T> l) {
     eigen_assert(l.size() == n);
     internal::smart_copy(l.begin(), l.end(), values);
   }
-#endif
 };
 
 
@@ -202,12 +200,10 @@ template <typename T> class array<T, 0> {
   EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE array() : dummy() { }
 
-#if EIGEN_HAS_VARIADIC_TEMPLATES
   EIGEN_DEVICE_FUNC array(std::initializer_list<T> l) : dummy() {
     EIGEN_UNUSED_VARIABLE(l);
     eigen_assert(l.size() == 0);
   }
-#endif
 
  private:
   T dummy;
