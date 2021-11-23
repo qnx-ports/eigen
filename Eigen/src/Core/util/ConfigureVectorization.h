@@ -30,27 +30,13 @@
  *
  * If we made alignment depend on whether or not EIGEN_VECTORIZE is defined, it would be impossible to link
  * vectorized and non-vectorized code.
- * 
- * FIXME: this code can be cleaned up once we switch to proper C++11 only.
  */
 #if (defined EIGEN_CUDACC)
   #define EIGEN_ALIGN_TO_BOUNDARY(n) __align__(n)
   #define EIGEN_ALIGNOF(x) __alignof(x)
-#elif EIGEN_HAS_ALIGNAS
+#else
   #define EIGEN_ALIGN_TO_BOUNDARY(n) alignas(n)
   #define EIGEN_ALIGNOF(x) alignof(x)
-#elif EIGEN_COMP_GNUC || EIGEN_COMP_PGI || EIGEN_COMP_IBM || EIGEN_COMP_ARM
-  #define EIGEN_ALIGN_TO_BOUNDARY(n) __attribute__((aligned(n)))
-  #define EIGEN_ALIGNOF(x) __alignof(x)
-#elif EIGEN_COMP_MSVC
-  #define EIGEN_ALIGN_TO_BOUNDARY(n) __declspec(align(n))
-  #define EIGEN_ALIGNOF(x) __alignof(x)
-#elif EIGEN_COMP_SUNCC
-  // FIXME not sure about this one:
-  #define EIGEN_ALIGN_TO_BOUNDARY(n) __attribute__((aligned(n)))
-  #define EIGEN_ALIGNOF(x) __alignof(x)
-#else
-  #error Please tell me what is the equivalent of alignas(n) and alignof(x) for your compiler
 #endif
 
 // If the user explicitly disable vectorization, then we also disable alignment

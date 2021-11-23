@@ -581,16 +581,6 @@
 # define __has_feature(x) 0
 #endif
 
-// Some old compilers do not support template specializations like:
-// template<typename T,int N> void foo(const T x[N]);
-#if !(   EIGEN_COMP_CLANG && (   (EIGEN_COMP_CLANG<309)                                                       \
-                              || (defined(__apple_build_version__) && (__apple_build_version__ < 9000000)))  \
-      || EIGEN_COMP_GNUC_STRICT && EIGEN_COMP_GNUC<49)
-#define EIGEN_HAS_STATIC_ARRAY_TEMPLATE 1
-#else
-#define EIGEN_HAS_STATIC_ARRAY_TEMPLATE 0
-#endif
-
 // The macro EIGEN_CPLUSPLUS is a replacement for __cplusplus/_MSVC_LANG that
 // works for both platforms, indicating the C++ standard version number.
 //
@@ -638,7 +628,9 @@
 // This is why there is no EIGEN_HAS_CXX17.
 // FIXME: get rid of EIGEN_HAS_CXX14.
 #if EIGEN_MAX_CPP_VER<11 || EIGEN_COMP_CXXVER<11 || (EIGEN_COMP_MSVC && EIGEN_COMP_MSVC < 1700) || \
-  (EIGEN_COMP_ICC && EIGEN_COMP_ICC < 1400) || (EIGEN_COMP_NVCC && EIGEN_COMP_NVCC < 80000)
+  (EIGEN_COMP_ICC && EIGEN_COMP_ICC < 1400) || (EIGEN_COMP_NVCC && EIGEN_COMP_NVCC < 80000) ||     \
+  (EIGEN_COMP_CLANG && ((EIGEN_COMP_CLANG<309) || (defined(__apple_build_version__) && (__apple_build_version__ < 9000000)))) || \
+  (EIGEN_COMP_GNUC_STRICT && EIGEN_COMP_GNUC<49)
 #error This compiler appears to be too old to be supported by Eigen
 #endif
 

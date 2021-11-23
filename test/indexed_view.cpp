@@ -299,7 +299,6 @@ void check_indexed_view()
 
   VERIFY_IS_APPROX( (A(std::array<int,3>{{1,3,5}}, std::array<int,4>{{9,6,3,0}})), A(seqN(1,3,2), seqN(9,4,-3)) );
 
-#if EIGEN_HAS_STATIC_ARRAY_TEMPLATE
   VERIFY_IS_APPROX( A({3, 1, 6, 5}, all), A(std::array<int,4>{{3, 1, 6, 5}}, all) );
   VERIFY_IS_APPROX( A(all,{3, 1, 6, 5}), A(all,std::array<int,4>{{3, 1, 6, 5}}) );
   VERIFY_IS_APPROX( A({1,3,5},{3, 1, 6, 5}), A(std::array<int,3>{{1,3,5}},std::array<int,4>{{3, 1, 6, 5}}) );
@@ -312,7 +311,6 @@ void check_indexed_view()
 
   VERIFY_IS_APPROX( b({3, 1, 6, 5}), b(std::array<int,4>{{3, 1, 6, 5}}) );
   VERIFY_IS_EQUAL( b({1,3,5}).SizeAtCompileTime, 3 );
-#endif
 
   // check mat(i,j) with weird types for i and j
   {
