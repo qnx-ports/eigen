@@ -639,7 +639,7 @@
 // FIXME: get rid of EIGEN_HAS_CXX14.
 #if EIGEN_MAX_CPP_VER>=11 && EIGEN_COMP_CXXVER>=11
 #else
-#error This compilter appears to be old to be supported by Eigen
+#error This compiler appears to be too old to be supported by Eigen
 #endif
 
 #if EIGEN_MAX_CPP_VER>=14 && EIGEN_COMP_CXXVER>=14
