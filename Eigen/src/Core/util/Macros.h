@@ -637,8 +637,7 @@
 // individual features as defined later.
 // This is why there is no EIGEN_HAS_CXX17.
 // FIXME: get rid of EIGEN_HAS_CXX14.
-#if EIGEN_MAX_CPP_VER>=11 && EIGEN_COMP_CXXVER>=11
-#else
+#if EIGEN_MAX_CPP_VER<11 || EIGEN_COMP_CXXVER<11 || (EIGEN_COMP_MSVC && EIGEN_COMP_MSVC < 1700) || (EIGEN_COMP_ICC && EIGEN_COMP_ICC < 1400)
 #error This compiler appears to be too old to be supported by Eigen
 #endif
 
@@ -780,49 +779,6 @@
     #define EIGEN_HAS_CXX11_MATH 1
   #else
     #define EIGEN_HAS_CXX11_MATH 0
-  #endif
-#endif
-
-// Does the compiler support proper C++11 containers?
-#ifndef EIGEN_HAS_CXX11_CONTAINERS
-  #if    EIGEN_MAX_CPP_VER>=11 && \
-         ((EIGEN_COMP_CXXVER > 11) \
-      || ((EIGEN_COMP_CXXVER == 11) && (EIGEN_COMP_GNUC_STRICT || EIGEN_COMP_CLANG || EIGEN_COMP_MSVC || EIGEN_COMP_ICC>=1400)))
-    #define EIGEN_HAS_CXX11_CONTAINERS 1
-  #else
-    #define EIGEN_HAS_CXX11_CONTAINERS 0
-  #endif
-#endif
-
-// Does the compiler support C++11 noexcept?
-#ifndef EIGEN_HAS_CXX11_NOEXCEPT
-  #if    EIGEN_MAX_CPP_VER>=11 && \
-         (__has_feature(cxx_noexcept) \
-      || (EIGEN_COMP_CXXVER > 11) \
-      || ((EIGEN_COMP_CXXVER == 11) && (EIGEN_COMP_GNUC_STRICT || EIGEN_COMP_CLANG || EIGEN_COMP_MSVC || EIGEN_COMP_ICC>=1400)))
-    #define EIGEN_HAS_CXX11_NOEXCEPT 1
-  #else
-    #define EIGEN_HAS_CXX11_NOEXCEPT 0
-  #endif
-#endif
-
-#ifndef EIGEN_HAS_CXX11_ATOMIC
-  #if    EIGEN_MAX_CPP_VER>=11 && \
-         (__has_feature(cxx_atomic) \
-      || (EIGEN_COMP_CXXVER > 11) \
-      || ((EIGEN_COMP_CXXVER == 11) && (EIGEN_COMP_MSVC==0 || EIGEN_COMP_MSVC >= 1700)))
-    #define EIGEN_HAS_CXX11_ATOMIC 1
-  #else
-    #define EIGEN_HAS_CXX11_ATOMIC 0
-  #endif
-#endif
-
-#ifndef EIGEN_HAS_CXX11_OVERRIDE_FINAL
-  #if    EIGEN_MAX_CPP_VER>=11 && \
-       (EIGEN_COMP_CXXVER >= 11 || EIGEN_COMP_MSVC >= 1700)
-    #define EIGEN_HAS_CXX11_OVERRIDE_FINAL 1
-  #else
-    #define EIGEN_HAS_CXX11_OVERRIDE_FINAL 0
   #endif
 #endif
 
@@ -1366,24 +1322,12 @@ namespace Eigen {
 #endif
 
 
-#if EIGEN_HAS_CXX11_NOEXCEPT
-#   define EIGEN_INCLUDE_TYPE_TRAITS
-#   define EIGEN_NOEXCEPT noexcept
-#   define EIGEN_NOEXCEPT_IF(x) noexcept(x)
-#   define EIGEN_NO_THROW noexcept(true)
-#   define EIGEN_EXCEPTION_SPEC(X) noexcept(false)
-#else
-#   define EIGEN_NOEXCEPT
-#   define EIGEN_NOEXCEPT_IF(x)
-#   define EIGEN_NO_THROW throw()
-#   if EIGEN_COMP_MSVC || EIGEN_COMP_CXXVER>=17
-      // MSVC does not support exception specifications (warning C4290),
-      // and they are deprecated in c++11 anyway. This is even an error in c++17.
-#     define EIGEN_EXCEPTION_SPEC(X) throw()
-#   else
-#     define EIGEN_EXCEPTION_SPEC(X) throw(X)
-#   endif
-#endif
+#define EIGEN_INCLUDE_TYPE_TRAITS
+#define EIGEN_NOEXCEPT noexcept
+#define EIGEN_NOEXCEPT_IF(x) noexcept(x)
+#define EIGEN_NO_THROW noexcept(true)
+#define EIGEN_EXCEPTION_SPEC(X) noexcept(false)
+
 
 #if EIGEN_HAS_VARIADIC_TEMPLATES
 // The all function is used to enable a variadic version of eigen_assert which can take a parameter pack as its input.
@@ -1399,14 +1343,9 @@ bool all(T t, Ts ... ts){ return t && all(ts...); }
 }
 #endif
 
-#if EIGEN_HAS_CXX11_OVERRIDE_FINAL
 // provide override and final specifiers if they are available:
-#   define EIGEN_OVERRIDE override
-#   define EIGEN_FINAL final
-#else
-#   define EIGEN_OVERRIDE
-#   define EIGEN_FINAL
-#endif
+#define EIGEN_OVERRIDE override
+#define EIGEN_FINAL final
 
 // Wrapping #pragma unroll in a macro since it is required for SYCL
 #if defined(SYCL_DEVICE_ONLY)
