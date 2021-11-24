@@ -651,8 +651,7 @@
 // Need to include <cmath> to make sure _GLIBCXX_USE_C99 gets defined
 #include <cmath>
 #ifndef EIGEN_HAS_C99_MATH
-#if EIGEN_MAX_CPP_VER>=11 && \
-    ((defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 199901))       \
+#if ((defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 199901))       \
   || (defined(__GNUC__) && defined(_GLIBCXX_USE_C99)) \
   || (defined(_LIBCPP_VERSION) && !defined(_MSC_VER)) \
   || (EIGEN_COMP_MSVC >= 1900) || defined(SYCL_DEVICE_ONLY))
@@ -692,8 +691,7 @@
 #endif
 
 #ifndef EIGEN_HAS_ALIGNAS
-#if EIGEN_MAX_CPP_VER>=11 &&                      \
-      (     __has_feature(cxx_alignas)            \
+#if (     __has_feature(cxx_alignas)            \
         ||  EIGEN_HAS_CXX14                       \
         || (EIGEN_COMP_MSVC >= 1800)              \
         || (EIGEN_GNUC_AT_LEAST(4,8))             \
@@ -711,8 +709,7 @@
 // - full support of type traits was added only to GCC 5.1.0.
 // - 20150626 corresponds to the last release of 4.x libstdc++
 #ifndef EIGEN_HAS_TYPE_TRAITS
-#if EIGEN_MAX_CPP_VER>=11                                     \
-  && ((!EIGEN_COMP_GNUC_STRICT) || EIGEN_GNUC_AT_LEAST(5, 1)) \
+#if ((!EIGEN_COMP_GNUC_STRICT) || EIGEN_GNUC_AT_LEAST(5, 1)) \
   && ((!defined(__GLIBCXX__))   || __GLIBCXX__ > 20150626)
 #define EIGEN_HAS_TYPE_TRAITS 1
 #define EIGEN_INCLUDE_TYPE_TRAITS
@@ -723,12 +720,11 @@
 
 // Does the compiler support variadic templates?
 #ifndef EIGEN_HAS_VARIADIC_TEMPLATES
-#if EIGEN_MAX_CPP_VER>=11 && (EIGEN_COMP_CXXVER >= 11) \
-  && (!defined(__NVCC__) || !EIGEN_ARCH_ARM_OR_ARM64 || (EIGEN_COMP_NVCC >= 80000) )
+#if (!defined(__NVCC__) || !EIGEN_ARCH_ARM_OR_ARM64 || (EIGEN_COMP_NVCC >= 80000) )
     // ^^ Disable the use of variadic templates when compiling with versions of nvcc older than 8.0 on ARM devices:
     //    this prevents nvcc from crashing when compiling Eigen on Tegra X1
 #define EIGEN_HAS_VARIADIC_TEMPLATES 1
-#elif  EIGEN_MAX_CPP_VER>=11 && (EIGEN_COMP_CXXVER >= 11) && defined(SYCL_DEVICE_ONLY)
+#elif defined(SYCL_DEVICE_ONLY)
 #define EIGEN_HAS_VARIADIC_TEMPLATES 1
 #else
 #define EIGEN_HAS_VARIADIC_TEMPLATES 0
@@ -739,7 +735,7 @@
 #ifndef EIGEN_HAS_CONSTEXPR
   #if defined(EIGEN_CUDACC)
   // Const expressions are supported provided that c++11 is enabled and we're using either clang or nvcc 7.5 or above
-    #if EIGEN_MAX_CPP_VER>=14 && (EIGEN_COMP_CXXVER >= 11 && (EIGEN_COMP_CLANG || EIGEN_COMP_NVCC >= 70500))
+    #if EIGEN_MAX_CPP_VER>=14 && (EIGEN_COMP_CLANG || EIGEN_COMP_NVCC >= 70500)
       #define EIGEN_HAS_CONSTEXPR 1
     #endif
   #elif EIGEN_MAX_CPP_VER>=14 && (__has_feature(cxx_relaxed_constexpr) || (EIGEN_COMP_CXXVER >= 14) || \
@@ -763,7 +759,7 @@
 // Does the compiler support C++11 math?
 // Let's be conservative and enable the default C++11 implementation only if we are sure it exists
 #ifndef EIGEN_HAS_CXX11_MATH
-  #if EIGEN_MAX_CPP_VER>=11 && ((EIGEN_COMP_CXXVER > 11) || (EIGEN_COMP_CXXVER == 11) && (EIGEN_COMP_GNUC_STRICT || EIGEN_COMP_CLANG || EIGEN_COMP_MSVC || EIGEN_COMP_ICC)  \
+  #if ((EIGEN_COMP_CXXVER > 11) || (EIGEN_COMP_GNUC_STRICT || EIGEN_COMP_CLANG || EIGEN_COMP_MSVC || EIGEN_COMP_ICC)  \
       && (EIGEN_ARCH_i386_OR_x86_64) && (EIGEN_OS_GNULINUX || EIGEN_OS_WIN_STRICT || EIGEN_OS_MAC))
     #define EIGEN_HAS_CXX11_MATH 1
   #else
