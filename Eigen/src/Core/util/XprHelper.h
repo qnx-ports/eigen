@@ -189,16 +189,19 @@ template<typename T> struct packet_traits;
 template<typename T> struct unpacket_traits;
 
 // If we vectorize regardless of alignment, pick the full-sized packet if:
+//
 // * The size is large enough;
 // * Picking it will result in less operations than picking the half size.
 //   Consider the case where the size is 12, the full packet is 8, and the
 //   half packet is 4. If we pick the full packet we'd have 1 + 4 operations,
 //   but only 3 operations if we pick the half-packet.
 //
-// Otherwise, pick the packet size we know is going to work with the alignment
-// of the given data. See
-// <https://gitlab.com/libeigen/eigen/merge_requests/46#note_270578113> for more
-// information.
+// The reason why we only do this with EIGEN_UNALIGNED_VECTORIZE is that if
+// we chose packets which do not divide the data size exactly we're going to
+// be left with some possibly unaligned data at the end.
+//
+// Also see discussion here:
+// <https://gitlab.com/libeigen/eigen/-/merge_requests/734#note_742961973>
 #if EIGEN_UNALIGNED_VECTORIZE
 template<int Size, typename PacketType,
          bool Stop =
