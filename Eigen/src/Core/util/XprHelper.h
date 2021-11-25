@@ -199,9 +199,6 @@ template<typename T> struct unpacket_traits;
 // The reason why we only do this with EIGEN_UNALIGNED_VECTORIZE is that if
 // we chose packets which do not divide the data size exactly we're going to
 // be left with some possibly unaligned data at the end.
-//
-// Also see discussion here:
-// <https://gitlab.com/libeigen/eigen/-/merge_requests/734#note_742961973>
 #if EIGEN_UNALIGNED_VECTORIZE
 template<int Size, typename PacketType,
          bool Stop =
