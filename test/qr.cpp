@@ -25,7 +25,7 @@ template<typename MatrixType> void qr(const MatrixType& m)
   MatrixQType q = qrOfA.householderQ();
   VERIFY_IS_UNITARY(q);
 
-  MatrixType r = qrOfA.matrixQR().template triangularView<Upper>();
+  MatrixType r = qrOfA.matrixQR().triangularView(Upper_t{});
   VERIFY_IS_APPROX(a, qrOfA.householderQ() * r);
 }
 

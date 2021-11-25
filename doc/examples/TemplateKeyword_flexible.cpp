@@ -7,7 +7,7 @@ template <typename Derived1, typename Derived2>
 void copyUpperTriangularPart(MatrixBase<Derived1>& dst, const MatrixBase<Derived2>& src)
 {
   /* Note the 'template' keywords in the following line! */
-  dst.template triangularView<Upper>() = src.template triangularView<Upper>();
+  dst.triangularView(Upper_t{}) = src.triangularView(Upper_t{});
 }
 
 int main()

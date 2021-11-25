@@ -43,34 +43,34 @@ template<typename Scalar,int Size, int Cols> void trsolve(int size=Size,int cols
   cmLhs.setRandom(); cmLhs *= static_cast<RealScalar>(0.1); cmLhs.diagonal().array() += static_cast<RealScalar>(1);
   rmLhs.setRandom(); rmLhs *= static_cast<RealScalar>(0.1); rmLhs.diagonal().array() += static_cast<RealScalar>(1);
 
-  VERIFY_TRSM(cmLhs.conjugate().template triangularView<Lower>(), cmRhs);
-  VERIFY_TRSM(cmLhs.adjoint()  .template triangularView<Lower>(), cmRhs);
-  VERIFY_TRSM(cmLhs            .template triangularView<Upper>(), cmRhs);
-  VERIFY_TRSM(cmLhs            .template triangularView<Lower>(), rmRhs);
-  VERIFY_TRSM(cmLhs.conjugate().template triangularView<Upper>(), rmRhs);
-  VERIFY_TRSM(cmLhs.adjoint()  .template triangularView<Upper>(), rmRhs);
+  VERIFY_TRSM(cmLhs.conjugate().triangularView(Lower_t{}), cmRhs);
+  VERIFY_TRSM(cmLhs.adjoint()  .triangularView(Lower_t{}), cmRhs);
+  VERIFY_TRSM(cmLhs            .triangularView(Upper_t{}), cmRhs);
+  VERIFY_TRSM(cmLhs            .triangularView(Lower_t{}), rmRhs);
+  VERIFY_TRSM(cmLhs.conjugate().triangularView(Upper_t{}), rmRhs);
+  VERIFY_TRSM(cmLhs.adjoint()  .triangularView(Upper_t{}), rmRhs);
 
-  VERIFY_TRSM(cmLhs.conjugate().template triangularView<UnitLower>(), cmRhs);
-  VERIFY_TRSM(cmLhs            .template triangularView<UnitUpper>(), rmRhs);
+  VERIFY_TRSM(cmLhs.conjugate().triangularView(UnitLower_t{}), cmRhs);
+  VERIFY_TRSM(cmLhs            .triangularView(UnitUpper_t{}), rmRhs);
 
-  VERIFY_TRSM(rmLhs            .template triangularView<Lower>(), cmRhs);
-  VERIFY_TRSM(rmLhs.conjugate().template triangularView<UnitUpper>(), rmRhs);
+  VERIFY_TRSM(rmLhs            .triangularView(Lower_t{}), cmRhs);
+  VERIFY_TRSM(rmLhs.conjugate().triangularView(UnitUpper_t{}), rmRhs);
 
 
-  VERIFY_TRSM_ONTHERIGHT(cmLhs.conjugate().template triangularView<Lower>(), cmRhs);
-  VERIFY_TRSM_ONTHERIGHT(cmLhs            .template triangularView<Upper>(), cmRhs);
-  VERIFY_TRSM_ONTHERIGHT(cmLhs            .template triangularView<Lower>(), rmRhs);
-  VERIFY_TRSM_ONTHERIGHT(cmLhs.conjugate().template triangularView<Upper>(), rmRhs);
+  VERIFY_TRSM_ONTHERIGHT(cmLhs.conjugate().triangularView(Lower_t{}), cmRhs);
+  VERIFY_TRSM_ONTHERIGHT(cmLhs            .triangularView(Upper_t{}), cmRhs);
+  VERIFY_TRSM_ONTHERIGHT(cmLhs            .triangularView(Lower_t{}), rmRhs);
+  VERIFY_TRSM_ONTHERIGHT(cmLhs.conjugate().triangularView(Upper_t{}), rmRhs);
 
-  VERIFY_TRSM_ONTHERIGHT(cmLhs.conjugate().template triangularView<UnitLower>(), cmRhs);
-  VERIFY_TRSM_ONTHERIGHT(cmLhs            .template triangularView<UnitUpper>(), rmRhs);
+  VERIFY_TRSM_ONTHERIGHT(cmLhs.conjugate().triangularView(UnitLower_t{}), cmRhs);
+  VERIFY_TRSM_ONTHERIGHT(cmLhs            .triangularView(UnitUpper_t{}), rmRhs);
 
-  VERIFY_TRSM_ONTHERIGHT(rmLhs            .template triangularView<Lower>(), cmRhs);
-  VERIFY_TRSM_ONTHERIGHT(rmLhs.conjugate().template triangularView<UnitUpper>(), rmRhs);
+  VERIFY_TRSM_ONTHERIGHT(rmLhs            .triangularView(Lower_t{}), cmRhs);
+  VERIFY_TRSM_ONTHERIGHT(rmLhs.conjugate().triangularView(UnitUpper_t{}), rmRhs);
 
   int c = internal::random<int>(0,cols-1);
-  VERIFY_TRSM(rmLhs.template triangularView<Lower>(), rmRhs.col(c));
-  VERIFY_TRSM(cmLhs.template triangularView<Lower>(), rmRhs.col(c));
+  VERIFY_TRSM(rmLhs.triangularView(Lower_t{}), rmRhs.col(c));
+  VERIFY_TRSM(cmLhs.triangularView(Lower_t{}), rmRhs.col(c));
 
   // destination with a non-default inner-stride
   // see bug 1741
@@ -80,20 +80,20 @@ template<typename Scalar,int Size, int Cols> void trsolve(int size=Size,int cols
     Map<Matrix<Scalar,Size,Cols,colmajor>,0,Stride<Dynamic,2> > map1(buffer.data(),cmRhs.rows(),cmRhs.cols(),Stride<Dynamic,2>(2*cmRhs.outerStride(),2));
     Map<Matrix<Scalar,Size,Cols,rowmajor>,0,Stride<Dynamic,2> > map2(buffer.data(),rmRhs.rows(),rmRhs.cols(),Stride<Dynamic,2>(2*rmRhs.outerStride(),2));
     buffer.setZero();
-    VERIFY_TRSM(cmLhs.conjugate().template triangularView<Lower>(), map1);
+    VERIFY_TRSM(cmLhs.conjugate().triangularView(Lower_t{}), map1);
     buffer.setZero();
-    VERIFY_TRSM(cmLhs            .template triangularView<Lower>(), map2);
+    VERIFY_TRSM(cmLhs            .triangularView(Lower_t{}), map2);
   }
 
   if(Size==Dynamic)
   {
     cmLhs.resize(0,0);
     cmRhs.resize(0,cmRhs.cols());
-    Matrix<Scalar,Size,Cols,colmajor> res = cmLhs.template triangularView<Lower>().solve(cmRhs);
+    Matrix<Scalar,Size,Cols,colmajor> res = cmLhs.triangularView(Lower_t{}).solve(cmRhs);
     VERIFY_IS_EQUAL(res.rows(),0);
     VERIFY_IS_EQUAL(res.cols(),cmRhs.cols());
     res = cmRhs;
-    cmLhs.template triangularView<Lower>().solveInPlace(res);
+    cmLhs.triangularView(Lower_t{}).solveInPlace(res);
     VERIFY_IS_EQUAL(res.rows(),0);
     VERIFY_IS_EQUAL(res.cols(),cmRhs.cols());
   }

@@ -366,7 +366,7 @@ void HouseholderQR<MatrixType_>::_solve_impl(const RhsType &rhs, DstType &dst) c
   c.applyOnTheLeft(householderQ().setLength(rank).adjoint() );
 
   m_qr.topLeftCorner(rank, rank)
-      .template triangularView<Upper>()
+      .triangularView(Upper_t{})
       .solveInPlace(c.topRows(rank));
 
   dst.topRows(rank) = c.topRows(rank);
@@ -382,7 +382,7 @@ void HouseholderQR<MatrixType_>::_solve_impl_transposed(const RhsType &rhs, DstT
   typename RhsType::PlainObject c(rhs);
 
   m_qr.topLeftCorner(rank, rank)
-      .template triangularView<Upper>()
+      .triangularView(Upper_t{})
       .transpose().template conjugateIf<Conjugate>()
       .solveInPlace(c.topRows(rank));
 

@@ -297,7 +297,7 @@ struct matrix_sqrt_compute<MatrixType, 1>
     matrix_sqrt_triangular(T, sqrtT);
     
     // Compute square root of arg
-    result = U * (sqrtT.template triangularView<Upper>() * U.adjoint());
+    result = U * (sqrtT.triangularView(Upper_t{}) * U.adjoint());
   }
 };
 

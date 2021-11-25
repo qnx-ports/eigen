@@ -48,7 +48,7 @@ int main(int argc, char **args)
   if (sym != 0) { // symmetric matrices, only the lower part is stored
     SparseMatrix<double, ColMajor> temp; 
     temp = A;
-    A = temp.selfadjointView<Lower>();
+    A = temp.selfadjointView(Lower_t{});
   }
   timer.stop();
   

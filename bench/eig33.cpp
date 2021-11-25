@@ -92,7 +92,7 @@ void eigen33(const Matrix& mat, Matrix& evecs, Vector& evals)
   Scalar shift = mat.trace()/3;
   Matrix scaledMat = mat;
   scaledMat.diagonal().array() -= shift;
-  Scalar scale = scaledMat.cwiseAbs()/*.template triangularView<Lower>()*/.maxCoeff();
+  Scalar scale = scaledMat.cwiseAbs()/*.triangularView(Lower_t{})*/.maxCoeff();
   scale = std::max(scale,Scalar(1));
   scaledMat/=scale;
 

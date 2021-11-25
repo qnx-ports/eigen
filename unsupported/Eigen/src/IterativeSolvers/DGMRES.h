@@ -356,7 +356,7 @@ Index DGMRES<MatrixType_, Preconditioner_>::dgmresCycle(const MatrixType& mat, c
 //   it++;
   //FIXME  Check first if the matrix is singular ... zero diagonal
   DenseVector nrs(m_restart); 
-  nrs = m_H.topLeftCorner(it,it).template triangularView<Upper>().solve(g.head(it)); 
+  nrs = m_H.topLeftCorner(it,it).triangularView(Upper_t{}).solve(g.head(it));
   
   // Form the new solution
   if (m_isDeflInitialized)

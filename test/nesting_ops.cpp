@@ -58,12 +58,12 @@ template <typename MatrixType> void run_nesting_ops_2(const MatrixType& _m)
     VERIFY_EVALUATION_COUNT( use_n_times<1>(m1 + m1*m1), 1 );
     VERIFY_EVALUATION_COUNT( use_n_times<10>(m1 + m1*m1), 1 );
 
-    VERIFY_EVALUATION_COUNT( use_n_times<1>(m1.template triangularView<Lower>().solve(m1.col(0))), 1 );
-    VERIFY_EVALUATION_COUNT( use_n_times<10>(m1.template triangularView<Lower>().solve(m1.col(0))), 1 );
+    VERIFY_EVALUATION_COUNT( use_n_times<1>(m1.triangularView(Lower_t{}).solve(m1.col(0))), 1 );
+    VERIFY_EVALUATION_COUNT( use_n_times<10>(m1.triangularView(Lower_t{}).solve(m1.col(0))), 1 );
 
-    VERIFY_EVALUATION_COUNT( use_n_times<1>(Scalar(2)*m1.template triangularView<Lower>().solve(m1.col(0))), 2 ); // FIXME could be one by applying the scaling in-place on the solve result
-    VERIFY_EVALUATION_COUNT( use_n_times<1>(m1.col(0)+m1.template triangularView<Lower>().solve(m1.col(0))), 2 ); // FIXME could be one by adding m1.col() inplace
-    VERIFY_EVALUATION_COUNT( use_n_times<10>(m1.col(0)+m1.template triangularView<Lower>().solve(m1.col(0))), 2 );
+    VERIFY_EVALUATION_COUNT( use_n_times<1>(Scalar(2)*m1.triangularView(Lower_t{}).solve(m1.col(0))), 2 ); // FIXME could be one by applying the scaling in-place on the solve result
+    VERIFY_EVALUATION_COUNT( use_n_times<1>(m1.col(0)+m1.triangularView(Lower_t{}).solve(m1.col(0))), 2 ); // FIXME could be one by adding m1.col() inplace
+    VERIFY_EVALUATION_COUNT( use_n_times<10>(m1.col(0)+m1.triangularView(Lower_t{}).solve(m1.col(0))), 2 );
   }
 
   {
@@ -85,8 +85,8 @@ template <typename MatrixType> void run_nesting_ops_2(const MatrixType& _m)
     VERIFY( verify_eval_type<2>(m1*m1.transpose(), m2) );
     VERIFY( verify_eval_type<1>(m1+m1*m1, m1) );
 
-    VERIFY( verify_eval_type<1>(m1.template triangularView<Lower>().solve(m1), m1) );
-    VERIFY( verify_eval_type<1>(m1+m1.template triangularView<Lower>().solve(m1), m1) );
+    VERIFY( verify_eval_type<1>(m1.triangularView(Lower_t{}).solve(m1), m1) );
+    VERIFY( verify_eval_type<1>(m1+m1.triangularView(Lower_t{}).solve(m1), m1) );
   }
 }
 

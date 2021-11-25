@@ -94,13 +94,13 @@ public :
 
   static inline void ata_product(const gene_matrix & A, gene_matrix & X, int  /*N*/){
     //X.noalias() = A.transpose()*A;
-    X.template triangularView<Lower>().setZero();
-    X.template selfadjointView<Lower>().rankUpdate(A.transpose());
+    X.triangularView(Lower_t{}).setZero();
+    X.selfadjointView(Lower_t{}).rankUpdate(A.transpose());
   }
 
   static inline void aat_product(const gene_matrix & A, gene_matrix & X, int  /*N*/){
-    X.template triangularView<Lower>().setZero();
-    X.template selfadjointView<Lower>().rankUpdate(A);
+    X.triangularView(Lower_t{}).setZero();
+    X.selfadjointView(Lower_t{}).rankUpdate(A);
   }
 
   static inline void matrix_vector_product(const gene_matrix & A, const gene_vector & B, gene_vector & X, int  /*N*/){
@@ -108,7 +108,7 @@ public :
   }
 
   static inline void symv(const gene_matrix & A, const gene_vector & B, gene_vector & X, int  /*N*/){
-    X.noalias() = (A.template selfadjointView<Lower>() * B);
+    X.noalias() = (A.selfadjointView(Lower_t{}) * B);
 //     internal::product_selfadjoint_vector<real,0,LowerTriangularBit,false,false>(N,A.data(),N, B.data(), 1, X.data(), 1);
   }
 
@@ -193,15 +193,15 @@ public :
   }
 
   static inline void trisolve_lower(const gene_matrix & L, const gene_vector& B, gene_vector& X, int  /*N*/){
-    X = L.template triangularView<Lower>().solve(B);
+    X = L.triangularView(Lower_t{}).solve(B);
   }
 
   static inline void trisolve_lower_matrix(const gene_matrix & L, const gene_matrix& B, gene_matrix& X, int  /*N*/){
-    X = L.template triangularView<Upper>().solve(B);
+    X = L.triangularView(Upper_t{}).solve(B);
   }
 
   static inline void trmm(const gene_matrix & L, const gene_matrix& B, gene_matrix& X, int  /*N*/){
-    X.noalias() = L.template triangularView<Lower>() * B;
+    X.noalias() = L.triangularView(Lower_t{}) * B;
   }
 
   static inline void cholesky(const gene_matrix & X, gene_matrix & C, int  /*N*/){

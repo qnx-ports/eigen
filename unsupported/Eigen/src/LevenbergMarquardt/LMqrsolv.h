@@ -47,7 +47,7 @@ void lmqrsolv(
     wa = qtb;
     
    
-    s.topLeftCorner(n,n).template triangularView<StrictlyLower>() = s.topLeftCorner(n,n).transpose();
+    s.topLeftCorner(n,n).triangularView(StrictlyLower_t{}) = s.topLeftCorner(n,n).transpose();
     /*     eliminate the diagonal matrix d using a givens rotation. */
     for (j = 0; j < n; ++j) {
 
@@ -90,7 +90,7 @@ void lmqrsolv(
     for(nsing=0; nsing<n && sdiag[nsing]!=0; nsing++) {}
 
     wa.tail(n-nsing).setZero();
-    s.topLeftCorner(nsing, nsing).transpose().template triangularView<Upper>().solveInPlace(wa.head(nsing));
+    s.topLeftCorner(nsing, nsing).transpose().triangularView(Upper_t{}).solveInPlace(wa.head(nsing));
   
     // restore
     sdiag = s.diagonal();
@@ -177,7 +177,7 @@ void lmqrsolv(
     
     wa.tail(n-nsing).setZero();
 //     x = wa; 
-    wa.head(nsing) = R.topLeftCorner(nsing,nsing).template triangularView<Upper>().solve/*InPlace*/(wa.head(nsing));
+    wa.head(nsing) = R.topLeftCorner(nsing,nsing).triangularView(Upper_t{}).solve/*InPlace*/(wa.head(nsing));
     
     sdiag = R.diagonal();
     // Permute the components of z back to components of x

@@ -29,43 +29,43 @@ template<typename MatrixType> void trmv(const MatrixType& m)
   m1 = MatrixType::Random(rows, cols);
 
   // check with a column-major matrix
-  m3 = m1.template triangularView<Eigen::Lower>();
-  VERIFY((m3 * v1).isApprox(m1.template triangularView<Eigen::Lower>() * v1, largerEps));
-  m3 = m1.template triangularView<Eigen::Upper>();
-  VERIFY((m3 * v1).isApprox(m1.template triangularView<Eigen::Upper>() * v1, largerEps));
-  m3 = m1.template triangularView<Eigen::UnitLower>();
-  VERIFY((m3 * v1).isApprox(m1.template triangularView<Eigen::UnitLower>() * v1, largerEps));
-  m3 = m1.template triangularView<Eigen::UnitUpper>();
-  VERIFY((m3 * v1).isApprox(m1.template triangularView<Eigen::UnitUpper>() * v1, largerEps));
+  m3 = m1.triangularView(Lower_t{});
+  VERIFY((m3 * v1).isApprox(m1.triangularView(Lower_t{}) * v1, largerEps));
+  m3 = m1.triangularView(Upper_t{});
+  VERIFY((m3 * v1).isApprox(m1.triangularView(Upper_t{}) * v1, largerEps));
+  m3 = m1.triangularView(UnitLower_t{});
+  VERIFY((m3 * v1).isApprox(m1.triangularView(UnitLower_t{}) * v1, largerEps));
+  m3 = m1.triangularView(UnitUpper_t{});
+  VERIFY((m3 * v1).isApprox(m1.triangularView(UnitUpper_t{}) * v1, largerEps));
 
   // check conjugated and scalar multiple expressions (col-major)
-  m3 = m1.template triangularView<Eigen::Lower>();
-  VERIFY(((s1*m3).conjugate() * v1).isApprox((s1*m1).conjugate().template triangularView<Eigen::Lower>() * v1, largerEps));
-  m3 = m1.template triangularView<Eigen::Upper>();
-  VERIFY((m3.conjugate() * v1.conjugate()).isApprox(m1.conjugate().template triangularView<Eigen::Upper>() * v1.conjugate(), largerEps));
+  m3 = m1.triangularView(Lower_t{});
+  VERIFY(((s1*m3).conjugate() * v1).isApprox((s1*m1).conjugate().triangularView(Lower_t{}) * v1, largerEps));
+  m3 = m1.triangularView(Upper_t{});
+  VERIFY((m3.conjugate() * v1.conjugate()).isApprox(m1.conjugate().triangularView(Upper_t{}) * v1.conjugate(), largerEps));
 
   // check with a row-major matrix
-  m3 = m1.template triangularView<Eigen::Upper>();
-  VERIFY((m3.transpose() * v1).isApprox(m1.transpose().template triangularView<Eigen::Lower>() * v1, largerEps));
-  m3 = m1.template triangularView<Eigen::Lower>();
-  VERIFY((m3.transpose() * v1).isApprox(m1.transpose().template triangularView<Eigen::Upper>() * v1, largerEps));
-  m3 = m1.template triangularView<Eigen::UnitUpper>();
-  VERIFY((m3.transpose() * v1).isApprox(m1.transpose().template triangularView<Eigen::UnitLower>() * v1, largerEps));
-  m3 = m1.template triangularView<Eigen::UnitLower>();
-  VERIFY((m3.transpose() * v1).isApprox(m1.transpose().template triangularView<Eigen::UnitUpper>() * v1, largerEps));
+  m3 = m1.triangularView(Upper_t{});
+  VERIFY((m3.transpose() * v1).isApprox(m1.transpose().triangularView(Lower_t{}) * v1, largerEps));
+  m3 = m1.triangularView(Lower_t{});
+  VERIFY((m3.transpose() * v1).isApprox(m1.transpose().triangularView(Upper_t{}) * v1, largerEps));
+  m3 = m1.triangularView(UnitUpper_t{});
+  VERIFY((m3.transpose() * v1).isApprox(m1.transpose().triangularView(UnitLower_t{}) * v1, largerEps));
+  m3 = m1.triangularView(UnitLower_t{});
+  VERIFY((m3.transpose() * v1).isApprox(m1.transpose().triangularView(UnitUpper_t{}) * v1, largerEps));
 
   // check conjugated and scalar multiple expressions (row-major)
-  m3 = m1.template triangularView<Eigen::Upper>();
-  VERIFY((m3.adjoint() * v1).isApprox(m1.adjoint().template triangularView<Eigen::Lower>() * v1, largerEps));
-  m3 = m1.template triangularView<Eigen::Lower>();
-  VERIFY((m3.adjoint() * (s1*v1.conjugate())).isApprox(m1.adjoint().template triangularView<Eigen::Upper>() * (s1*v1.conjugate()), largerEps));
-  m3 = m1.template triangularView<Eigen::UnitUpper>();
+  m3 = m1.triangularView(Upper_t{});
+  VERIFY((m3.adjoint() * v1).isApprox(m1.adjoint().triangularView(Lower_t{}) * v1, largerEps));
+  m3 = m1.triangularView(Lower_t{});
+  VERIFY((m3.adjoint() * (s1*v1.conjugate())).isApprox(m1.adjoint().triangularView(Upper_t{}) * (s1*v1.conjugate()), largerEps));
+  m3 = m1.triangularView(UnitUpper_t{});
 
   // check transposed cases:
-  m3 = m1.template triangularView<Eigen::Lower>();
-  VERIFY((v1.transpose() * m3).isApprox(v1.transpose() * m1.template triangularView<Eigen::Lower>(), largerEps));
-  VERIFY((v1.adjoint() * m3).isApprox(v1.adjoint() * m1.template triangularView<Eigen::Lower>(), largerEps));
-  VERIFY((v1.adjoint() * m3.adjoint()).isApprox(v1.adjoint() * m1.template triangularView<Eigen::Lower>().adjoint(), largerEps));
+  m3 = m1.triangularView(Lower_t{});
+  VERIFY((v1.transpose() * m3).isApprox(v1.transpose() * m1.triangularView(Lower_t{}), largerEps));
+  VERIFY((v1.adjoint() * m3).isApprox(v1.adjoint() * m1.triangularView(Lower_t{}), largerEps));
+  VERIFY((v1.adjoint() * m3.adjoint()).isApprox(v1.adjoint() * m1.triangularView(Lower_t{}).adjoint(), largerEps));
 
   // TODO check with sub-matrices
 }

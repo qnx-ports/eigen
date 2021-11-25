@@ -101,7 +101,7 @@ template<typename MatrixType> void householder(const MatrixType& m)
   VERIFY(hseq.shift() == shift);
   
   MatrixType m5 = m2;
-  m5.block(shift,0,brows,cols).template triangularView<StrictlyLower>().setZero();
+  m5.block(shift,0,brows,cols).triangularView(StrictlyLower_t{}).setZero();
   VERIFY_IS_APPROX(hseq * m5, m1); // test applying hseq directly
   m3 = hseq;
   VERIFY_IS_APPROX(m3 * m5, m1); // test evaluating hseq to a dense matrix, then applying

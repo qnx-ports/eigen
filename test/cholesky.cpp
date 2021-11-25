@@ -27,8 +27,8 @@ template<typename MatrixType,template <typename,int> class CholType> void test_c
   typedef typename MatrixType::RealScalar RealScalar;
   typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, 1> VectorType;
 
-  MatrixType symmLo = symm.template triangularView<Lower>();
-  MatrixType symmUp = symm.template triangularView<Upper>();
+  MatrixType symmLo = symm.triangularView(Lower_t{});
+  MatrixType symmUp = symm.triangularView(Upper_t{});
   MatrixType symmCpy = symm;
 
   CholType<MatrixType,Lower> chollo(symmLo);
@@ -81,8 +81,8 @@ template<typename MatrixType> void cholesky(const MatrixType& m)
     STATIC_CHECK(( internal::is_same<typename LLT<MatrixType,Lower>::StorageIndex,int>::value ));
     STATIC_CHECK(( internal::is_same<typename LLT<MatrixType,Upper>::StorageIndex,int>::value ));
 
-    SquareMatrixType symmUp = symm.template triangularView<Upper>();
-    SquareMatrixType symmLo = symm.template triangularView<Lower>();
+    SquareMatrixType symmUp = symm.triangularView(Upper_t{});
+    SquareMatrixType symmLo = symm.triangularView(Lower_t{});
 
     LLT<SquareMatrixType,Lower> chollo(symmLo);
     VERIFY_IS_APPROX(symm, chollo.reconstructedMatrix());
@@ -127,17 +127,17 @@ template<typename MatrixType> void cholesky(const MatrixType& m)
     // test some special use cases of SelfCwiseBinaryOp:
     MatrixType m1 = MatrixType::Random(rows,cols), m2(rows,cols);
     m2 = m1;
-    m2 += symmLo.template selfadjointView<Lower>().llt().solve(matB);
-    VERIFY_IS_APPROX(m2, m1 + symmLo.template selfadjointView<Lower>().llt().solve(matB));
+    m2 += symmLo.selfadjointView(Lower_t{}).llt().solve(matB);
+    VERIFY_IS_APPROX(m2, m1 + symmLo.selfadjointView(Lower_t{}).llt().solve(matB));
     m2 = m1;
-    m2 -= symmLo.template selfadjointView<Lower>().llt().solve(matB);
-    VERIFY_IS_APPROX(m2, m1 - symmLo.template selfadjointView<Lower>().llt().solve(matB));
+    m2 -= symmLo.selfadjointView(Lower_t{}).llt().solve(matB);
+    VERIFY_IS_APPROX(m2, m1 - symmLo.selfadjointView(Lower_t{}).llt().solve(matB));
     m2 = m1;
-    m2.noalias() += symmLo.template selfadjointView<Lower>().llt().solve(matB);
-    VERIFY_IS_APPROX(m2, m1 + symmLo.template selfadjointView<Lower>().llt().solve(matB));
+    m2.noalias() += symmLo.selfadjointView(Lower_t{}).llt().solve(matB);
+    VERIFY_IS_APPROX(m2, m1 + symmLo.selfadjointView(Lower_t{}).llt().solve(matB));
     m2 = m1;
-    m2.noalias() -= symmLo.template selfadjointView<Lower>().llt().solve(matB);
-    VERIFY_IS_APPROX(m2, m1 - symmLo.template selfadjointView<Lower>().llt().solve(matB));
+    m2.noalias() -= symmLo.selfadjointView(Lower_t{}).llt().solve(matB);
+    VERIFY_IS_APPROX(m2, m1 - symmLo.selfadjointView(Lower_t{}).llt().solve(matB));
   }
 
   // LDLT
@@ -152,8 +152,8 @@ template<typename MatrixType> void cholesky(const MatrixType& m)
       symm = -symm; // test a negative matrix
     }
 
-    SquareMatrixType symmUp = symm.template triangularView<Upper>();
-    SquareMatrixType symmLo = symm.template triangularView<Lower>();
+    SquareMatrixType symmUp = symm.triangularView(Upper_t{});
+    SquareMatrixType symmLo = symm.triangularView(Lower_t{});
 
     LDLT<SquareMatrixType,Lower> ldltlo(symmLo);
     VERIFY(ldltlo.info()==Success);
@@ -310,7 +310,7 @@ template<typename MatrixType> void cholesky_cplx(const MatrixType& m)
   }
 
   {
-    RealMatrixType symmLo = symm.template triangularView<Lower>();
+    RealMatrixType symmLo = symm.triangularView(Lower_t{});
 
     LLT<RealMatrixType,Lower> chollo(symmLo);
     VERIFY_IS_APPROX(symm, chollo.reconstructedMatrix());
@@ -328,7 +328,7 @@ template<typename MatrixType> void cholesky_cplx(const MatrixType& m)
       symm = -symm; // test a negative matrix
     }
 
-    RealMatrixType symmLo = symm.template triangularView<Lower>();
+    RealMatrixType symmLo = symm.triangularView(Lower_t{});
 
     LDLT<RealMatrixType,Lower> ldltlo(symmLo);
     VERIFY(ldltlo.info()==Success);

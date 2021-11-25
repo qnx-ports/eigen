@@ -476,7 +476,7 @@ EIGEN_DECLARE_TEST(evaluators)
     
     VERIFY_IS_APPROX_EVALUATOR2(B, prod(A.triangularView<Upper>(),A), MatrixXd(A.triangularView<Upper>()*A));
     
-    VERIFY_IS_APPROX_EVALUATOR2(B, prod(A.selfadjointView<Upper>(),A), MatrixXd(A.selfadjointView<Upper>()*A));
+    VERIFY_IS_APPROX_EVALUATOR2(B, prod(A.selfadjointView(Upper_t{}),A), MatrixXd(A.selfadjointView(Upper_t{})*A));
   }
 
   {
