@@ -39,44 +39,74 @@ namespace Eigen {
 
 namespace internal {
 
-/** \internal Specialization for the data types supported by LAPACKe */
+namespace lapacke_helpers {
+// -------------------------------------------------------------------------------------------------------------------
+//        Dispatch for getrf handling double, float, complex double, complex float types
+// -------------------------------------------------------------------------------------------------------------------
+lapack_int getrf(lapack_int matrix_order, lapack_int m, lapack_int n, float* a, lapack_int lda, lapack_int *ipiv) {
+  return LAPACKE_sgetrf(matrix_order, m, n, a, lda, ipiv);
+}
+lapack_int getrf(lapack_int matrix_order, lapack_int m, lapack_int n, double* a, lapack_int lda, lapack_int *ipiv) {
+  return LAPACKE_dgetrf(matrix_order, m, n, a, lda, ipiv);
+}
+lapack_int getrf(lapack_int matrix_order, lapack_int m, lapack_int n, lapack_complex_double* a, lapack_int lda, lapack_int *ipiv) {
+  return LAPACKE_zgetrf(matrix_order, m, n, a, lda, ipiv);
+}
+lapack_int getrf(lapack_int matrix_order, lapack_int m, lapack_int n, lapack_complex_float* a, lapack_int lda, lapack_int *ipiv) {
+  return LAPACKE_cgetrf(matrix_order, m, n, a, lda, ipiv);
+}
 
-#define EIGEN_LAPACKE_LU_PARTPIV(EIGTYPE, LAPACKE_TYPE, LAPACKE_PREFIX) \
-template<int StorageOrder> \
-struct partial_lu_impl<EIGTYPE, StorageOrder, lapack_int> \
-{ \
-  /* \internal performs the LU decomposition in-place of the matrix represented */ \
-  static lapack_int blocked_lu(Index rows, Index cols, EIGTYPE* lu_data, Index luStride, lapack_int* row_transpositions, lapack_int& nb_transpositions, lapack_int maxBlockSize=256) \
-  { \
-    EIGEN_UNUSED_VARIABLE(maxBlockSize);\
-    lapack_int matrix_order, first_zero_pivot; \
-    lapack_int m, n, lda, *ipiv, info; \
-    EIGTYPE* a; \
-/* Set up parameters for ?getrf */ \
-    matrix_order = StorageOrder==RowMajor ? LAPACK_ROW_MAJOR : LAPACK_COL_MAJOR; \
-    lda = convert_index<lapack_int>(luStride); \
-    a = lu_data; \
-    ipiv = row_transpositions; \
-    m = convert_index<lapack_int>(rows); \
-    n = convert_index<lapack_int>(cols); \
-    nb_transpositions = 0; \
-\
-    info = LAPACKE_##LAPACKE_PREFIX##getrf( matrix_order, m, n, (LAPACKE_TYPE*)a, lda, ipiv ); \
-\
-    for(int i=0;i<m;i++) { ipiv[i]--; if (ipiv[i]!=i) nb_transpositions++; } \
-\
-    eigen_assert(info >= 0); \
-/* something should be done with nb_transpositions */ \
-\
-    first_zero_pivot = info; \
-    return first_zero_pivot; \
-  } \
+// -------------------------------------------------------------------------------------------------------------------
+//        Generic lapacke partial lu implementation that converts arguments and dispatches to the function above
+// -------------------------------------------------------------------------------------------------------------------
+
+template<typename Scalar, int StorageOrder>
+struct lapacke_partial_lu {
+  using BlasType = typename translate_type<Scalar>::type;
+
+  /** \internal performs the LU decomposition in-place of the matrix represented */
+  static lapack_int blocked_lu(Index rows, Index cols, Scalar* lu_data, Index luStride, lapack_int* row_transpositions,
+  lapack_int& nb_transpositions, lapack_int maxBlockSize=256)
+  {
+    EIGEN_UNUSED_VARIABLE(maxBlockSize);
+    // Set up parameters for getrf
+    lapack_int matrix_order = StorageOrder==RowMajor ? LAPACK_ROW_MAJOR : LAPACK_COL_MAJOR;
+    lapack_int lda = convert_index<lapack_int>(luStride);
+    Scalar* a = lu_data;
+    lapack_int* ipiv = row_transpositions;
+    lapack_int m = convert_index<lapack_int>(rows);
+    lapack_int n = convert_index<lapack_int>(cols);
+    nb_transpositions = 0;
+
+    lapack_int info = getrf( matrix_order, m, n, (BlasType*)a, lda, ipiv );
+    eigen_assert(info >= 0);
+
+    for(int i=0; i<m; i++) {
+      ipiv[i]--;
+      if (ipiv[i] != i) nb_transpositions++;
+    }
+    lapack_int first_zero_pivot = info;
+    return first_zero_pivot;
+  }
 };
+} // end namespace lapacke_helpers
 
-EIGEN_LAPACKE_LU_PARTPIV(double, double, d)
-EIGEN_LAPACKE_LU_PARTPIV(float, float, s)
-EIGEN_LAPACKE_LU_PARTPIV(dcomplex, lapack_complex_double, z)
-EIGEN_LAPACKE_LU_PARTPIV(scomplex, lapack_complex_float,  c)
+/*
+ * Here, we just put the generic implementation from lapacke_partial_lu into a partial specialization of the partial_lu_impl
+ * type. This specialization is more specialized than the generic implementations that Eigen implements, so if the
+ * Scalar type matches they will be chosen.
+ */
+template<int StorageOrder>
+struct partial_lu_impl<double, StorageOrder, lapack_int, Dynamic> : public lapacke_helpers::lapacke_partial_lu<double, StorageOrder> {};
+
+template<int StorageOrder>
+struct partial_lu_impl<float, StorageOrder, lapack_int, Dynamic> : public lapacke_helpers::lapacke_partial_lu<float, StorageOrder> {};
+
+template<int StorageOrder>
+struct partial_lu_impl<dcomplex, StorageOrder, lapack_int, Dynamic> : public lapacke_helpers::lapacke_partial_lu<dcomplex, StorageOrder> {};
+
+template<int StorageOrder>
+struct partial_lu_impl<scomplex, StorageOrder, lapack_int, Dynamic> : public lapacke_helpers::lapacke_partial_lu<scomplex, StorageOrder> {};
 
 } // end namespace internal
 

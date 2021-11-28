@@ -39,7 +39,7 @@ namespace Eigen {
 
 namespace internal {
 
-namespace lapacke_llt_helpers {
+namespace lapacke_helpers {
 
   // -------------------------------------------------------------------------------------------------------------------
   //        Translation from Eigen to Lapacke types
@@ -130,7 +130,7 @@ namespace lapacke_llt_helpers {
     }
   };
 }
-// end namespace lapacke_llt_helpers
+// end namespace lapacke_helpers
 
 /*
  * Here, we just put the generic implementation from lapacke_llt into a full specialization of the llt_inplace
@@ -139,8 +139,8 @@ namespace lapacke_llt_helpers {
  */
 
 #define EIGEN_LAPACKE_LLT(EIGTYPE) \
-template<> struct llt_inplace<EIGTYPE, Lower> : public lapacke_llt_helpers::lapacke_llt<EIGTYPE, Lower> {}; \
-template<> struct llt_inplace<EIGTYPE, Upper> : public lapacke_llt_helpers::lapacke_llt<EIGTYPE, Upper> {};
+template<> struct llt_inplace<EIGTYPE, Lower> : public lapacke_helpers::lapacke_llt<EIGTYPE, Lower> {}; \
+template<> struct llt_inplace<EIGTYPE, Upper> : public lapacke_helpers::lapacke_llt<EIGTYPE, Upper> {};
 
 EIGEN_LAPACKE_LLT(double)
 EIGEN_LAPACKE_LLT(float)
