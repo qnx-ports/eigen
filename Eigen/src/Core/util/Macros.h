@@ -630,7 +630,7 @@
 #if EIGEN_MAX_CPP_VER<11 || EIGEN_COMP_CXXVER<11 || (EIGEN_COMP_MSVC && EIGEN_COMP_MSVC < 1700) || \
   (EIGEN_COMP_ICC && EIGEN_COMP_ICC < 1400) || (EIGEN_COMP_NVCC && EIGEN_COMP_NVCC < 80000) ||     \
   (EIGEN_COMP_CLANG && ((EIGEN_COMP_CLANG<309) || (defined(__apple_build_version__) && (__apple_build_version__ < 9000000)))) || \
-  (EIGEN_COMP_GNUC_STRICT && EIGEN_COMP_GNUC<49)
+  (EIGEN_COMP_GNUC_STRICT && EIGEN_COMP_GNUC<51)
 #error This compiler appears to be too old to be supported by Eigen
 #endif
 
@@ -684,11 +684,11 @@
 #endif
 
 #ifndef EIGEN_HAS_ALIGNAS
-#if (     __has_feature(cxx_alignas)            \
+#if (     __has_feature(cxx_alignas)              \
         ||  EIGEN_HAS_CXX14                       \
         || (EIGEN_COMP_MSVC >= 1800)              \
-        || (EIGEN_GNUC_AT_LEAST(4,8))             \
-        || (EIGEN_COMP_CLANG>=305)                \
+        || (EIGEN_COMP_GNUC)               \
+        || (EIGEN_COMP_CLANG)                     \
         || (EIGEN_COMP_ICC>=1500)                 \
         || (EIGEN_COMP_PGI>=1500)                 \
         || (EIGEN_COMP_SUNCC>=0x5130))
@@ -702,8 +702,7 @@
 // - full support of type traits was added only to GCC 5.1.0.
 // - 20150626 corresponds to the last release of 4.x libstdc++
 #ifndef EIGEN_HAS_TYPE_TRAITS
-#if ((!EIGEN_COMP_GNUC_STRICT) || EIGEN_GNUC_AT_LEAST(5, 1)) \
-  && ((!defined(__GLIBCXX__))   || __GLIBCXX__ > 20150626)
+#if (!defined(__GLIBCXX__)) || __GLIBCXX__ > 20150626
 #define EIGEN_HAS_TYPE_TRAITS 1
 #define EIGEN_INCLUDE_TYPE_TRAITS
 #else
@@ -719,8 +718,7 @@
       #define EIGEN_HAS_CONSTEXPR 1
     #endif
   #elif EIGEN_MAX_CPP_VER>=14 && (__has_feature(cxx_relaxed_constexpr) || (EIGEN_COMP_CXXVER >= 14) || \
-    (EIGEN_GNUC_AT_LEAST(4,8) && (EIGEN_COMP_CXXVER >= 11)) || \
-    (EIGEN_COMP_CLANG >= 306 && (EIGEN_COMP_CXXVER >= 11)))
+    EIGEN_COMP_GNUC || EIGEN_COMP_CLANG)
     #define EIGEN_HAS_CONSTEXPR 1
   #endif
 
@@ -824,15 +822,11 @@
 #endif
 #endif
 
-// EIGEN_ALWAYS_INLINE is the stronget, it has the effect of making the function inline and adding every possible
+// EIGEN_ALWAYS_INLINE is the strongest, it has the effect of making the function inline and adding every possible
 // attribute to maximize inlining. This should only be used when really necessary: in particular,
 // it uses __attribute__((always_inline)) on GCC, which most of the time is useless and can severely harm compile times.
 // FIXME with the always_inline attribute,
-// gcc 3.4.x and 4.1 reports the following compilation error:
-//   Eval.h:91: sorry, unimplemented: inlining failed in call to 'const Eigen::Eval<Derived> Eigen::MatrixBase<Scalar, Derived>::eval() const'
-//    : function body not available
-//   See also bug 1367
-#if EIGEN_GNUC_AT_LEAST(4,2) && !defined(SYCL_DEVICE_ONLY)
+#if EIGEN_COMP_GNUC && !defined(SYCL_DEVICE_ONLY)
 #define EIGEN_ALWAYS_INLINE __attribute__((always_inline)) inline
 #else
 #define EIGEN_ALWAYS_INLINE EIGEN_STRONG_INLINE

@@ -28,11 +28,8 @@
 
 // SFINAE requires variadic templates
 #if !defined(EIGEN_GPUCC)
-// SFINAE doesn't work for gcc <= 4.7
 #ifdef EIGEN_COMP_GNUC
-  #if EIGEN_GNUC_AT_LEAST(4,8)
-    #define EIGEN_HAS_SFINAE
-  #endif
+  #define EIGEN_HAS_SFINAE
 #else
   #define EIGEN_HAS_SFINAE
 #endif
