@@ -41,29 +41,11 @@ namespace internal {
 
 namespace lapacke_helpers {
 // -------------------------------------------------------------------------------------------------------------------
-//        Dispatch for getrf handling double, float, complex double, complex float types
-// -------------------------------------------------------------------------------------------------------------------
-lapack_int getrf(lapack_int matrix_order, lapack_int m, lapack_int n, float* a, lapack_int lda, lapack_int *ipiv) {
-  return LAPACKE_sgetrf(matrix_order, m, n, a, lda, ipiv);
-}
-lapack_int getrf(lapack_int matrix_order, lapack_int m, lapack_int n, double* a, lapack_int lda, lapack_int *ipiv) {
-  return LAPACKE_dgetrf(matrix_order, m, n, a, lda, ipiv);
-}
-lapack_int getrf(lapack_int matrix_order, lapack_int m, lapack_int n, lapack_complex_double* a, lapack_int lda, lapack_int *ipiv) {
-  return LAPACKE_zgetrf(matrix_order, m, n, a, lda, ipiv);
-}
-lapack_int getrf(lapack_int matrix_order, lapack_int m, lapack_int n, lapack_complex_float* a, lapack_int lda, lapack_int *ipiv) {
-  return LAPACKE_cgetrf(matrix_order, m, n, a, lda, ipiv);
-}
-
-// -------------------------------------------------------------------------------------------------------------------
 //        Generic lapacke partial lu implementation that converts arguments and dispatches to the function above
 // -------------------------------------------------------------------------------------------------------------------
 
 template<typename Scalar, int StorageOrder>
 struct lapacke_partial_lu {
-  using BlasType = typename translate_type<Scalar>::type;
-
   /** \internal performs the LU decomposition in-place of the matrix represented */
   static lapack_int blocked_lu(Index rows, Index cols, Scalar* lu_data, Index luStride, lapack_int* row_transpositions,
   lapack_int& nb_transpositions, lapack_int maxBlockSize=256)
@@ -71,14 +53,14 @@ struct lapacke_partial_lu {
     EIGEN_UNUSED_VARIABLE(maxBlockSize);
     // Set up parameters for getrf
     lapack_int matrix_order = StorageOrder==RowMajor ? LAPACK_ROW_MAJOR : LAPACK_COL_MAJOR;
-    lapack_int lda = convert_index<lapack_int>(luStride);
+    lapack_int lda = to_lpk(luStride);
     Scalar* a = lu_data;
     lapack_int* ipiv = row_transpositions;
-    lapack_int m = convert_index<lapack_int>(rows);
-    lapack_int n = convert_index<lapack_int>(cols);
+    lapack_int m = to_lpk(rows);
+    lapack_int n = to_lpk(cols);
     nb_transpositions = 0;
 
-    lapack_int info = getrf( matrix_order, m, n, (BlasType*)a, lda, ipiv );
+    lapack_int info = getrf( matrix_order, m, n, to_lpk(a), lda, ipiv );
     eigen_assert(info >= 0);
 
     for(int i=0; i<m; i++) {
