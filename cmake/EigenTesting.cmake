@@ -382,12 +382,6 @@ macro(ei_testing_print_summary)
       message(STATUS "S390X ZVECTOR:     Using architecture defaults")
     endif()
 
-    if(EIGEN_TEST_CXX11)
-      message(STATUS "C++11:             ON")
-    else()
-      message(STATUS "C++11:             OFF")
-    endif()
-
     if(EIGEN_TEST_SYCL)
       if(EIGEN_SYCL_TRISYCL)
         message(STATUS "SYCL:              ON (using triSYCL)")
