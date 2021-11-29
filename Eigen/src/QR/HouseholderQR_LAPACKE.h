@@ -40,28 +40,34 @@ namespace Eigen {
 
 namespace internal {
 
-/** \internal Specialization for the data types supported by LAPACKe */
+namespace lapacke_helpers {
 
-#define EIGEN_LAPACKE_QR_NOPIV(EIGTYPE, LAPACKE_TYPE, LAPACKE_PREFIX) \
-template<typename MatrixQR, typename HCoeffs> \
-struct householder_qr_inplace_blocked<MatrixQR, HCoeffs, EIGTYPE, true> \
-{ \
-  static void run(MatrixQR& mat, HCoeffs& hCoeffs, Index = 32, \
-      typename MatrixQR::Scalar* = 0) \
-  { \
-    lapack_int m = (lapack_int) mat.rows(); \
-    lapack_int n = (lapack_int) mat.cols(); \
-    lapack_int lda = (lapack_int) mat.outerStride(); \
-    lapack_int matrix_order = (MatrixQR::IsRowMajor) ? LAPACK_ROW_MAJOR : LAPACK_COL_MAJOR; \
-    LAPACKE_##LAPACKE_PREFIX##geqrf( matrix_order, m, n, (LAPACKE_TYPE*)mat.data(), lda, (LAPACKE_TYPE*)hCoeffs.data()); \
-    hCoeffs.adjointInPlace(); \
-  } \
+template<typename MatrixQR, typename HCoeffs>
+struct lapacke_hqr
+{
+  static void run(MatrixQR& mat, HCoeffs& hCoeffs, Index = 32, typename MatrixQR::Scalar* = 0)
+  {
+    lapack_int m = to_lpk(mat.rows());
+    lapack_int n = to_lpk(mat.cols());
+    lapack_int lda = to_lpk(mat.outerStride());
+    lapack_int matrix_order = lapack_storage_of(mat);
+    geqrf( matrix_order, m, n, to_lpk(mat.data()), lda, to_lpk(hCoeffs.data()));
+    hCoeffs.adjointInPlace();
+  }
 };
 
-EIGEN_LAPACKE_QR_NOPIV(double, double, d)
-EIGEN_LAPACKE_QR_NOPIV(float, float, s)
-EIGEN_LAPACKE_QR_NOPIV(dcomplex, lapack_complex_double, z)
-EIGEN_LAPACKE_QR_NOPIV(scomplex, lapack_complex_float, c)
+}
+
+/** \internal Specialization for the data types supported by LAPACKe */
+
+template<typename MatrixQR, typename HCoeffs>
+struct householder_qr_inplace_blocked<MatrixQR, HCoeffs, double, true> : public lapacke_helpers::lapacke_hqr<MatrixQR, HCoeffs> {};
+template<typename MatrixQR, typename HCoeffs>
+struct householder_qr_inplace_blocked<MatrixQR, HCoeffs, float, true> : public lapacke_helpers::lapacke_hqr<MatrixQR, HCoeffs> {};
+template<typename MatrixQR, typename HCoeffs>
+struct householder_qr_inplace_blocked<MatrixQR, HCoeffs, dcomplex, true> : public lapacke_helpers::lapacke_hqr<MatrixQR, HCoeffs> {};
+template<typename MatrixQR, typename HCoeffs>
+struct householder_qr_inplace_blocked<MatrixQR, HCoeffs, scomplex, true> : public lapacke_helpers::lapacke_hqr<MatrixQR, HCoeffs> {};
 
 } // end namespace internal
 
