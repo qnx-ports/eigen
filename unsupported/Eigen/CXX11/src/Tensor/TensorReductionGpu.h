@@ -100,8 +100,9 @@ __device__ inline void atomicReduce(half2* output, half2 accum, R& reducer) {
     }
   }
 }
-#ifdef EIGEN_GPU_COMPILE_PHASE
+#if ((defined(EIGEN_GPU_COMPILE_PHASE) && defined(EIGEN_HAS_CUDA_FP16)) || defined(EIGEN_HAS_HIP_FP16))
 // reduction should be associative since reduction is not atomic in wide vector but atomic in half2 operations
+// This still needs to be defined on the host as well in HIP environments
 template <typename R>
 __device__ inline void atomicReduce(Packet4h2* output, Packet4h2 accum, R& reducer) {
   half2* houtput=reinterpret_cast<half2*>(output);
@@ -110,7 +111,7 @@ __device__ inline void atomicReduce(Packet4h2* output, Packet4h2 accum, R& reduc
     atomicReduce(houtput+i,*(haccum+i),reducer);
   }
 }
-#endif  // EIGEN_GPU_COMPILE_PHASE
+#endif  // ((defined(EIGEN_GPU_COMPILE_PHASE) && defined(EIGEN_HAS_CUDA_FP16)) || defined(EIGEN_HAS_HIP_FP16))
 #endif  // EIGEN_HAS_GPU_FP16
 
 template <>
@@ -217,8 +218,13 @@ __global__ EIGEN_HIP_LAUNCH_BOUNDS_1024 void FullReductionKernel(Reducer reducer
 #ifdef EIGEN_HAS_GPU_FP16
 template <typename Self,
           typename Reducer, typename Index>
-__global__ EIGEN_HIP_LAUNCH_BOUNDS_1024 void ReductionInitFullReduxKernelHalfFloat(
-    Reducer reducer, const Self input, Index num_coeffs, half* scratch) {
+#if defined(EIGEN_HIPCC)
+__global__ EIGEN_HIP_LAUNCH_BOUNDS_1024 void ReductionInitFullReduxKernelHalfFloat(Reducer reducer, const Self input, Index num_coeffs,
+                                                      packet_traits<Eigen::half>::type* scratch) {
+#else
+__global__ EIGEN_HIP_LAUNCH_BOUNDS_1024 void ReductionInitFullReduxKernelHalfFloat(Reducer reducer, const Self input, Index num_coeffs,
+                                                      half* scratch) {
+#endif
   eigen_assert(blockDim.x == 1);
   eigen_assert(gridDim.x == 1);
   typedef packet_traits<Eigen::half>::type packet_type;
@@ -228,16 +234,28 @@ __global__ EIGEN_HIP_LAUNCH_BOUNDS_1024 void ReductionInitFullReduxKernelHalfFlo
     half2* h2scratch = reinterpret_cast<half2*>(scratch);
     for (Index i = num_coeffs - packet_remainder; i + 2 <= num_coeffs; i += 2) {
       *h2scratch =
+      #if defined(EIGEN_HIPCC)
+          __halves2half2(input.m_impl.coeff(i), input.m_impl.coeff(i + 1));
+      #else
           __halves2half2(input.coeff(i), input.coeff(i + 1));
+      #endif
       h2scratch++;
     }
     if ((num_coeffs & 1) != 0) {
+    #if defined(EIGEN_HIPCC)
+      half lastCoeff = input.m_impl.coeff(num_coeffs - 1);
+    #else
       half lastCoeff = input.coeff(num_coeffs - 1);
+    #endif
       *h2scratch = __halves2half2(lastCoeff, reducer.initialize());
     }
   } else {
+  #if defined(EIGEN_HIPCC)
+    *scratch = reducer.template initializePacket<packet_type>();
+  #else
     packet_type reduce = reducer.template initializePacket<packet_type>();
     internal::pstoreu(scratch, reduce);
+  #endif
   }
 }
 
@@ -263,9 +281,13 @@ __global__ EIGEN_HIP_LAUNCH_BOUNDS_1024 void ReductionInitKernelHalfFloat(Reduce
 
 template <int BlockSize, int NumPerThread, typename Self,
           typename Reducer, typename Index>
-__global__ EIGEN_HIP_LAUNCH_BOUNDS_1024 void FullReductionKernelHalfFloat(
-    Reducer reducer, const Self input, Index num_coeffs,
-    half* output, half* scratch) {
+#if defined(EIGEN_HIPCC)
+__global__ EIGEN_HIP_LAUNCH_BOUNDS_1024 void FullReductionKernelHalfFloat(Reducer reducer, const Self input, Index num_coeffs,
+                                 half* output, packet_traits<Eigen::half>::type* scratch) {
+#else
+__global__ EIGEN_HIP_LAUNCH_BOUNDS_1024 void FullReductionKernelHalfFloat(Reducer reducer, const Self input, Index num_coeffs,
+                                 half* output, half* scratch) {
+#endif
   typedef typename packet_traits<Eigen::half>::type PacketType;
   const int packet_width = unpacket_traits<PacketType>::size;
   eigen_assert(NumPerThread % packet_width == 0);
@@ -279,20 +301,37 @@ __global__ EIGEN_HIP_LAUNCH_BOUNDS_1024 void FullReductionKernelHalfFloat(
       int rem = num_coeffs % packet_width;
       if (rem != 0) {
         half2* p_scratch = reinterpret_cast<half2*>(scratch);
+      #if defined(EIGEN_HIPCC)
+	*scratch = reducer.template initializePacket<PacketType>();
+      #else
         pstoreu(scratch, reducer.template initializePacket<PacketType>());
+      #endif
         for (int i = 0; i < rem / 2; i++) {
           *p_scratch = __halves2half2(
+          #if defined(EIGEN_HIPCC)
+              input.m_impl.coeff(num_coeffs - packet_width + 2 * i),
+              input.m_impl.coeff(num_coeffs - packet_width + 2 * i + 1));
+          #else
               input.coeff(num_coeffs - packet_width + 2 * i),
               input.coeff(num_coeffs - packet_width + 2 * i + 1));
+          #endif
           p_scratch++;
         }
         if ((num_coeffs & 1) != 0) {
+        #if defined(EIGEN_HIPCC)
+          half last = input.m_impl.coeff(num_coeffs - 1);
+        #else
           half last = input.coeff(num_coeffs - 1);
+        #endif
           *p_scratch = __halves2half2(last, reducer.initialize());
         }
       } else {
-        PacketType reduce = reducer.template initializePacket<PacketType>();
+      #if defined(EIGEN_HIPCC)
+        *scratch = reducer.template initializePacket<PacketType>();
+      #else
+	PacketType reduce = reducer.template initializePacket<PacketType>();
         pstoreu(scratch, reduce);
+      #endif
       }
     }
     __syncthreads();
@@ -305,7 +344,11 @@ __global__ EIGEN_HIP_LAUNCH_BOUNDS_1024 void FullReductionKernelHalfFloat(
   for (Index i = 0; i < max_iter; i += BlockSize) {
     const Index index = first_index + packet_width * i;
     eigen_assert(index + packet_width < num_coeffs);
+  #if defined(EIGEN_HIPCC)
+    PacketType val = input.m_impl.template packet<Unaligned>(index);
+  #else
     PacketType val = input.template packet<Unaligned>(index);
+  #endif
     reducer.reducePacket(val, &accum);
   }
 
@@ -344,7 +387,11 @@ __global__ EIGEN_HIP_LAUNCH_BOUNDS_1024 void FullReductionKernelHalfFloat(
   }
 
   if ((threadIdx.x & (warpSize - 1)) == 0) {
+  #if defined(EIGEN_HIPCC)
+    atomicReduce(scratch, accum, reducer);
+  #else
     atomicReduce(reinterpret_cast<PacketType*>(scratch), accum, reducer);
+  #endif
   }
 
   __syncthreads();
@@ -364,10 +411,24 @@ __global__ EIGEN_HIP_LAUNCH_BOUNDS_1024 void FullReductionKernelHalfFloat(
 }
 
 template <typename Op>
+#if defined(EIGEN_HIPCC)
+__global__ EIGEN_HIP_LAUNCH_BOUNDS_1024 void ReductionCleanupKernelHalfFloat(Op reducer, half* output, packet_traits<Eigen::half>::type* scratch) {
+#else
 __global__ EIGEN_HIP_LAUNCH_BOUNDS_1024 void ReductionCleanupKernelHalfFloat(Op reducer, half* output, half* scratch) {
+#endif
   eigen_assert(threadIdx.x == 1);
   typedef packet_traits<Eigen::half>::type packet_type;
-  if (unpacket_traits<packet_type>::size == 1) {
+#if defined(EIGEN_HIPCC)
+  half2* pscratch = reinterpret_cast<half2*>(scratch);
+  half tmp = __float2half(0.f);
+  for (int i = 0; i < unpacket_traits<packet_type>::size; i += 2) {
+    reducer.reduce(__low2half(*pscratch), &tmp);
+    reducer.reduce(__high2half(*pscratch), &tmp);
+    pscratch++;
+  }
+  *output = tmp;
+#else
+   if (unpacket_traits<packet_type>::size == 1) {
     *output = *scratch;
   } else {
     half2* pscratch = reinterpret_cast<half2*>(scratch);
@@ -379,6 +440,7 @@ __global__ EIGEN_HIP_LAUNCH_BOUNDS_1024 void ReductionCleanupKernelHalfFloat(Op 
     }
     *output = tmp;
   }
+#endif
 }
 
 #endif // EIGEN_HAS_GPU_FP16
@@ -427,11 +489,18 @@ template <typename Self, typename Op>
 struct FullReductionLauncher<Self, Op, Eigen::half, true> {
   static void run(const Self& self, Op& reducer, const GpuDevice& device, half* output, typename Self::Index num_coeffs) {
     typedef typename Self::Index Index;
+#if defined(EIGEN_HIPCC)
+    typedef typename packet_traits<Eigen::half>::type PacketType;
+#endif
 
     const int block_size = 256;
     const int num_per_thread = 128;
     const int num_blocks = divup<int>(num_coeffs, block_size * num_per_thread);
+#if defined(EIGEN_HIPCC)
+    PacketType* scratch = static_cast<PacketType*>(device.scratchpad());
+#else
     half* scratch = static_cast<half*>(device.scratchpad());
+#endif
 
     if (num_blocks > 1) {
       // We initialize the output and the scrathpad outside the reduction kernel when we can't be sure that there
