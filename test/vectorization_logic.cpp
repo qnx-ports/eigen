@@ -283,10 +283,12 @@ struct vectorization_logic
       internal::is_same<typename internal::find_best_packet<Scalar, PacketSize*5+2>::type, PacketType>::value
     ));
     // In situations where the picking the full-packet would be detrimental the half-packet
-    // is chosen.
+    // is chosen. We restrict this test specifically for 32bit types: if we have 12 scalars,
+    // working at full-packet will involve 1+4 = 5 instructions, with half-packet 3
+    // instructions.
     STATIC_CHECK((
-      !(PacketSize > 2) ||
-      internal::is_same<typename internal::find_best_packet<Scalar, PacketSize*2-1>::type, HalfPacketType>::value
+      (PacketSize != 8) ||
+      internal::is_same<typename internal::find_best_packet<Scalar, 12>::type, HalfPacketType>::value
     ));
   }
 
