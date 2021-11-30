@@ -613,7 +613,7 @@
 #endif
 
 #ifndef EIGEN_HAS_CXX14_VARIABLE_TEMPLATES
-  #if defined(__cpp_variable_templates) && __cpp_variable_templates >= 201304 && EIGEN_MAX_CPP_VER>=14
+  #if defined(__cpp_variable_templates) && __cpp_variable_templates >= 201304
     #define EIGEN_HAS_CXX14_VARIABLE_TEMPLATES 1
   #else
     #define EIGEN_HAS_CXX14_VARIABLE_TEMPLATES 0
@@ -625,18 +625,11 @@
 // but in practice we should not rely on them but rather on the availability of
 // individual features as defined later.
 // This is why there is no EIGEN_HAS_CXX17.
-// FIXME: get rid of EIGEN_HAS_CXX14.
-#if EIGEN_MAX_CPP_VER<11 || EIGEN_COMP_CXXVER<11 || (EIGEN_COMP_MSVC && EIGEN_COMP_MSVC < 1900) || \
-  (EIGEN_COMP_ICC && EIGEN_COMP_ICC < 1400) || (EIGEN_COMP_NVCC && EIGEN_COMP_NVCC < 80000) ||     \
+#if EIGEN_MAX_CPP_VER<14 || EIGEN_COMP_CXXVER<14 || (EIGEN_COMP_MSVC && EIGEN_COMP_MSVC < 1900) || \
+  (EIGEN_COMP_ICC && EIGEN_COMP_ICC < 1500) || (EIGEN_COMP_NVCC && EIGEN_COMP_NVCC < 80000) ||     \
   (EIGEN_COMP_CLANG && ((EIGEN_COMP_CLANG<309) || (defined(__apple_build_version__) && (__apple_build_version__ < 9000000)))) || \
   (EIGEN_COMP_GNUC_STRICT && EIGEN_COMP_GNUC<51)
 #error This compiler appears to be too old to be supported by Eigen
-#endif
-
-#if EIGEN_MAX_CPP_VER>=14 && EIGEN_COMP_CXXVER>=14
-#define EIGEN_HAS_CXX14 1
-#else
-#define EIGEN_HAS_CXX14 0
 #endif
 
 // Does the compiler support C99?
@@ -682,21 +675,6 @@
 #endif
 #endif
 
-#ifndef EIGEN_HAS_ALIGNAS
-#if (     __has_feature(cxx_alignas)              \
-        ||  EIGEN_HAS_CXX14                       \
-        || (EIGEN_COMP_MSVC)                      \
-        || (EIGEN_COMP_GNUC)                      \
-        || (EIGEN_COMP_CLANG)                     \
-        || (EIGEN_COMP_ICC>=1500)                 \
-        || (EIGEN_COMP_PGI>=1500)                 \
-        || (EIGEN_COMP_SUNCC>=0x5130))
-#define EIGEN_HAS_ALIGNAS 1
-#else
-#define EIGEN_HAS_ALIGNAS 0
-#endif
-#endif
-
 // Does the compiler support type_traits?
 // - full support of type traits was added only to GCC 5.1.0.
 // - 20150626 corresponds to the last release of 4.x libstdc++
@@ -713,11 +691,10 @@
 #ifndef EIGEN_HAS_CONSTEXPR
   #if defined(EIGEN_CUDACC)
   // Const expressions are supported provided that c++11 is enabled and we're using either clang or nvcc 7.5 or above
-    #if EIGEN_MAX_CPP_VER>=14 && (EIGEN_COMP_CLANG || EIGEN_COMP_NVCC >= 70500)
+    #if (EIGEN_COMP_CLANG || EIGEN_COMP_NVCC >= 70500)
       #define EIGEN_HAS_CONSTEXPR 1
     #endif
-  #elif EIGEN_MAX_CPP_VER>=14 && (__has_feature(cxx_relaxed_constexpr) || (EIGEN_COMP_CXXVER >= 14) || \
-    EIGEN_COMP_GNUC || EIGEN_COMP_CLANG)
+  #else
     #define EIGEN_HAS_CONSTEXPR 1
   #endif
 
@@ -736,8 +713,7 @@
 // Does the compiler support C++11 math?
 // Let's be conservative and enable the default C++11 implementation only if we are sure it exists
 #ifndef EIGEN_HAS_CXX11_MATH
-  #if ((EIGEN_COMP_CXXVER > 11) || (EIGEN_COMP_GNUC_STRICT || EIGEN_COMP_CLANG || EIGEN_COMP_MSVC || EIGEN_COMP_ICC)  \
-      && (EIGEN_ARCH_i386_OR_x86_64) && (EIGEN_OS_GNULINUX || EIGEN_OS_WIN_STRICT || EIGEN_OS_MAC))
+  #if (EIGEN_ARCH_i386_OR_x86_64 && (EIGEN_OS_GNULINUX || EIGEN_OS_WIN_STRICT || EIGEN_OS_MAC))
     #define EIGEN_HAS_CXX11_MATH 1
   #else
     #define EIGEN_HAS_CXX11_MATH 0

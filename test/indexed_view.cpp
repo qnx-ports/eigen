@@ -7,11 +7,6 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifdef EIGEN_TEST_PART_2
-// Make sure we also check c++11 max implementation
-#define EIGEN_MAX_CPP_VER 11
-#endif
-
 #include <valarray>
 #include <vector>
 #include "main.h"
@@ -84,11 +79,7 @@ void check_indexed_view()
   ArrayXd a = ArrayXd::LinSpaced(n,0,n-1);
   Array<double,1,Dynamic> b = a.transpose();
 
-  #if EIGEN_COMP_CXXVER>=14
   ArrayXXi A = ArrayXXi::NullaryExpr(n,n, std::ref(encode));
-  #else
-  ArrayXXi A = ArrayXXi::NullaryExpr(n,n, std::ptr_fun(&encode));
-  #endif
 
   for(Index i=0; i<n; ++i)
     for(Index j=0; j<n; ++j)
@@ -436,7 +427,6 @@ EIGEN_DECLARE_TEST(indexed_view)
 {
 //   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST_1( check_indexed_view() );
-    CALL_SUBTEST_2( check_indexed_view() );
 //   }
 
   // static checks of some internals:
