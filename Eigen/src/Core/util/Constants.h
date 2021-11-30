@@ -392,13 +392,13 @@ enum DecompositionOptions {
   /** \internal Not used (meant for LDLT?). */
   NoPivoting          = 0x02, 
   /** Used in JacobiSVD to indicate that the square matrix U is to be computed. */
-  ComputeFullU        = 0x04,
+  //ComputeFullU        = 0x04,
   /** Used in JacobiSVD to indicate that the thin matrix U is to be computed. */
-  ComputeThinU        = 0x08,
+  //ComputeThinU        = 0x08,
   /** Used in JacobiSVD to indicate that the square matrix V is to be computed. */
-  ComputeFullV        = 0x10,
+  //ComputeFullV        = 0x10,
   /** Used in JacobiSVD to indicate that the thin matrix V is to be computed. */
-  ComputeThinV        = 0x20,
+  //ComputeThinV        = 0x20,
   /** Used in SelfAdjointEigenSolver and GeneralizedSelfAdjointEigenSolver to specify
     * that only the eigenvalues are to be computed and not the eigenvectors. */
   EigenvaluesOnly     = 0x40,
@@ -420,18 +420,63 @@ enum DecompositionOptions {
   GenEigMask = Ax_lBx | ABx_lx | BAx_lx
 };
 
-/** \ingroup enums
-  * Possible values for the \p QRPreconditioner template parameter of JacobiSVD. */
-enum QRPreconditioners {
-  /** Do not specify what is to be done if the SVD of a non-square matrix is asked for. */
-  NoQRPreconditioner,
-  /** Use a QR decomposition without pivoting as the first step. */
-  HouseholderQRPreconditioner,
-  /** Use a QR decomposition with column pivoting as the first step. */
-  ColPivHouseholderQRPreconditioner,
-  /** Use a QR decomposition with full pivoting as the first step. */
-  FullPivHouseholderQRPreconditioner
-};
+namespace internal {
+  enum SVDOptions {
+      ComputeFullU        = 0x04,
+      /** Used in JacobiSVD to indicate that the thin matrix U is to be computed. */
+      ComputeThinU        = 0x08,
+      /** Used in JacobiSVD to indicate that the square matrix V is to be computed. */
+      ComputeFullV        = 0x10,
+      /** Used in JacobiSVD to indicate that the thin matrix V is to be computed. */
+      ComputeThinV        = 0x20,
+      /** Use a QR decomposition with column pivoting as the first step. */
+      ColPivHouseholderQRPreconditioner = 0x0,
+      /** Do not specify what is to be done if the SVD of a non-square matrix is asked for. */
+      NoQRPreconditioner = 0x40,
+      /** Use a QR decomposition without pivoting as the first step. */
+      HouseholderQRPreconditioner = 0x80,
+      /** Use a QR decomposition with full pivoting as the first step. */
+      FullPivHouseholderQRPreconditioner = 0xC0,
+
+      QRPreconditionerBits = NoQRPreconditioner |
+                             HouseholderQRPreconditioner |
+                             ColPivHouseholderQRPreconditioner |
+                             FullPivHouseholderQRPreconditioner
+  };
+
+  template<unsigned int Flags_>
+  struct DecompositionOptionsTag {
+      static constexpr const unsigned int Flags = Flags_;
+
+      static constexpr bool fullU() { return Flags & SVDOptions::ComputeFullU; }
+      static constexpr bool thinU() { return Flags & SVDOptions::ComputeThinU; }
+      static constexpr bool fullV() { return Flags & SVDOptions::ComputeFullV; }
+      static constexpr bool thinV() { return Flags & SVDOptions::ComputeThinV; }
+
+      static constexpr bool anyU() { return thinU() || fullU(); }
+      static constexpr bool anyV() { return thinV() || fullV(); }
+      static constexpr unsigned preconditioner() { return Flags & SVDOptions::QRPreconditionerBits; }
+
+      static_assert(!(Flags & SVDOptions::ComputeFullU) || !(Flags & SVDOptions::ComputeThinU),
+                    "Cannot specify thin and full U at the same time");
+      static_assert(!(Flags & SVDOptions::ComputeFullV) || !(Flags & SVDOptions::ComputeThinV),
+                    "Cannot specify thin and full V at the same time");
+  };
+
+  template<unsigned int F1, unsigned int F2>
+  constexpr auto operator|(DecompositionOptionsTag<F1>, DecompositionOptionsTag<F2>) {
+    return DecompositionOptionsTag<F1 | F2>{};
+  }
+}
+
+constexpr const internal::DecompositionOptionsTag<internal::ColPivHouseholderQRPreconditioner> ColPivHouseholderQRPreconditioner = {};
+constexpr const internal::DecompositionOptionsTag<internal::NoQRPreconditioner> NoQRPreconditioner = {};
+constexpr const internal::DecompositionOptionsTag<internal::HouseholderQRPreconditioner> HouseholderQRPreconditioner = {};
+constexpr const internal::DecompositionOptionsTag<internal::FullPivHouseholderQRPreconditioner> FullPivHouseholderQRPreconditioner = {};
+constexpr const internal::DecompositionOptionsTag<internal::ComputeFullU> ComputeFullU = {};
+constexpr const internal::DecompositionOptionsTag<internal::ComputeThinU> ComputeThinU = {};
+constexpr const internal::DecompositionOptionsTag<internal::ComputeFullV> ComputeFullV = {};
+constexpr const internal::DecompositionOptionsTag<internal::ComputeThinV> ComputeThinV = {};
 
 #ifdef Success
 #error The preprocessor symbol 'Success' is defined, possibly by the X11 header file X.h
