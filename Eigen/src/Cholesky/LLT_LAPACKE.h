@@ -78,12 +78,12 @@ namespace lapacke_helpers {
         return -1;
       }
       /* Set up parameters for ?potrf */
-      lapack_int size = to_lpk(m.rows());
+      lapack_int size = to_lapack(m.rows());
       lapack_int matrix_order = lapack_storage_of(m);
       Scalar* a = &(m.coeffRef(0,0));
-      lapack_int lda = to_lpk(m.outerStride());
+      lapack_int lda = to_lapack(m.outerStride());
 
-      lapack_int info = potrf( matrix_order, translate_mode<Mode>, size, to_lpk(a), lda );
+      lapack_int info = potrf(matrix_order, translate_mode<Mode>, size, to_lapack(a), lda );
       info = (info==0) ? -1 : info>0 ? info-1 : size;
       return info;
     }

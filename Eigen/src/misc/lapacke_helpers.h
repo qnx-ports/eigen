@@ -57,16 +57,16 @@ using translated_type = typename translate_type_imp<Scalar>::type;
 /// These functions convert their arguments from Eigen to Lapack types
 /// This function performs conversion for any of the translations defined above.
 template<typename Source, typename Target=translated_type<Source>>
-auto to_lpk(Source value) { return static_cast<Target>(value); }
+auto to_lapack(Source value) { return static_cast<Target>(value); }
 
 /// This function performs conversions for pointer types corresponding to the translations abovce.
 /// This is valid because the translations are between layout-compatible types.
 template<typename Source, typename Target=translated_type<Source>>
-auto to_lpk(Source *value) { return reinterpret_cast<Target*>(value); }
+auto to_lapack(Source *value) { return reinterpret_cast<Target*>(value); }
 
 /// This function converts the Eigen Index to a lapack index, with possible range checks
 /// \sa internal::convert_index
-lapack_int to_lpk(Index index) {
+lapack_int to_lapack(Index index) {
   return convert_index<lapack_int>(index);
 }
 

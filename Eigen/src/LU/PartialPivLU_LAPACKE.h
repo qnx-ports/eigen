@@ -53,14 +53,14 @@ struct lapacke_partial_lu {
     EIGEN_UNUSED_VARIABLE(maxBlockSize);
     // Set up parameters for getrf
     lapack_int matrix_order = StorageOrder==RowMajor ? LAPACK_ROW_MAJOR : LAPACK_COL_MAJOR;
-    lapack_int lda = to_lpk(luStride);
+    lapack_int lda = to_lapack(luStride);
     Scalar* a = lu_data;
     lapack_int* ipiv = row_transpositions;
-    lapack_int m = to_lpk(rows);
-    lapack_int n = to_lpk(cols);
+    lapack_int m = to_lapack(rows);
+    lapack_int n = to_lapack(cols);
     nb_transpositions = 0;
 
-    lapack_int info = getrf( matrix_order, m, n, to_lpk(a), lda, ipiv );
+    lapack_int info = getrf(matrix_order, m, n, to_lapack(a), lda, ipiv );
     eigen_assert(info >= 0);
 
     for(int i=0; i<m; i++) {

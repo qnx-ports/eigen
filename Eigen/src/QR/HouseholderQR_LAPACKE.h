@@ -47,11 +47,11 @@ struct lapacke_hqr
 {
   static void run(MatrixQR& mat, HCoeffs& hCoeffs, Index = 32, typename MatrixQR::Scalar* = 0)
   {
-    lapack_int m = to_lpk(mat.rows());
-    lapack_int n = to_lpk(mat.cols());
-    lapack_int lda = to_lpk(mat.outerStride());
+    lapack_int m = to_lapack(mat.rows());
+    lapack_int n = to_lapack(mat.cols());
+    lapack_int lda = to_lapack(mat.outerStride());
     lapack_int matrix_order = lapack_storage_of(mat);
-    geqrf( matrix_order, m, n, to_lpk(mat.data()), lda, to_lpk(hCoeffs.data()));
+    geqrf(matrix_order, m, n, to_lapack(mat.data()), lda, to_lapack(hCoeffs.data()));
     hCoeffs.adjointInPlace();
   }
 };
