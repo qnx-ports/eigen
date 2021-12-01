@@ -51,7 +51,7 @@ struct translate_type_imp<scomplex> {
 };
 
 /// Given an Eigen types, this is defined to be the corresponding, layout-compatible lapack type
-template<class Scalar>
+template<typename Scalar>
 using translated_type = typename translate_type_imp<Scalar>::type;
 
 /// These functions convert their arguments from Eigen to Lapack types
@@ -71,8 +71,8 @@ lapack_int to_lpk(Index index) {
 }
 
 /// translates storage order of the given Eigen object to the corresponding lapack constant
-template<class Derived>
-EIGEN_CONSTEXPR lapack_int lapack_storage_of(const EigenBase <Derived> &) {
+template<typename Derived>
+EIGEN_CONSTEXPR lapack_int lapack_storage_of(const EigenBase<Derived> &) {
   return Derived::IsRowMajor ? LAPACK_ROW_MAJOR : LAPACK_COL_MAJOR;
 }
 
@@ -96,29 +96,29 @@ template<> EIGEN_CONSTEXPR const char translate_mode<Upper> = 'U';
  * would be implicitly convertible, the pointers are not and therefore only a single overload can be valid at the same time.
  * Thus, despite all functions taking fully generic `Args&&... args` as arguments, there is never any ambiguity.
  */
-template<class DoubleFn, class SingleFn, class DoubleCpxFn, class SingleCpxFn>
+template<typename DoubleFn, typename SingleFn, typename DoubleCpxFn, typename SingleCpxFn>
 struct WrappingHelper {
   // The naming of double, single, double complex and single complex is purely for readability
   // and doesn't actually affect the workings of this class. In principle, the arguments can
   // be supplied in any permuted order.
   DoubleFn double_; SingleFn single_; DoubleCpxFn double_cpx_; SingleCpxFn single_cpx_;
 
-  template<class... Args>
+  template<typename... Args>
   auto call(Args&&... args) -> decltype(double_(std::forward<Args>(args)...)) {
     return double_(std::forward<Args>(args)...);
   }
 
-  template<class... Args>
+  template<typename... Args>
   auto call(Args&&... args) -> decltype(single_(std::forward<Args>(args)...)){
     return single_(std::forward<Args>(args)...);
   }
 
-  template<class... Args>
+  template<typename... Args>
   auto call(Args&&... args) -> decltype(double_cpx_(std::forward<Args>(args)...)){
     return double_cpx_(std::forward<Args>(args)...);
   }
 
-  template<class... Args>
+  template<typename... Args>
   auto call(Args&&... args) -> decltype(single_cpx_(std::forward<Args>(args)...)){
     return single_cpx_(std::forward<Args>(args)...);
   }
@@ -128,7 +128,7 @@ struct WrappingHelper {
  * invokes its `call` method, thus selecting one of the overloads.
  * \sa EIGEN_MAKE_LAPACKE_WRAPPER
  */
-template<class DoubleFn, class SingleFn, class DoubleCpxFn, class SingleCpxFn, class... Args>
+template<typename DoubleFn, typename SingleFn, typename DoubleCpxFn, typename SingleCpxFn, typename... Args>
 auto call_wrapper(DoubleFn df, SingleFn sf, DoubleCpxFn dcf, SingleCpxFn scf, Args&&... args) {
   WrappingHelper<DoubleFn, SingleFn, DoubleCpxFn, SingleCpxFn> helper{df, sf, dcf, scf};
   return helper.call(std::forward<Args>(args)...);
@@ -140,7 +140,7 @@ auto call_wrapper(DoubleFn df, SingleFn sf, DoubleCpxFn dcf, SingleCpxFn scf, Ar
  * \sa WrappingHelper
  */
 #define EIGEN_MAKE_LAPACKE_WRAPPER(FUNCTION) \
-template<class... Args> \
+template<typename... Args> \
 auto FUNCTION(Args&&... args) { return call_wrapper(LAPACKE_d##FUNCTION, LAPACKE_s##FUNCTION, LAPACKE_z##FUNCTION, LAPACKE_c##FUNCTION, std::forward<Args>(args)...); }
 
 // Now with this macro and the helper wrappers, we can generate the dispatch for all the lapacke functions that are
