@@ -1366,6 +1366,22 @@ MatrixBase<Derived>::bdcSvd(internal::DecompositionOptionsTag<Options>) const
   return BDCSVD<PlainObject, internal::DecompositionOptionsTag<Options>>(*this);
 }
 
+template<class MatrixType, class Options>
+auto makeBDCSVD(const MatrixType& matrix, Options) {
+  return BDCSVD<MatrixType, Options>(matrix);
+}
+
+template<class MatrixType, class Options>
+auto makeBDCSVD(Options, Index rows, Index cols) {
+  return BDCSVD<MatrixType, Options>(rows, cols);
+}
+
+template<class MatrixType, class Options>
+auto makeBDCSVD(Options) {
+  return BDCSVD<MatrixType, Options>();
+}
+
+
 } // end namespace Eigen
 
 #endif

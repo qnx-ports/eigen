@@ -389,7 +389,7 @@ void svd_preallocate()
   VERIFY_RAISES_ASSERT(svd.matrixU());
   VERIFY_RAISES_ASSERT(svd.matrixV());
 
-  auto svd2 = SVD_MAKE_FN<MatrixXf>(ComputeFullU | ComputeFullV, 2, 3);
+  auto svd2 = SVD_MAKE_FN<MatrixXf>(ComputeFullU | ComputeFullV, 3, 3);
   internal::set_is_malloc_allowed(false);
   svd2.compute(m);
   internal::set_is_malloc_allowed(true);

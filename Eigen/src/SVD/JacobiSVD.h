@@ -640,16 +640,6 @@ template<typename MatrixType_, typename Options> class JacobiSVD
     MatrixType m_scaledMatrix;
 };
 
-template<class MatrixType, class Options>
-auto makeJacobiSVD(const MatrixType& matrix, Options) {
-  return JacobiSVD<MatrixType, Options>(matrix);
-}
-
-template<class MatrixType, class Options>
-auto makeJacobiSVD(Options, Index rows=0, Index cols=0) {
-  return JacobiSVD<MatrixType, Options>(rows, cols);
-}
-
 template<typename MatrixType, typename Options>
 void JacobiSVD<MatrixType, Options>::allocate(Eigen::Index rows, Eigen::Index cols)
 {
@@ -808,6 +798,22 @@ MatrixBase<Derived>::jacobiSvd(internal::DecompositionOptionsTag<Options>) const
 {
   return JacobiSVD<PlainObject, internal::DecompositionOptionsTag<Options>>(*this);
 }
+
+template<class MatrixType, class Options>
+auto makeJacobiSVD(const MatrixType& matrix, Options) {
+  return JacobiSVD<MatrixType, Options>(matrix);
+}
+
+template<class MatrixType, class Options>
+auto makeJacobiSVD(Options, Index rows, Index cols) {
+  return JacobiSVD<MatrixType, Options>(rows, cols);
+}
+
+template<class MatrixType, class Options>
+auto makeJacobiSVD(Options) {
+  return JacobiSVD<MatrixType, Options>();
+}
+
 
 } // end namespace Eigen
 

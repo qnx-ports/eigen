@@ -112,18 +112,18 @@ EIGEN_DECLARE_TEST(jacobisvd)
     TEST_SET_BUT_UNUSED_VARIABLE(c)
 
     // Verify some computations using all combinations of the Options template parameter.
-    CALL_SUBTEST_3(( jacobisvd_all_options<Matrix3f>() ));
-    CALL_SUBTEST_3(( jacobisvd_all_options<Matrix<float, 2, 3> >() ));
-    CALL_SUBTEST_4(( jacobisvd_all_options<Matrix4d>() ));
-    CALL_SUBTEST_4(( jacobisvd_all_options<Matrix<double, 10, 16> >() ));
-    CALL_SUBTEST_4(( jacobisvd_all_options<Matrix<double, 16, 10> >() ));
-    CALL_SUBTEST_5(( jacobisvd_all_options<Matrix<double, Dynamic, 16> >(Matrix<double, Dynamic, 16>(r, 16)) ));
-    CALL_SUBTEST_5(( jacobisvd_all_options<Matrix<double, 10, Dynamic> >(Matrix<double, 10, Dynamic>(10, c)) ));
-    CALL_SUBTEST_7(( jacobisvd_all_options<MatrixXf>( MatrixXf(r, c)) ));
-    CALL_SUBTEST_8(( jacobisvd_all_options<MatrixXcd>( MatrixXcd(r, c)) ));
-    CALL_SUBTEST_10(( jacobisvd_all_options<MatrixXd>( MatrixXd(r, c)) ));
-    CALL_SUBTEST_14(( jacobisvd_all_options<Matrix<double, 5, 7, RowMajor>>() ));
-    CALL_SUBTEST_14(( jacobisvd_all_options<Matrix<double, 7, 5, RowMajor>>() ));
+    CALL_SUBTEST_20(( jacobisvd_all_options<Matrix3f>() ));
+    CALL_SUBTEST_21(( jacobisvd_all_options<Matrix<float, 2, 3> >() ));
+    CALL_SUBTEST_22(( jacobisvd_all_options<Matrix4d>() ));
+    CALL_SUBTEST_23(( jacobisvd_all_options<Matrix<double, 10, 16> >() ));
+    CALL_SUBTEST_24(( jacobisvd_all_options<Matrix<double, 16, 10> >() ));
+    CALL_SUBTEST_25(( jacobisvd_all_options<Matrix<double, Dynamic, 16> >(Matrix<double, Dynamic, 16>(r, 16)) ));
+    CALL_SUBTEST_26(( jacobisvd_all_options<Matrix<double, 10, Dynamic> >(Matrix<double, 10, Dynamic>(10, c)) ));
+    CALL_SUBTEST_27(( jacobisvd_all_options<MatrixXf>( MatrixXf(r, c)) ));
+    CALL_SUBTEST_28(( jacobisvd_all_options<MatrixXcd>( MatrixXcd(r, c)) ));
+    CALL_SUBTEST_29(( jacobisvd_all_options<MatrixXd>( MatrixXd(r, c)) ));
+    CALL_SUBTEST_30(( jacobisvd_all_options<Matrix<double, 5, 7, RowMajor>>() ));
+    CALL_SUBTEST_31(( jacobisvd_all_options<Matrix<double, 7, 5, RowMajor>>() ));
     
     MatrixXcd noQRTest = MatrixXcd(r, r);
     svd_fill_random(noQRTest);
