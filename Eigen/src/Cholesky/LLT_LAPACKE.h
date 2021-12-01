@@ -109,8 +109,8 @@ template<> struct llt_inplace<EIGTYPE, Upper> : public lapacke_helpers::lapacke_
 
 EIGEN_LAPACKE_LLT(double)
 EIGEN_LAPACKE_LLT(float)
-EIGEN_LAPACKE_LLT(dcomplex)
-EIGEN_LAPACKE_LLT(scomplex)
+EIGEN_LAPACKE_LLT(std::complex<double>)
+EIGEN_LAPACKE_LLT(std::complex<float>)
 
 #undef EIGEN_LAPACKE_LLT
 

@@ -59,15 +59,16 @@ struct lapacke_hqr
 }
 
 /** \internal Specialization for the data types supported by LAPACKe */
+#define EIGEN_LAPACKE_HH_QR(EIGTYPE) \
+template<typename MatrixQR, typename HCoeffs> \
+struct householder_qr_inplace_blocked<MatrixQR, HCoeffs, EIGTYPE, true> : public lapacke_helpers::lapacke_hqr<MatrixQR, HCoeffs> {};
 
-template<typename MatrixQR, typename HCoeffs>
-struct householder_qr_inplace_blocked<MatrixQR, HCoeffs, double, true> : public lapacke_helpers::lapacke_hqr<MatrixQR, HCoeffs> {};
-template<typename MatrixQR, typename HCoeffs>
-struct householder_qr_inplace_blocked<MatrixQR, HCoeffs, float, true> : public lapacke_helpers::lapacke_hqr<MatrixQR, HCoeffs> {};
-template<typename MatrixQR, typename HCoeffs>
-struct householder_qr_inplace_blocked<MatrixQR, HCoeffs, dcomplex, true> : public lapacke_helpers::lapacke_hqr<MatrixQR, HCoeffs> {};
-template<typename MatrixQR, typename HCoeffs>
-struct householder_qr_inplace_blocked<MatrixQR, HCoeffs, scomplex, true> : public lapacke_helpers::lapacke_hqr<MatrixQR, HCoeffs> {};
+EIGEN_LAPACKE_HH_QR(double)
+EIGEN_LAPACKE_HH_QR(float)
+EIGEN_LAPACKE_HH_QR(std::complex<double>)
+EIGEN_LAPACKE_HH_QR(std::complex<float>)
+
+#undef EIGEN_LAPACKE_HH_QR
 
 } // end namespace internal
 

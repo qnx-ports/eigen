@@ -78,17 +78,16 @@ struct lapacke_partial_lu {
  * type. This specialization is more specialized than the generic implementations that Eigen implements, so if the
  * Scalar type matches they will be chosen.
  */
-template<int StorageOrder>
-struct partial_lu_impl<double, StorageOrder, lapack_int, Dynamic> : public lapacke_helpers::lapacke_partial_lu<double, StorageOrder> {};
+#define EIGEN_LAPACKE_PARTIAL_LU(EIGTYPE) \
+template<int StorageOrder>                \
+struct partial_lu_impl<EIGTYPE, StorageOrder, lapack_int, Dynamic> : public lapacke_helpers::lapacke_partial_lu<EIGTYPE, StorageOrder> {};
 
-template<int StorageOrder>
-struct partial_lu_impl<float, StorageOrder, lapack_int, Dynamic> : public lapacke_helpers::lapacke_partial_lu<float, StorageOrder> {};
+EIGEN_LAPACKE_PARTIAL_LU(double)
+EIGEN_LAPACKE_PARTIAL_LU(float)
+EIGEN_LAPACKE_PARTIAL_LU(std::complex<double>)
+EIGEN_LAPACKE_PARTIAL_LU(std::complex<float>)
 
-template<int StorageOrder>
-struct partial_lu_impl<dcomplex, StorageOrder, lapack_int, Dynamic> : public lapacke_helpers::lapacke_partial_lu<dcomplex, StorageOrder> {};
-
-template<int StorageOrder>
-struct partial_lu_impl<scomplex, StorageOrder, lapack_int, Dynamic> : public lapacke_helpers::lapacke_partial_lu<scomplex, StorageOrder> {};
+#undef EIGEN_LAPACKE_PARTIAL_LU
 
 } // end namespace internal
 

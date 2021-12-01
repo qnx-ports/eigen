@@ -42,11 +42,11 @@ struct translate_type_imp<double> {
     using type = double;
 };
 template<>
-struct translate_type_imp<dcomplex> {
+struct translate_type_imp<std::complex<double>> {
     using type = lapack_complex_double;
 };
 template<>
-struct translate_type_imp<scomplex> {
+struct translate_type_imp<std::complex<float>> {
     using type = lapack_complex_float;
 };
 
