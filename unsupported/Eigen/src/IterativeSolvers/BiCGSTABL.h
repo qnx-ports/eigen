@@ -43,10 +43,8 @@ namespace internal {
    GMRES steps to take. If L is too large (~20) instabilities occur. \return
    false in the case of numerical issue, for example a break down of BiCGSTABL.
 */
-template <typename MatrixType, typename Rhs, typename Dest,
-          typename Preconditioner>
-bool bicgstabl(const MatrixType &mat, const Rhs &rhs, Dest &x,
-               const Preconditioner &precond, Index &iters,
+template <typename MatrixType, typename Rhs, typename Dest, typename Preconditioner>
+bool bicgstabl(const MatrixType &mat, const Rhs &rhs, Dest &x, const Preconditioner &precond, Index &iters,
                typename Dest::RealScalar &tol_error, Index L) {
   using numext::abs;
   using numext::sqrt;
@@ -69,9 +67,9 @@ bool bicgstabl(const MatrixType &mat, const Rhs &rhs, Dest &x,
   // We start with an initial guess x_0 and let us set r_0 as (residual
   // calculated from x_0)
   VectorType x0 = x;
-  rHat.col(0) = rhs - mat * x0; // r_0
+  rHat.col(0) = rhs - mat * x0;  // r_0
 
-  x.setZero(); // This will contain the updates to the solution.
+  x.setZero();  // This will contain the updates to the solution.
   // rShadow is arbritary, but must never be orthogonal to any residual.
   VectorType rShadow = VectorType::Random(N);
 
@@ -174,8 +172,7 @@ bool bicgstabl(const MatrixType &mat, const Rhs &rhs, Dest &x,
         is more accurate than solving the normal equations, since the normal
         equations scale with condition number squared.
       */
-      const VectorType gamma =
-          rHat.rightCols(L).householderQr().solve(rHat.col(0));
+      const VectorType gamma = rHat.rightCols(L).householderQr().solve(rHat.col(0));
       x += rHat.leftCols(L) * gamma;
       rHat.col(0) -= rHat.rightCols(L) * gamma;
       uHat.col(0) -= uHat.rightCols(L) * gamma;
@@ -266,11 +263,9 @@ bool bicgstabl(const MatrixType &mat, const Rhs &rhs, Dest &x,
   return true;
 }
 
-} // namespace internal
+}  // namespace internal
 
-template <typename _MatrixType,
-          typename _Preconditioner =
-              DiagonalPreconditioner<typename _MatrixType::Scalar>>
+template <typename _MatrixType, typename _Preconditioner = DiagonalPreconditioner<typename _MatrixType::Scalar>>
 class BiCGSTABL;
 
 namespace internal {
@@ -281,11 +276,10 @@ struct traits<Eigen::BiCGSTABL<_MatrixType, _Preconditioner>> {
   typedef _Preconditioner Preconditioner;
 };
 
-} // namespace internal
+}  // namespace internal
 
 template <typename _MatrixType, typename _Preconditioner>
-class BiCGSTABL
-    : public IterativeSolverBase<BiCGSTABL<_MatrixType, _Preconditioner>> {
+class BiCGSTABL : public IterativeSolverBase<BiCGSTABL<_MatrixType, _Preconditioner>> {
   typedef IterativeSolverBase<BiCGSTABL> Base;
   using Base::m_error;
   using Base::m_info;
@@ -294,7 +288,7 @@ class BiCGSTABL
   using Base::matrix;
   Index m_L;
 
-public:
+ public:
   typedef _MatrixType MatrixType;
   typedef typename MatrixType::Scalar Scalar;
   typedef typename MatrixType::RealScalar RealScalar;
@@ -315,8 +309,7 @@ public:
   matrix A, or modify a copy of A.
   */
   template <typename MatrixDerived>
-  explicit BiCGSTABL(const EigenBase<MatrixDerived> &A)
-      : Base(A.derived()), m_L(2) {
+  explicit BiCGSTABL(const EigenBase<MatrixDerived> &A) : Base(A.derived()), m_L(2) {
     ;
   }
 
@@ -331,10 +324,8 @@ public:
 
     m_error = Base::m_tolerance;
 
-    bool ret = internal::bicgstabl(matrix(), b, x, Base::m_preconditioner,
-                                   m_iterations, m_error, m_L);
-    m_info = (!ret) ? NumericalIssue
-                    : m_error <= Base::m_tolerance ? Success : NoConvergence;
+    bool ret = internal::bicgstabl(matrix(), b, x, Base::m_preconditioner, m_iterations, m_error, m_L);
+    m_info = (!ret) ? NumericalIssue : m_error <= Base::m_tolerance ? Success : NoConvergence;
   }
 
   /** Sets the parameter L, indicating how many minimize residual steps are
@@ -345,6 +336,6 @@ public:
   }
 };
 
-} // namespace Eigen
+}  // namespace Eigen
 
 #endif /* EIGEN_BICGSTABL_H */
