@@ -88,13 +88,13 @@ bool bicgstabl(const MatrixType &mat, const Rhs &rhs, Dest &x, const Preconditio
 
   bool bicg_convergence = false;
 
-  const RealScalar normb = rhs.norm();
+  const RealScalar normb = rhs.stableNorm();
   if (internal::isApprox(normb, RealScalar(0))) {
     x.setZero();
     iters = 0;
     return true;
   }
-  RealScalar normr = rHat.col(0).norm();
+  RealScalar normr = rHat.col(0).stableNorm();
   RealScalar Mx = normr;
   RealScalar Mr = normr;
 
@@ -119,7 +119,7 @@ bool bicgstabl(const MatrixType &mat, const Rhs &rhs, Dest &x, const Preconditio
         x += x_prime;
 
         // Check if x is better than the best stored solution thus far.
-        normr = (rhs - mat * (precond.solve(x) + x0)).norm();
+        normr = (rhs - mat * (precond.solve(x) + x0)).stableNorm();
 
         if (normr > normr_min || !(numext::isfinite)(normr)) {
           // x_min is a better solution than x, return x_min
@@ -146,7 +146,7 @@ bool bicgstabl(const MatrixType &mat, const Rhs &rhs, Dest &x, const Preconditio
       rHat.col(j + 1) = mat * precond.solve(rHat.col(j));
       // Complete BiCG iteration by updating x
       x += alpha * uHat.col(0);
-      normr = rHat.col(0).norm();
+      normr = rHat.col(0).stableNorm();
       // Check for early exit
       if (normr < tol * normb) {
         /*
@@ -176,7 +176,7 @@ bool bicgstabl(const MatrixType &mat, const Rhs &rhs, Dest &x, const Preconditio
       x += rHat.leftCols(L) * gamma;
       rHat.col(0) -= rHat.rightCols(L) * gamma;
       uHat.col(0) -= uHat.rightCols(L) * gamma;
-      normr = rHat.col(0).norm();
+      normr = rHat.col(0).stableNorm();
       omega = gamma(L - 1);
     }
     if (normr < normr_min) {
@@ -223,7 +223,7 @@ bool bicgstabl(const MatrixType &mat, const Rhs &rhs, Dest &x, const Preconditio
       // This is equivalent to the shifted version of rhs - mat *
       // (precond.solve(x)+x0)
       rHat.col(0) = b_prime - mat * precond.solve(x);
-      normr = rHat.col(0).norm();
+      normr = rHat.col(0).stableNorm();
       Mr = normr;
 
       if (update_app) {
@@ -248,7 +248,7 @@ bool bicgstabl(const MatrixType &mat, const Rhs &rhs, Dest &x, const Preconditio
   // Convert internal variable to the true solution vector x
   x += x_prime;
 
-  normr = (rhs - mat * (precond.solve(x) + x0)).norm();
+  normr = (rhs - mat * (precond.solve(x) + x0)).stableNorm();
   if (normr > normr_min || !(numext::isfinite)(normr)) {
     // x_min is a better solution than x, return x_min
     x = x_min;
@@ -265,21 +265,21 @@ bool bicgstabl(const MatrixType &mat, const Rhs &rhs, Dest &x, const Preconditio
 
 }  // namespace internal
 
-template <typename _MatrixType, typename _Preconditioner = DiagonalPreconditioner<typename _MatrixType::Scalar>>
+template <typename MatrixType_, typename Preconditioner_ = DiagonalPreconditioner<typename MatrixType_::Scalar>>
 class BiCGSTABL;
 
 namespace internal {
 
-template <typename _MatrixType, typename _Preconditioner>
-struct traits<Eigen::BiCGSTABL<_MatrixType, _Preconditioner>> {
-  typedef _MatrixType MatrixType;
-  typedef _Preconditioner Preconditioner;
+template <typename MatrixType_, typename Preconditioner_>
+struct traits<Eigen::BiCGSTABL<MatrixType_, Preconditioner_>> {
+  typedef MatrixType_ MatrixType;
+  typedef Preconditioner_ Preconditioner;
 };
 
 }  // namespace internal
 
-template <typename _MatrixType, typename _Preconditioner>
-class BiCGSTABL : public IterativeSolverBase<BiCGSTABL<_MatrixType, _Preconditioner>> {
+template <typename MatrixType_, typename Preconditioner_>
+class BiCGSTABL : public IterativeSolverBase<BiCGSTABL<MatrixType_, Preconditioner_>> {
   typedef IterativeSolverBase<BiCGSTABL> Base;
   using Base::m_error;
   using Base::m_info;
@@ -289,10 +289,10 @@ class BiCGSTABL : public IterativeSolverBase<BiCGSTABL<_MatrixType, _Preconditio
   Index m_L;
 
  public:
-  typedef _MatrixType MatrixType;
+  typedef MatrixType_ MatrixType;
   typedef typename MatrixType::Scalar Scalar;
   typedef typename MatrixType::RealScalar RealScalar;
-  typedef _Preconditioner Preconditioner;
+  typedef Preconditioner_ Preconditioner;
 
   /** Default constructor. */
   BiCGSTABL() : m_L(2) {}
@@ -309,9 +309,7 @@ class BiCGSTABL : public IterativeSolverBase<BiCGSTABL<_MatrixType, _Preconditio
   matrix A, or modify a copy of A.
   */
   template <typename MatrixDerived>
-  explicit BiCGSTABL(const EigenBase<MatrixDerived> &A) : Base(A.derived()), m_L(2) {
-    ;
-  }
+  explicit BiCGSTABL(const EigenBase<MatrixDerived> &A) : Base(A.derived()), m_L(2) {}
 
   /** \internal */
   /** Loops over the number of columns of b and does the following:
