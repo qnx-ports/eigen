@@ -584,76 +584,76 @@ namespace internal {
 /// FIXME this has the same purpose as `is_valid_index_type` in XprHelper.h
 template<typename A>
 constexpr bool is_int_or_enum_v = std::is_enum<A>::value || std::is_integral<A>::value;
-}
 
 /// \internal Gets the minimum of two values which may be integers or enums
 template<typename A, typename B>
-inline constexpr int EIGEN_PLAIN_ENUM_MIN(A a, B b) {
-  static_assert(internal::is_int_or_enum_v<A>, "Argument a must be an integer or enum");
-  static_assert(internal::is_int_or_enum_v<B>, "Argument b must be an integer or enum");
-  return ((int) a <= (int) b) ? (int)a : (int)b;
+inline constexpr int plain_enum_min(A a, B b) {
+  static_assert(is_int_or_enum_v<A>, "Argument a must be an integer or enum");
+  static_assert(is_int_or_enum_v<B>, "Argument b must be an integer or enum");
+  return ((int) a <= (int) b) ? (int) a : (int) b;
 }
 
 /// \internal Gets the maximum of two values which may be integers or enums
 template<typename A, typename B>
-inline constexpr int EIGEN_PLAIN_ENUM_MAX(A a, B b) {
-  static_assert(internal::is_int_or_enum_v<A>, "Argument a must be an integer or enum");
-  static_assert(internal::is_int_or_enum_v<B>, "Argument b must be an integer or enum");
+inline constexpr int plain_enum_max(A a, B b) {
+  static_assert(is_int_or_enum_v<A>, "Argument a must be an integer or enum");
+  static_assert(is_int_or_enum_v<B>, "Argument b must be an integer or enum");
   return ((int) a >= (int) b) ? (int) a : (int) b;
 }
 
 /**
  * \internal
- *  EIGEN_SIZE_MIN_PREFER_DYNAMIC gives the min between compile-time sizes. 0 has absolute priority, followed by 1,
+ *  `min_size_prefer_dynamic` gives the min between compile-time sizes. 0 has absolute priority, followed by 1,
  *  followed by Dynamic, followed by other finite values. The reason for giving Dynamic the priority over
  *  finite values is that min(3, Dynamic) should be Dynamic, since that could be anything between 0 and 3.
  */
 template<typename A, typename B>
-inline constexpr int EIGEN_SIZE_MIN_PREFER_DYNAMIC(A a, B b) {
-  static_assert(internal::is_int_or_enum_v<A>, "Argument a must be an integer or enum");
-  static_assert(internal::is_int_or_enum_v<B>, "Argument b must be an integer or enum");
+inline constexpr int min_size_prefer_dynamic(A a, B b) {
+  static_assert(is_int_or_enum_v<A>, "Argument a must be an integer or enum");
+  static_assert(is_int_or_enum_v<B>, "Argument b must be an integer or enum");
   if ((int) a == 0 || (int) b == 0) return 0;
   if ((int) a == 1 || (int) b == 1) return 1;
   if ((int) a == Dynamic || (int) b == Dynamic) return Dynamic;
-  return EIGEN_PLAIN_ENUM_MIN(a, b);
+  return plain_enum_min(a, b);
 }
 
 /**
  * \internal
- *  EIGEN_SIZE_MIN_PREFER_FIXED is a variant of EIGEN_SIZE_MIN_PREFER_DYNAMIC comparing MaxSizes. The difference is that finite values
+ *  min_size_prefer_fixed is a variant of `min_size_prefer_dynamic` comparing MaxSizes. The difference is that finite values
  *  now have priority over Dynamic, so that min(3, Dynamic) gives 3. Indeed, whatever the actual value is
  *  (between 0 and 3), it is not more than 3.
  */
 template<typename A, typename B>
-inline constexpr int EIGEN_SIZE_MIN_PREFER_FIXED(A a, B b) {
-  static_assert(internal::is_int_or_enum_v<A>, "Argument a must be an integer or enum");
-  static_assert(internal::is_int_or_enum_v<B>, "Argument b must be an integer or enum");
+inline constexpr int min_size_prefer_fixed(A a, B b) {
+  static_assert(is_int_or_enum_v<A>, "Argument a must be an integer or enum");
+  static_assert(is_int_or_enum_v<B>, "Argument b must be an integer or enum");
   if ((int) a == 0 || (int) b == 0) return 0;
   if ((int) a == 1 || (int) b == 1) return 1;
   if ((int) a == Dynamic && (int) b == Dynamic) return Dynamic;
   if ((int) a == Dynamic) return (int) b;
   if ((int) b == Dynamic) return (int) a;
-  return EIGEN_PLAIN_ENUM_MIN(a, b);
+  return plain_enum_min(a, b);
 }
 
-/// \internal see EIGEN_SIZE_MIN_PREFER_DYNAMIC. No need for a separate variant for MaxSizes here.
+/// \internal see `min_size_prefer_fixed`. No need for a separate variant for MaxSizes here.
 template<typename A, typename B>
-inline constexpr int EIGEN_SIZE_MAX(A a, B b) {
-  static_assert(internal::is_int_or_enum_v<A>, "Argument a must be an integer or enum");
-  static_assert(internal::is_int_or_enum_v<B>, "Argument b must be an integer or enum");
+inline constexpr int max_size_prefer_dynamic(A a, B b) {
+  static_assert(is_int_or_enum_v<A>, "Argument a must be an integer or enum");
+  static_assert(is_int_or_enum_v<B>, "Argument b must be an integer or enum");
   if ((int) a == Dynamic || (int) b == Dynamic) return Dynamic;
-  return EIGEN_PLAIN_ENUM_MAX(a, b);
+  return plain_enum_max(a, b);
 }
 
 /// \internal Calculate logical XOR at compile time
-inline constexpr bool EIGEN_LOGICAL_XOR(bool a, bool b) {
+inline constexpr bool logical_xor(bool a, bool b) {
   return (a || b) && !(a && b);
 }
 
 /// \internal Calculate logical IMPLIES at compile time
-inline constexpr bool EIGEN_IMPLIES(bool a, bool b) {
+inline constexpr bool check_implication(bool a, bool b) {
   return !a || b;
 }
+} // end namespace internal
 
 } // end namespace Eigen
 
