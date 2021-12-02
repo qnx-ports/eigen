@@ -82,7 +82,7 @@ template<typename Index> struct GemmParallelInfo
   std::atomic<Index> sync;
   std::atomic<int> users;
 #else
-  GemmParallelInfo() = default;
+  GemmParallelInfo() : lhs_start(0), lhs_length(0) {}
 #endif
 
   Index lhs_start;
