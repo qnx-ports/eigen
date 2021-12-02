@@ -667,18 +667,6 @@
 #endif
 #endif
 
-// Does the compiler support type_traits?
-// - full support of type traits was added only to GCC 5.1.0.
-// - 20150626 corresponds to the last release of 4.x libstdc++
-#ifndef EIGEN_HAS_TYPE_TRAITS
-#if (!defined(__GLIBCXX__)) || __GLIBCXX__ > 20150626
-#define EIGEN_HAS_TYPE_TRAITS 1
-#define EIGEN_INCLUDE_TYPE_TRAITS
-#else
-#define EIGEN_HAS_TYPE_TRAITS 0
-#endif
-#endif
-
 // Does the compiler fully support const expressions? (as in c++14)
 #ifndef EIGEN_HAS_CONSTEXPR
   #if defined(EIGEN_CUDACC)
@@ -1235,7 +1223,6 @@ namespace Eigen {
 #endif
 
 
-#define EIGEN_INCLUDE_TYPE_TRAITS
 #define EIGEN_NOEXCEPT noexcept
 #define EIGEN_NOEXCEPT_IF(x) noexcept(x)
 #define EIGEN_NO_THROW noexcept(true)
