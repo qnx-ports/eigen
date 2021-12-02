@@ -612,14 +612,6 @@
   #define EIGEN_COMP_CXXVER 03
 #endif
 
-#ifndef EIGEN_HAS_CXX14_VARIABLE_TEMPLATES
-  #if defined(__cpp_variable_templates) && __cpp_variable_templates >= 201304
-    #define EIGEN_HAS_CXX14_VARIABLE_TEMPLATES 1
-  #else
-    #define EIGEN_HAS_CXX14_VARIABLE_TEMPLATES 0
-  #endif
-#endif
-
 
 // The macros EIGEN_HAS_CXX?? defines a rough estimate of available c++ features
 // but in practice we should not rely on them but rather on the availability of
