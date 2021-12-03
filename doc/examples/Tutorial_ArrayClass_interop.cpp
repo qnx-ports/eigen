@@ -1,8 +1,8 @@
 #include <Eigen/Dense>
 #include <iostream>
 
-using namespace Eigen;
-using namespace std;
+using Eigen::MatrixXf;
+using std::endl;
 
 int main()
 {
@@ -16,7 +16,7 @@ int main()
        7,8;
   
   result = (m.array() + 4).matrix() * m;
-  cout << "-- Combination 1: --" << endl << result << endl << endl;
+  std::cout << "-- Combination 1: --" << endl << result << endl << endl;
   result = (m.array() * n.array()).matrix() * m;
-  cout << "-- Combination 2: --" << endl << result << endl << endl;
+  std::cout << "-- Combination 2: --" << endl << result << endl << endl;
 }

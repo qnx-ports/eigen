@@ -1,8 +1,8 @@
 #include <Eigen/Dense>
 #include <iostream>
 
-using namespace Eigen;
-using namespace std;
+using Eigen::MatrixXf;
+using std::endl;
 
 int main()
 {
@@ -16,11 +16,11 @@ int main()
        7,8;
 
   result = m * n;
-  cout << "-- Matrix m*n: --" << endl << result << endl << endl;
+  std::cout << "-- Matrix m*n: --" << endl << result << endl << endl;
   result = m.array() * n.array();
-  cout << "-- Array m*n: --" << endl << result << endl << endl;
+  std::cout << "-- Array m*n: --" << endl << result << endl << endl;
   result = m.cwiseProduct(n);
-  cout << "-- With cwiseProduct: --" << endl << result << endl << endl;
+  std::cout << "-- With cwiseProduct: --" << endl << result << endl << endl;
   result = m.array() + 4;
-  cout << "-- Array m + 4: --" << endl << result << endl << endl;
+  std::cout << "-- Array m + 4: --" << endl << result << endl << endl;
 }

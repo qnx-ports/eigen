@@ -1,27 +1,27 @@
 #include <Eigen/Core>
 #include <iostream>
-using namespace Eigen;
-using namespace std;
+
+namespace ei = Eigen;
 
 template<typename Derived>
-Eigen::Block<Derived, 2, 2>
-topLeft2x2Corner(MatrixBase<Derived>& m)
+ei::Block<Derived, 2, 2>
+topLeft2x2Corner(ei::MatrixBase<Derived>& m)
 {
-  return Eigen::Block<Derived, 2, 2>(m.derived(), 0, 0);
+  return ei::Block<Derived, 2, 2>(m.derived(), 0, 0);
 }
 
 template<typename Derived>
-const Eigen::Block<const Derived, 2, 2>
-topLeft2x2Corner(const MatrixBase<Derived>& m)
+const ei::Block<const Derived, 2, 2>
+topLeft2x2Corner(const ei::MatrixBase<Derived>& m)
 {
-  return Eigen::Block<const Derived, 2, 2>(m.derived(), 0, 0);
+  return ei::Block<const Derived, 2, 2>(m.derived(), 0, 0);
 }
 
 int main(int, char**)
 {
-  Matrix3d m = Matrix3d::Identity();
-  cout << topLeft2x2Corner(4*m) << endl; // calls the const version
+  ei::Matrix3d m = ei::Matrix3d::Identity();
+  std::cout << topLeft2x2Corner(4*m) << std::endl; // calls the const version
   topLeft2x2Corner(m) *= 2;              // calls the non-const version
-  cout << "Now the matrix m is:" << endl << m << endl;
+  std::cout << "Now the matrix m is:" << std::endl << m << std::endl;
   return 0;
 }
