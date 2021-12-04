@@ -1,8 +1,6 @@
 #include <Eigen/Core>
 #include <iostream>
 
-namespace ei = Eigen;
-
 // [circulant_func]
 template<class ArgType>
 class circulant_functor {
@@ -10,8 +8,8 @@ class circulant_functor {
 public:
   circulant_functor(const ArgType& arg) : m_vec(arg) {}
 
-  const typename ArgType::Scalar& operator() (ei::Index row, ei::Index col) const {
-    ei::Index index = row - col;
+  const typename ArgType::Scalar& operator() (Eigen::Index row, Eigen::Index col) const {
+    Eigen::Index index = row - col;
     if (index < 0) index += m_vec.size();
     return m_vec(index);
   }
@@ -21,10 +19,10 @@ public:
 // [square]
 template<class ArgType>
 struct circulant_helper {
-  typedef ei::Matrix<typename ArgType::Scalar,
+  typedef Eigen::Matrix<typename ArgType::Scalar,
                  ArgType::SizeAtCompileTime,
                  ArgType::SizeAtCompileTime,
-                 ei::ColMajor,
+                 Eigen::ColMajor,
                  ArgType::MaxSizeAtCompileTime,
                  ArgType::MaxSizeAtCompileTime> MatrixType;
 };
@@ -32,8 +30,8 @@ struct circulant_helper {
 
 // [makeCirculant]
 template <class ArgType>
-ei::CwiseNullaryOp<circulant_functor<ArgType>, typename circulant_helper<ArgType>::MatrixType>
-makeCirculant(const ei::MatrixBase<ArgType>& arg)
+Eigen::CwiseNullaryOp<circulant_functor<ArgType>, typename circulant_helper<ArgType>::MatrixType>
+makeCirculant(const Eigen::MatrixBase<ArgType>& arg)
 {
   typedef typename circulant_helper<ArgType>::MatrixType MatrixType;
   return MatrixType::NullaryExpr(arg.size(), arg.size(), circulant_functor<ArgType>(arg.derived()));
@@ -43,9 +41,9 @@ makeCirculant(const ei::MatrixBase<ArgType>& arg)
 // [main]
 int main()
 {
-  ei::VectorXd vec(4);
+  Eigen::VectorXd vec(4);
   vec << 1, 2, 4, 8;
-  ei::MatrixXd mat;
+  Eigen::MatrixXd mat;
   mat = makeCirculant(vec);
   std::cout << mat << std::endl;
 }

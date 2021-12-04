@@ -2,7 +2,6 @@
 #include <iostream>
 
 using Eigen::MatrixXf;
-using std::endl;
 
 int main()
 {
@@ -16,7 +15,7 @@ int main()
        7,8;
   
   result = (m.array() + 4).matrix() * m;
-  std::cout << "-- Combination 1: --" << endl << result << endl << endl;
+  std::cout << "-- Combination 1: --\n" << result << "\n\n";
   result = (m.array() * n.array()).matrix() * m;
-  std::cout << "-- Combination 2: --" << endl << result << endl << endl;
+  std::cout << "-- Combination 2: --\n" << result << "\n\n";
 }
