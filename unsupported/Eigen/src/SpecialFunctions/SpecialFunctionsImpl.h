@@ -302,34 +302,37 @@ struct digamma_impl {
 
     This implementation works on both scalars and Ts.
 */
-template <typename T>
-EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T generic_fast_erf_float(const T& a_x) {
+template <typename Packet>
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Packet generic_fast_erf_float(const Packet& a_x) {
+  // FIXME: We should not be using this implementation for doubles, since it
+  // is not accurate to more than slightly less than 7 digits.
+  typedef typename unpacket_traits<Packet>::type Scalar;
   // Clamp the inputs to the range [-4, 4] since anything outside
   // this range is +/-1.0f in single-precision.
-  const T plus_4 = pset1<T>(4.f);
-  const T minus_4 = pset1<T>(-4.f);
-  const T x = pmax(pmin(a_x, plus_4), minus_4);
+  const Packet plus_4 = pset1<Packet>(Scalar(4));
+  const Packet minus_4 = pset1<Packet>(Scalar(-4));
+  const Packet x = pmax(pmin(a_x, plus_4), minus_4);
   // The monomial coefficients of the numerator polynomial (odd).
-  const T alpha_1 = pset1<T>(-1.60960333262415e-02f);
-  const T alpha_3 = pset1<T>(-2.95459980854025e-03f);
-  const T alpha_5 = pset1<T>(-7.34990630326855e-04f);
-  const T alpha_7 = pset1<T>(-5.69250639462346e-05f);
-  const T alpha_9 = pset1<T>(-2.10102402082508e-06f);
-  const T alpha_11 = pset1<T>(2.77068142495902e-08f);
-  const T alpha_13 = pset1<T>(-2.72614225801306e-10f);
+  const Packet alpha_1 = pset1<Packet>(Scalar(-1.60960333262415e-02));
+  const Packet alpha_3 = pset1<Packet>(Scalar(-2.95459980854025e-03));
+  const Packet alpha_5 = pset1<Packet>(Scalar(-7.34990630326855e-04));
+  const Packet alpha_7 = pset1<Packet>(Scalar(-5.69250639462346e-05));
+  const Packet alpha_9 = pset1<Packet>(Scalar(-2.10102402082508e-06));
+  const Packet alpha_11 = pset1<Packet>(Scalar(2.77068142495902e-08));
+  const Packet alpha_13 = pset1<Packet>(Scalar(-2.72614225801306e-10));
 
   // The monomial coefficients of the denominator polynomial (even).
-  const T beta_0 = pset1<T>(-1.42647390514189e-02f);
-  const T beta_2 = pset1<T>(-7.37332916720468e-03f);
-  const T beta_4 = pset1<T>(-1.68282697438203e-03f);
-  const T beta_6 = pset1<T>(-2.13374055278905e-04f);
-  const T beta_8 = pset1<T>(-1.45660718464996e-05f);
+  const Packet beta_0 = pset1<Packet>(Scalar(-1.42647390514189e-02));
+  const Packet beta_2 = pset1<Packet>(Scalar(-7.37332916720468e-03));
+  const Packet beta_4 = pset1<Packet>(Scalar(-1.68282697438203e-03));
+  const Packet beta_6 = pset1<Packet>(Scalar(-2.13374055278905e-04));
+  const Packet beta_8 = pset1<Packet>(Scalar(-1.45660718464996e-05));
 
   // Since the polynomials are odd/even, we need x^2.
-  const T x2 = pmul(x, x);
+  const Packet x2 = pmul(x, x);
 
   // Evaluate the numerator polynomial p.
-  T p = pmadd(x2, alpha_13, alpha_11);
+  Packet p = pmadd(x2, alpha_13, alpha_11);
   p = pmadd(x2, p, alpha_9);
   p = pmadd(x2, p, alpha_7);
   p = pmadd(x2, p, alpha_5);
@@ -338,7 +341,7 @@ EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T generic_fast_erf_float(const T& a_x) {
   p = pmul(x, p);
 
   // Evaluate the denominator polynomial p.
-  T q = pmadd(x2, beta_8, beta_6);
+  Packet q = pmadd(x2, beta_8, beta_6);
   q = pmadd(x2, q, beta_4);
   q = pmadd(x2, q, beta_2);
   q = pmadd(x2, q, beta_0);
