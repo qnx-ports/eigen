@@ -14,8 +14,6 @@
 
 #if EIGEN_HAS_CONSTEXPR
 
-#define EIGEN_HAS_INDEX_LIST
-
 namespace Eigen {
 
 /** \internal
