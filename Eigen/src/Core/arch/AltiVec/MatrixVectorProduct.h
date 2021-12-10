@@ -483,6 +483,7 @@ const Packet16uc p16uc_COMPLEX64_NEGATE    = { 0x00,0x00,0x00,0x00, 0x00,0x00,0x
 #define COMPLEX_DELTA  2
 #endif
 
+// Same as pconj but uses the constants in pcplxflipconj for better code generation
 EIGEN_ALWAYS_INLINE Packet2cf pconj2(const Packet2cf& a) {
     return Packet2cf(pxor(a.v, reinterpret_cast<Packet4f>(p16uc_COMPLEX32_CONJ_XOR)));
 }
@@ -581,6 +582,7 @@ EIGEN_ALWAYS_INLINE Packet1cd pcplxflip2(Packet1cd a)
 #endif
 }
 
+// Load half a vector with one complex value
 EIGEN_ALWAYS_INLINE Packet4f pload_complex_half(std::complex<float>* src)
 {
     Packet4f t;
@@ -593,6 +595,7 @@ EIGEN_ALWAYS_INLINE Packet4f pload_complex_half(std::complex<float>* src)
     return t;
 }
 
+// Load two vectors with the real and imaginary portions of a complex value
 template<typename RhsScalar>
 EIGEN_ALWAYS_INLINE void pload_realimag(RhsScalar* src, Packet4f& r, Packet4f& i)
 {
@@ -633,6 +636,7 @@ EIGEN_ALWAYS_INLINE void pload_realimag_row(RhsScalar* src, Packet2d& r, Packet2
     return pload_realimag(src, r, i);
 }
 
+// Load and splat a complex value into a vector
 EIGEN_ALWAYS_INLINE Packet4f pload_realimag_combine(std::complex<float>* src)
 {
 #ifdef __VSX__
@@ -659,6 +663,7 @@ EIGEN_ALWAYS_INLINE Packet2d pload_realimag_combine_row(std::complex<double>* sr
     return ploadu<Packet1cd>(src).v;
 }
 
+// Load a vector from complex location
 template<typename ResPacket>
 EIGEN_ALWAYS_INLINE Packet4f pload_complex(std::complex<float>* src)
 {
@@ -709,6 +714,7 @@ EIGEN_ALWAYS_INLINE Packet2d pload_complex_full_row(std::complex<double>* src)
     return pload_complex_full(src);
 }
 
+// Load a vector from a real-only location
 EIGEN_ALWAYS_INLINE Packet4f pload_real(float* src)
 {
     return pset1<Packet4f>(*src);
@@ -779,6 +785,7 @@ EIGEN_ALWAYS_INLINE Packet1cd padd(Packet1cd& a, std::complex<double>& b)
     return a;  // Just for compilation
 }
 
+// Set a vector from complex location
 template<typename Scalar, typename ResScalar>
 EIGEN_ALWAYS_INLINE Scalar pset1_realimag(ResScalar& alpha, int which, int conj)
 {
@@ -805,6 +812,7 @@ EIGEN_ALWAYS_INLINE Packet1cd pset1_complex(std::complex<double>& alpha)
     return ret;
 }
 
+// Zero out a vector for real or complex forms
 template<typename Packet>
 EIGEN_ALWAYS_INLINE Packet pset_zero()
 {
@@ -823,6 +831,7 @@ EIGEN_ALWAYS_INLINE Packet1cd pset_zero<Packet1cd>()
     return Packet1cd(pset1<Packet2d>(double(0)));
 }
 
+// Initialize a vector from another
 template<typename Packet, typename LhsPacket, typename RhsPacket>
 EIGEN_ALWAYS_INLINE Packet pset_init(Packet& c1)
 {
@@ -849,12 +858,14 @@ struct alpha_store
     } separate;
 };
 
+// Multiply and add for complex math
 template<typename ScalarPacket, typename AlphaData>
 EIGEN_ALWAYS_INLINE ScalarPacket pmadd_complex(ScalarPacket& c0, ScalarPacket& c2, ScalarPacket& c4, AlphaData& b0)
 {
     return pmadd(c2, b0.separate.i.v, pmadd(c0, b0.separate.r.v, c4));
 }
 
+// Store and madd for complex math
 template<typename Scalar, typename ScalarPacket, typename PResPacket, typename ResPacket, typename ResScalar, typename AlphaData>
 EIGEN_ALWAYS_INLINE void pstoreu_pmadd_complex(PResPacket& c0, AlphaData& b0, ResScalar* res)
 {
@@ -905,6 +916,7 @@ EIGEN_ALWAYS_INLINE LhsPacket loadLhsPacket(LhsMapper& lhs, Index i, Index j)
     return lhs.template load<LhsPacket, Unaligned>(i + 0, j);
 }
 
+// madd for complex times complex
 template<typename ComplexPacket, typename RealPacket, bool ConjugateLhs, bool ConjugateRhs, bool Negate>
 EIGEN_ALWAYS_INLINE RealPacket pmadd_complex_complex(RealPacket& a, RealPacket& b, RealPacket& c)
 {
@@ -919,6 +931,7 @@ EIGEN_ALWAYS_INLINE RealPacket pmadd_complex_complex(RealPacket& a, RealPacket& 
     }
 }
 
+// madd for complex times real
 template<typename ComplexPacket, typename RealPacket, bool Conjugate>
 EIGEN_ALWAYS_INLINE RealPacket pmadd_complex_real(RealPacket& a, RealPacket& b, RealPacket& c)
 {
@@ -944,6 +957,7 @@ EIGEN_ALWAYS_INLINE void gemv_mult_generic(LhsPacket& a0, RhsScalar* b, PResPack
     c0 = pcj.pmadd(a0, b0, c0);
 }
 
+// Core multiply operation for complex
 template<typename ScalarPacket, typename LhsPacket, typename RhsScalar, typename RhsPacket, typename PResPacket, typename ResPacket, bool ConjugateLhs, bool ConjugateRhs, int StorageOrder>
 EIGEN_ALWAYS_INLINE void gemv_mult_complex_complex(LhsPacket& a0, RhsScalar* b, PResPacket& c0, ResPacket& c1)
 {
@@ -1026,6 +1040,7 @@ GEMV_MULT_COMPLEX_REAL(std::complex<float>,   float, Packet2cf, std::complex<flo
 GEMV_MULT_COMPLEX_REAL(std::complex<double>, double, Packet1cd, std::complex<double>)
 
 #ifdef USE_GEMV_MMA
+// Convert packet to real form
 template<typename T>
 EIGEN_ALWAYS_INLINE T convertReal(T a)
 {
@@ -1042,6 +1057,7 @@ EIGEN_ALWAYS_INLINE Packet2d convertReal(Packet1cd a)
     return a.v;
 }
 
+// Convert packet to complex form
 template<typename T>
 EIGEN_ALWAYS_INLINE T convertComplex(T a)
 {
@@ -1058,6 +1074,7 @@ EIGEN_ALWAYS_INLINE Packet1cd convertComplex(Packet2d a)
     return Packet1cd(a);
 }
 
+// Load a vector from a complex location (for MMA version)
 template<typename ScalarPacket, typename LhsPacket, typename SLhsPacket, typename ResPacket>
 EIGEN_ALWAYS_INLINE void pload_complex_MMA(SLhsPacket& a)
 {
@@ -1100,6 +1117,7 @@ EIGEN_ALWAYS_INLINE void pger_vecMMA(__vector_quad*, __vector_pair&, Packet4f&)
     // Just for compilation
 }
 
+// madd for complex times complex (MMA version)
 template<typename RealPacket, typename LhsPacket, bool ConjugateLhs, bool ConjugateRhs, bool Negate>
 EIGEN_ALWAYS_INLINE void pmadd_complex_complex_MMA(LhsPacket& a, RealPacket& b, __vector_quad* c)
 {
@@ -1130,6 +1148,7 @@ EIGEN_ALWAYS_INLINE void pmadd_complex_complex_MMA(__vector_pair& a, RealPacket&
     }
 }
 
+// madd for complex times real (MMA version)
 template<typename RealPacket, typename LhsPacket, bool Conjugate, int StorageOrder>
 EIGEN_ALWAYS_INLINE void pmadd_complex_real_MMA(LhsPacket& a, RealPacket& b, __vector_quad* c)
 {
@@ -1151,6 +1170,7 @@ EIGEN_ALWAYS_INLINE void pmadd_complex_real_MMA(LhsPacket& a, RealPacket& b, __v
     }
 }
 
+// madd for real times complex (MMA version)
 template<typename RealPacket, typename LhsPacket, bool Conjugate, int StorageOrder>
 EIGEN_ALWAYS_INLINE void pmadd_complex_real_MMA(__vector_pair& a, RealPacket& b, __vector_quad* c)
 {
@@ -1246,6 +1266,7 @@ GEMV_MULT_COMPLEX_REAL_MMA(Packet1cd,     double);
 GEMV_MULT_COMPLEX_REAL_MMA(__vector_pair, float);
 GEMV_MULT_COMPLEX_REAL_MMA(__vector_pair, double);
 
+// Disassemble MMA accumulator into packets
 template <typename Scalar, typename ScalarPacket, typename LhsPacket, typename RhsPacket, bool ConjugateLhs, bool ConjugateRhs>
 EIGEN_ALWAYS_INLINE void disassembleResults2(__vector_quad* c0, PacketBlock<ScalarPacket, 4>& result0)
 {
@@ -1634,6 +1655,7 @@ template <typename Scalar, int N> struct ScalarBlock {
 };
 
 #ifdef USE_GEMV_MMA
+// predux (add elements of a vector) from a MMA accumulator
 template<typename ResScalar, typename ResPacket>
 EIGEN_ALWAYS_INLINE ScalarBlock<ResScalar, 2> predux_real(__vector_quad* acc0, __vector_quad* acc1)
 {
