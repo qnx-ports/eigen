@@ -370,8 +370,11 @@ template<typename Derived> class MatrixBase
 
 /////////// SVD module ///////////
 
-    inline JacobiSVD<PlainObject> jacobiSvd(unsigned int computationOptions = 0) const;
-    inline BDCSVD<PlainObject>    bdcSvd(unsigned int computationOptions = 0) const;
+    template<unsigned Options=0>
+    inline JacobiSVD<PlainObject, internal::DecompositionOptionsTag<Options>> jacobiSvd(internal::DecompositionOptionsTag<Options> opt = {}) const;
+
+    template<unsigned Options=0>
+    inline BDCSVD<PlainObject, internal::DecompositionOptionsTag<Options>> bdcSvd(internal::DecompositionOptionsTag<Options> opt = {}) const;
 
 /////////// Geometry module ///////////
 
