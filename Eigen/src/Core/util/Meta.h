@@ -243,17 +243,12 @@ EIGEN_CONSTEXPR auto index_list_size(T&& x) {
 /** \internal
   * Convenient struct to get the result type of a nullary, unary, binary, or
   * ternary functor.
-  * 
-  * Pre C++11:
-  * Supports both a Func::result_type member and templated
-  * Func::result<Func(ArgTypes...)>::type member.
-  * 
-  * If none of these members is provided, then the type of the first
-  * argument is returned.
-  * 
-  * Post C++11:
+  *
+  * Pre C++17:
   * This uses std::result_of. However, note the `type` member removes
   * const and converts references/pointers to their corresponding value type.
+  *
+  * Post C++17: Uses std::invoke_result
   */
 #if EIGEN_HAS_STD_INVOKE_RESULT
 template<typename T> struct result_of;
@@ -263,123 +258,22 @@ struct result_of<F(ArgTypes...)> {
   typedef typename std::invoke_result<F, ArgTypes...>::type type1;
   typedef typename remove_all<type1>::type type;
 };
-#elif EIGEN_HAS_STD_RESULT_OF
-template<typename T> struct result_of {
-  typedef typename std::result_of<T>::type type1;
-  typedef typename remove_all<type1>::type type;
-};
-#else
-template<typename T> struct result_of { };
 
-struct has_none {int a[1];};
-struct has_std_result_type {int a[2];};
-struct has_tr1_result {int a[3];};
-
-template<typename Func, int SizeOf>
-struct nullary_result_of_select {};
-
-template<typename Func>
-struct nullary_result_of_select<Func, sizeof(has_std_result_type)> {typedef typename Func::result_type type;};
-
-template<typename Func>
-struct nullary_result_of_select<Func, sizeof(has_tr1_result)> {typedef typename Func::template result<Func()>::type type;};
-
-template<typename Func>
-struct result_of<Func()> {
-    template<typename T>
-    static has_std_result_type    testFunctor(T const *, typename T::result_type const * = 0);
-    template<typename T>
-    static has_tr1_result         testFunctor(T const *, typename T::template result<T()>::type const * = 0);
-    static has_none               testFunctor(...);
-
-    // note that the following indirection is needed for gcc-3.3
-    enum {FunctorType = sizeof(testFunctor(static_cast<Func*>(0)))};
-    typedef typename nullary_result_of_select<Func, FunctorType>::type type;
-};
-
-template<typename Func, typename ArgType, int SizeOf=sizeof(has_none)>
-struct unary_result_of_select {typedef typename internal::remove_all<ArgType>::type type;};
-
-template<typename Func, typename ArgType>
-struct unary_result_of_select<Func, ArgType, sizeof(has_std_result_type)> {typedef typename Func::result_type type;};
-
-template<typename Func, typename ArgType>
-struct unary_result_of_select<Func, ArgType, sizeof(has_tr1_result)> {typedef typename Func::template result<Func(ArgType)>::type type;};
-
-template<typename Func, typename ArgType>
-struct result_of<Func(ArgType)> {
-    template<typename T>
-    static has_std_result_type    testFunctor(T const *, typename T::result_type const * = 0);
-    template<typename T>
-    static has_tr1_result         testFunctor(T const *, typename T::template result<T(ArgType)>::type const * = 0);
-    static has_none               testFunctor(...);
-
-    // note that the following indirection is needed for gcc-3.3
-    enum {FunctorType = sizeof(testFunctor(static_cast<Func*>(0)))};
-    typedef typename unary_result_of_select<Func, ArgType, FunctorType>::type type;
-};
-
-template<typename Func, typename ArgType0, typename ArgType1, int SizeOf=sizeof(has_none)>
-struct binary_result_of_select {typedef typename internal::remove_all<ArgType0>::type type;};
-
-template<typename Func, typename ArgType0, typename ArgType1>
-struct binary_result_of_select<Func, ArgType0, ArgType1, sizeof(has_std_result_type)>
-{typedef typename Func::result_type type;};
-
-template<typename Func, typename ArgType0, typename ArgType1>
-struct binary_result_of_select<Func, ArgType0, ArgType1, sizeof(has_tr1_result)>
-{typedef typename Func::template result<Func(ArgType0,ArgType1)>::type type;};
-
-template<typename Func, typename ArgType0, typename ArgType1>
-struct result_of<Func(ArgType0,ArgType1)> {
-    template<typename T>
-    static has_std_result_type    testFunctor(T const *, typename T::result_type const * = 0);
-    template<typename T>
-    static has_tr1_result         testFunctor(T const *, typename T::template result<T(ArgType0,ArgType1)>::type const * = 0);
-    static has_none               testFunctor(...);
-
-    // note that the following indirection is needed for gcc-3.3
-    enum {FunctorType = sizeof(testFunctor(static_cast<Func*>(0)))};
-    typedef typename binary_result_of_select<Func, ArgType0, ArgType1, FunctorType>::type type;
-};
-
-template<typename Func, typename ArgType0, typename ArgType1, typename ArgType2, int SizeOf=sizeof(has_none)>
-struct ternary_result_of_select {typedef typename internal::remove_all<ArgType0>::type type;};
-
-template<typename Func, typename ArgType0, typename ArgType1, typename ArgType2>
-struct ternary_result_of_select<Func, ArgType0, ArgType1, ArgType2, sizeof(has_std_result_type)>
-{typedef typename Func::result_type type;};
-
-template<typename Func, typename ArgType0, typename ArgType1, typename ArgType2>
-struct ternary_result_of_select<Func, ArgType0, ArgType1, ArgType2, sizeof(has_tr1_result)>
-{typedef typename Func::template result<Func(ArgType0,ArgType1,ArgType2)>::type type;};
-
-template<typename Func, typename ArgType0, typename ArgType1, typename ArgType2>
-struct result_of<Func(ArgType0,ArgType1,ArgType2)> {
-    template<typename T>
-    static has_std_result_type    testFunctor(T const *, typename T::result_type const * = 0);
-    template<typename T>
-    static has_tr1_result         testFunctor(T const *, typename T::template result<T(ArgType0,ArgType1,ArgType2)>::type const * = 0);
-    static has_none               testFunctor(...);
-
-    // note that the following indirection is needed for gcc-3.3
-    enum {FunctorType = sizeof(testFunctor(static_cast<Func*>(0)))};
-    typedef typename ternary_result_of_select<Func, ArgType0, ArgType1, ArgType2, FunctorType>::type type;
-};
-
-#endif
-
-#if EIGEN_HAS_STD_INVOKE_RESULT
 template<typename F, typename... ArgTypes>
 struct invoke_result {
   typedef typename std::invoke_result<F, ArgTypes...>::type type1;
   typedef typename remove_all<type1>::type type;
 };
 #else
+template<typename T> struct result_of {
+  typedef typename std::result_of<T>::type type1;
+  typedef typename remove_all<type1>::type type;
+};
+
 template<typename F, typename... ArgTypes>
 struct invoke_result {
-  typedef typename result_of<F(ArgTypes...)>::type type1;
-  typedef typename remove_all<type1>::type type;
+    typedef typename result_of<F(ArgTypes...)>::type type1;
+    typedef typename remove_all<type1>::type type;
 };
 #endif
 

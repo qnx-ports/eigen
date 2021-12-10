@@ -681,16 +681,6 @@
 #endif
 #endif
 
-// Does the compiler support result_of?
-// result_of was deprecated in c++17 and removed in c++ 20
-#ifndef EIGEN_HAS_STD_RESULT_OF
-#if EIGEN_COMP_CXXVER < 17
-#define EIGEN_HAS_STD_RESULT_OF 1
-#else
-#define EIGEN_HAS_STD_RESULT_OF 0
-#endif
-#endif
-
 // Does the compiler support std::hash?
 #ifndef EIGEN_HAS_STD_HASH
 // The std::hash struct is defined in C++11 but is not labelled as a __device__
