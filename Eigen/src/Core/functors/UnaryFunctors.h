@@ -1035,10 +1035,10 @@ struct scalar_logistic_op {
 
 /** \internal
   * \brief Template specialization of the logistic function for float.
-  * Compute S(x) = exp(x) / (1 + exp(x)) using roughly the same algorithm as pexp_float in
+  * Computes S(x) = exp(x) / (1 + exp(x)) using roughly the same algorithm as pexp_float in
   * GenericPacketMathFunctions.h, but also use that exp(r) = exp(r/2)^2 to avoid the
-  * expensive call to pldexp in favor of pldexp_fast_impl. exp(r/2) us computed using a
-  * degree 5 minimax polynomial approximant calculated uing the Sollya tool.
+  * expensive call to pldexp in favor of pldexp_fast_impl. exp(r/2) is computed using a
+  * degree 5 minimax polynomial approximant calculated using the Sollya tool.
   */
 template <>
 struct scalar_logistic_op<float> {
