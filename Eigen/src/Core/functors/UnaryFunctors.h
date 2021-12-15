@@ -1032,16 +1032,13 @@ struct scalar_logistic_op {
 };
 
 #ifndef EIGEN_GPU_COMPILE_PHASE
+
 /** \internal
   * \brief Template specialization of the logistic function for float.
-  *
-  *  Uses just a 9/10-degree rational interpolant which
-  *  interpolates 1/(1+exp(-x)) - 0.5 up to a couple of ulps in the range
-  *  [-9, 18]. Below -9 we use the more accurate approximation
-  *  1/(1+exp(-x)) ~= exp(x), and above 18 the logistic function is 1 within
-  *  one ulp. The shifted logistic is interpolated because it was easier to
-  *  make the fit converge.
-  *
+  * Compute S(x) = exp(x) / (1 + exp(x)) using roughly the same algorithm as pexp_float in
+  * GenericPacketMathFunctions.h, but also use that exp(r) = exp(r/2)^2 to avoid the
+  * expensive call to pldexp in favor of pldexp_fast_impl. exp(r/2) us computed using a
+  * degree 5 minimax polynomial approximant calculated uing the Sollya tool.
   */
 template <>
 struct scalar_logistic_op<float> {
@@ -1077,7 +1074,6 @@ struct scalar_logistic_op<float> {
     const Packet cst_cephes_exp_C2 = pset1<Packet>(2.12194440e-4f);
     Packet r = pmadd(m, cst_cephes_exp_C1, x);
     r = pmadd(m, cst_cephes_exp_C2, r);
-    //  Packet r = pmadd(m, cst_cephes_neg_LN2F, x);
     Packet r2 = pmul(r, r);
 
     const Packet cst_p2 = pset1<Packet>(0.49999141693115234375f);
