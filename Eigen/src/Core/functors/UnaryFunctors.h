@@ -1081,9 +1081,9 @@ struct scalar_logistic_op<float> {
     const Packet cst_p4 = pset1<Packet>(4.1898667812347412109375e-2f);
     const Packet cst_p5 = pset1<Packet>(8.33471305668354034423828125e-3f);
 
-    const Packet p_low = padd(r, cst_one);
     const Packet p_even = pmadd(r2, cst_p4, cst_p2);
     const Packet p_odd = pmadd(r2, cst_p5, cst_p3);
+    const Packet p_low = padd(r, cst_one);
     Packet p = pmadd(r, p_odd, p_even);
     p = pmadd(r2, p, p_low);
 
