@@ -82,7 +82,7 @@ initSparse(double density,
       if ((flags&ForceRealDiag) && (i==j))
         v = numext::real(v);
 
-      if (v!=Scalar(0))
+      if (!numext::is_zero_strict(v))
       {
         //sparseMat.insertBackByOuterInner(j,i) = v;
         sparseMat.insertByOuterInner(j,i) = v;
@@ -115,7 +115,7 @@ initSparse(double density,
   for(int i=0; i<refVec.size(); i++)
   {
     Scalar v = (internal::random<double>(0,1) < density) ? internal::random<Scalar>() : Scalar(0);
-    if (v!=Scalar(0))
+    if (!numext::is_zero_strict(v))
     {
       sparseVec.insertBack(i) = v;
       if (nonzeroCoords)

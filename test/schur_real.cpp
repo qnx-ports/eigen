@@ -26,8 +26,8 @@ template<typename MatrixType> void verifyIsQuasiTriangular(const MatrixType& T)
   // Check that any non-zero on the subdiagonal is followed by a zero and is
   // part of a 2x2 diagonal block with imaginary eigenvalues.
   for(int row = 1; row < size; ++row) {
-    if (T(row,row-1) != Scalar(0)) {
-      VERIFY(row == size-1 || T(row+1,row) == 0);
+    if (!numext::is_zero_strict(T(row,row-1))) {
+      VERIFY(row == size-1 || numext::is_zero_strict(T(row+1,row)));
       Scalar tr = T(row-1,row-1) + T(row,row);
       Scalar det = T(row-1,row-1) * T(row,row) - T(row-1,row) * T(row,row-1);
       VERIFY(4 * det > tr * tr);

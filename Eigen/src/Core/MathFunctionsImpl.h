@@ -119,7 +119,7 @@ RealScalar positive_real_hypot(const RealScalar& x, const RealScalar& y)
   EIGEN_USING_STD(sqrt);
   RealScalar p, qp;
   p = numext::maxi(x,y);
-  if(p==RealScalar(0)) return RealScalar(0);
+  if(numext::is_zero_strict(p)) return RealScalar(0);
   qp = numext::mini(y,x) / p;
   return p * sqrt(RealScalar(1) + qp*qp);
 }
@@ -169,7 +169,7 @@ EIGEN_DEVICE_FUNC std::complex<T> complex_sqrt(const std::complex<T>& z) {
 
   return
     (numext::isinf)(y) ? std::complex<T>(NumTraits<T>::infinity(), y)
-      : x == zero ? std::complex<T>(w, y < zero ? -w : w)
+      : numext::is_zero_strict(x) ? std::complex<T>(w, y < zero ? -w : w)
       : x > zero ? std::complex<T>(w, y / (2 * w))
       : std::complex<T>(numext::abs(y) / (2 * w), y < zero ? -w : w );
 }
@@ -208,9 +208,9 @@ EIGEN_DEVICE_FUNC std::complex<T> complex_rsqrt(const std::complex<T>& z) {
   const T woz = w / abs_z;
   // Corner cases consistent with 1/sqrt(z) on gcc/clang.
   return
-    abs_z == zero ? std::complex<T>(NumTraits<T>::infinity(), NumTraits<T>::quiet_NaN())
+    numext::is_zero_strict(abs_z) ? std::complex<T>(NumTraits<T>::infinity(), NumTraits<T>::quiet_NaN())
       : ((numext::isinf)(x) || (numext::isinf)(y)) ? std::complex<T>(zero, zero)
-      : x == zero ? std::complex<T>(woz, y < zero ? woz : -woz)
+      : numext::is_zero_strict(x) ? std::complex<T>(woz, y < zero ? woz : -woz)
       : x > zero ? std::complex<T>(woz, -y / (2 * w * abs_z))
       : std::complex<T>(numext::abs(y) / (2 * w * abs_z), y < zero ? woz : -woz );
 }
