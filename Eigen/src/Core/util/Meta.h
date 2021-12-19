@@ -212,8 +212,7 @@ template<typename T, std::size_t N> struct array_size<std::array<T,N> > {
   enum { value = N };
 };
 
-#if EIGEN_COMP_CXXVER < 20
-namespace cxx17_free_size {
+
 /** \internal
   * Analogue of the std::ssize free function.
   * It returns the signed size of the container or view \a x of type \c T
@@ -222,24 +221,23 @@ namespace cxx17_free_size {
   *  - any types T defining a member T::size() const
   *  - plain C arrays as T[N]
   *
+  * For C++20, this function just forwards to `std::ssize`, or any ADL discoverable `ssize` function.
   */
+#if EIGEN_COMP_CXXVER < 20
 template <typename T>
-EIGEN_CONSTEXPR auto ssize(const T& x) {
+EIGEN_CONSTEXPR auto index_list_size(const T& x) {
   using R = std::common_type_t<std::ptrdiff_t, std::make_signed_t<decltype(x.size())>>;
   return static_cast<R>(x.size());
 }
 
 template<typename T, std::ptrdiff_t N>
-EIGEN_CONSTEXPR std::ptrdiff_t ssize(const T (&)[N]) { return N; }
-}
-// by putting these into a sub-namespace, we prevent that any object within Eigen
-// can trigger ADL. By having this using declaration, we still preserve internal::size
-// as an explicitly callable symbol.
-using cxx17_free_size::ssize;
+EIGEN_CONSTEXPR std::ptrdiff_t index_list_size(const T (&)[N]) { return N; }
 #else
-// with more recent versions of C++, use the std function. Since it is called as
-// internal::ssize, we still need the using declaration here.
-using std::ssize;
+template <typename T>
+EIGEN_CONSTEXPR auto index_list_size(T&& x) {
+  using std::ssize;
+  return ssize(std::forward<T>(x));
+}
 #endif // EIGEN_COMP_CXXVER
 
 /** \internal
