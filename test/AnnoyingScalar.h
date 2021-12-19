@@ -32,12 +32,12 @@ class AnnoyingScalar
 {
   public:
     AnnoyingScalar()                { init(); *v = 0;  }
-    AnnoyingScalar(long double _v)  { init(); *v = _v; }
-    AnnoyingScalar(double _v)       { init(); *v = _v; }
+    AnnoyingScalar(long double _v)  { init(); *v = (float)_v; }
+    AnnoyingScalar(double _v)       { init(); *v = (float)_v; }
     AnnoyingScalar(float _v)        { init(); *v = _v; }
-    AnnoyingScalar(int _v)          { init(); *v = _v; }
-    AnnoyingScalar(long _v)         { init(); *v = _v; }
-    AnnoyingScalar(long long _v)    { init(); *v = _v; }
+    AnnoyingScalar(int _v)          { init(); *v = (float)_v; }
+    AnnoyingScalar(long _v)         { init(); *v = (float)_v; }
+    AnnoyingScalar(long long _v)    { init(); *v = (float)_v; }
     AnnoyingScalar(const AnnoyingScalar& other) { init(); *v = *(other.v); }
     ~AnnoyingScalar() {
       if(v!=&data)
