@@ -427,7 +427,7 @@
     // as opposed to emmintrin.h as suggested by Intel:
     // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#othertechs=FP16C&expand=1711
     #include <immintrin.h>
-  #endif  
+  #endif
 #endif
 
 #if defined EIGEN_CUDACC
