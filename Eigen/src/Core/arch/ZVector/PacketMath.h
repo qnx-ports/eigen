@@ -66,48 +66,48 @@ typedef union {
 // We don't want to write the same code all the time, but we need to reuse the constants
 // and it doesn't really work to declare them global, so we define macros instead
 
-#define _EIGEN_DECLARE_CONST_FAST_Packet4i(NAME,X) \
+#define EIGEN_DECLARE_CONST_FAST_Packet4i_(NAME,X) \
   Packet4i p4i_##NAME = reinterpret_cast<Packet4i>(vec_splat_s32(X))
 
-#define _EIGEN_DECLARE_CONST_FAST_Packet2d(NAME,X) \
+#define EIGEN_DECLARE_CONST_FAST_Packet2d_(NAME,X) \
   Packet2d p2d_##NAME = reinterpret_cast<Packet2d>(vec_splat_s64(X))
 
-#define _EIGEN_DECLARE_CONST_FAST_Packet2l(NAME,X) \
+#define EIGEN_DECLARE_CONST_FAST_Packet2l_(NAME,X) \
   Packet2l p2l_##NAME = reinterpret_cast<Packet2l>(vec_splat_s64(X))
 
-#define _EIGEN_DECLARE_CONST_Packet4i(NAME,X) \
+#define EIGEN_DECLARE_CONST_Packet4i_(NAME,X) \
   Packet4i p4i_##NAME = pset1<Packet4i>(X)
 
-#define _EIGEN_DECLARE_CONST_Packet2d(NAME,X) \
+#define EIGEN_DECLARE_CONST_Packet2d_(NAME,X) \
   Packet2d p2d_##NAME = pset1<Packet2d>(X)
 
-#define _EIGEN_DECLARE_CONST_Packet2l(NAME,X) \
+#define EIGEN_DECLARE_CONST_Packet2l_(NAME,X) \
   Packet2l p2l_##NAME = pset1<Packet2l>(X)
 
 // These constants are endian-agnostic
-static _EIGEN_DECLARE_CONST_FAST_Packet4i(ZERO, 0); //{ 0, 0, 0, 0,}
-static _EIGEN_DECLARE_CONST_FAST_Packet4i(ONE, 1); //{ 1, 1, 1, 1}
+static EIGEN_DECLARE_CONST_FAST_Packet4i_(ZERO, 0); //{ 0, 0, 0, 0,}
+static EIGEN_DECLARE_CONST_FAST_Packet4i_(ONE, 1); //{ 1, 1, 1, 1}
 
-static _EIGEN_DECLARE_CONST_FAST_Packet2d(ZERO, 0);
-static _EIGEN_DECLARE_CONST_FAST_Packet2l(ZERO, 0);
-static _EIGEN_DECLARE_CONST_FAST_Packet2l(ONE, 1);
+static EIGEN_DECLARE_CONST_FAST_Packet2d_(ZERO, 0);
+static EIGEN_DECLARE_CONST_FAST_Packet2l_(ZERO, 0);
+static EIGEN_DECLARE_CONST_FAST_Packet2l_(ONE, 1);
 
 static Packet2d p2d_ONE = { 1.0, 1.0 };
 static Packet2d p2d_ZERO_ = { numext::bit_cast<double>(0x8000000000000000ull),
                               numext::bit_cast<double>(0x8000000000000000ull) };
 
 #if !defined(__ARCH__) || (defined(__ARCH__) && __ARCH__ >= 12)
-#define _EIGEN_DECLARE_CONST_FAST_Packet4f(NAME,X) \
+#define EIGEN_DECLARE_CONST_FAST_Packet4f_(NAME,X) \
   Packet4f p4f_##NAME = reinterpret_cast<Packet4f>(vec_splat_s32(X))
 
-#define _EIGEN_DECLARE_CONST_Packet4f(NAME,X) \
+#define EIGEN_DECLARE_CONST_Packet4f_(NAME,X) \
   Packet4f p4f_##NAME = pset1<Packet4f>(X)
 
-#define _EIGEN_DECLARE_CONST_Packet4f_FROM_INT(NAME,X) \
+#define EIGEN_DECLARE_CONST_Packet4f_FROM_INT_(NAME,X) \
   const Packet4f p4f_##NAME = reinterpret_cast<Packet4f>(pset1<Packet4i>(X))
 
-static _EIGEN_DECLARE_CONST_FAST_Packet4f(ZERO, 0); //{ 0.0, 0.0, 0.0, 0.0}
-static _EIGEN_DECLARE_CONST_FAST_Packet4i(MINUS1,-1); //{ -1, -1, -1, -1}
+static EIGEN_DECLARE_CONST_FAST_Packet4f_(ZERO, 0); //{ 0.0, 0.0, 0.0, 0.0}
+static EIGEN_DECLARE_CONST_FAST_Packet4i_(MINUS1,-1); //{ -1, -1, -1, -1}
 static Packet4f p4f_MZERO = { 0x80000000, 0x80000000, 0x80000000, 0x80000000};
 #endif
 
