@@ -51,7 +51,7 @@ EIGEN_STRONG_INLINE Derived& operator Op(const Other& scalar) \
   EIGEN_SKYLINE_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Derived, *=) \
   EIGEN_SKYLINE_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Derived, /=)
 
-#define _EIGEN_SKYLINE_GENERIC_PUBLIC_INTERFACE(Derived, BaseClass) \
+#define EIGEN_SKYLINE_GENERIC_PUBLIC_INTERFACE_(Derived, BaseClass) \
   typedef BaseClass Base; \
   typedef typename Eigen::internal::traits<Derived>::Scalar Scalar; \
   typedef typename Eigen::NumTraits<Scalar>::Real RealScalar; \
@@ -60,7 +60,7 @@ EIGEN_STRONG_INLINE Derived& operator Op(const Other& scalar) \
   enum {  Flags = Eigen::internal::traits<Derived>::Flags, };
 
 #define EIGEN_SKYLINE_GENERIC_PUBLIC_INTERFACE(Derived) \
-  _EIGEN_SKYLINE_GENERIC_PUBLIC_INTERFACE(Derived, Eigen::SkylineMatrixBase<Derived>)
+  EIGEN_SKYLINE_GENERIC_PUBLIC_INTERFACE_(Derived, Eigen::SkylineMatrixBase<Derived>)
 
 template<typename Derived> class SkylineMatrixBase;
 template<typename Scalar_, int _Flags = 0> class SkylineMatrix;
