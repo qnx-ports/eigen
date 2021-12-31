@@ -277,8 +277,8 @@ template<typename Scalar,int Dim> class Translation;
 template<typename Scalar,int Dim> class AlignedBox;
 template<typename Scalar, int Options = AutoAlign> class Quaternion;
 template<typename Scalar,int Dim,int Mode,int Options_=AutoAlign> class Transform;
-template <typename Scalar_, int _AmbientDim, int Options=AutoAlign> class ParametrizedLine;
-template <typename Scalar_, int _AmbientDim, int Options=AutoAlign> class Hyperplane;
+template <typename Scalar_, int AmbientDim_, int Options=AutoAlign> class ParametrizedLine;
+template <typename Scalar_, int AmbientDim_, int Options=AutoAlign> class Hyperplane;
 template<typename Scalar> class UniformScaling;
 template<typename MatrixType,int Direction> class Homogeneous;
 
