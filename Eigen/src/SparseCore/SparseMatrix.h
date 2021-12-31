@@ -67,7 +67,7 @@ struct traits<Diagonal<SparseMatrix<Scalar_, Options_, StorageIndex_>, DiagIndex
 {
   typedef SparseMatrix<Scalar_, Options_, StorageIndex_> MatrixType;
   typedef typename ref_selector<MatrixType>::type MatrixTypeNested;
-  typedef typename remove_reference<MatrixTypeNested>::type _MatrixTypeNested;
+  typedef typename remove_reference<MatrixTypeNested>::type MatrixTypeNested_;
 
   typedef Scalar_ Scalar;
   typedef Dense StorageKind;
