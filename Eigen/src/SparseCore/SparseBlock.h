@@ -121,8 +121,8 @@ public:
     template<typename OtherDerived>
     inline BlockType& operator=(const SparseMatrixBase<OtherDerived>& other)
     {
-      typedef typename internal::remove_all<typename SparseMatrixType::Nested>::type _NestedMatrixType;
-      _NestedMatrixType& matrix = m_matrix;
+      typedef typename internal::remove_all<typename SparseMatrixType::Nested>::type NestedMatrixType_;
+      NestedMatrixType_& matrix = m_matrix;
       // This assignment is slow if this vector set is not empty
       // and/or it is not at the end of the nonzeros of the underlying matrix.
 
