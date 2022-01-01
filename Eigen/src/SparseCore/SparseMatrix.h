@@ -1179,8 +1179,8 @@ EIGEN_DONT_INLINE SparseMatrix<Scalar,Options_,StorageIndex_>& SparseMatrix<Scal
     //  2 - do the actual copy/eval
     // Since each coeff of the rhs has to be evaluated twice, let's evaluate it if needed
     typedef typename internal::nested_eval<OtherDerived,2,typename internal::plain_matrix_type<OtherDerived>::type >::type OtherCopy;
-    typedef typename internal::remove_all<OtherCopy>::type _OtherCopy;
-    typedef internal::evaluator<_OtherCopy> OtherCopyEval;
+    typedef typename internal::remove_all<OtherCopy>::type OtherCopy_;
+    typedef internal::evaluator<OtherCopy_> OtherCopyEval;
     OtherCopy otherCopy(other.derived());
     OtherCopyEval otherCopyEval(otherCopy);
 
