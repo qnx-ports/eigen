@@ -852,8 +852,8 @@ public:
                   &&  _SameTypes
                   && (SameStorageOrder_ || (MatrixFlags&LinearAccessBit)==LinearAccessBit)
                   && (_ScalarAccessOnDiag || (bool(int(DiagFlags)&PacketAccessBit))),
-    _LinearAccessMask = (MatrixType::RowsAtCompileTime==1 || MatrixType::ColsAtCompileTime==1) ? LinearAccessBit : 0,
-    Flags = ((HereditaryBits|_LinearAccessMask) & (unsigned int)(MatrixFlags)) | (_Vectorizable ? PacketAccessBit : 0),
+    LinearAccessMask_ = (MatrixType::RowsAtCompileTime==1 || MatrixType::ColsAtCompileTime==1) ? LinearAccessBit : 0,
+    Flags = ((HereditaryBits|LinearAccessMask_) & (unsigned int)(MatrixFlags)) | (_Vectorizable ? PacketAccessBit : 0),
     Alignment = evaluator<MatrixType>::Alignment,
 
     AsScalarProduct =     (DiagonalType::SizeAtCompileTime==1)
