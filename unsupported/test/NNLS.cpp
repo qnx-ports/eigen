@@ -242,6 +242,28 @@ void test_nnls_special_case_solves_in_n_iterations() {
   VERIFY(nnls.iterations() == n);
 }
 
+void test_nnls_returns_NoConvergence_when_maxIterations_is_too_low() {
+  // Using the special case that takes `n` iterations,
+  // from `test_nnls_special_case_solves_in_n_iterations`,
+  // we can set max iterations too low and that should cause the solve to fail.
+
+  const Index n = 10;
+  const Index m = 3 * n;
+  // With high probability, this is full column rank, which we need for uniqueness.
+  const MatrixXd A = MatrixXd::Random(m, n);
+  const VectorXd x = VectorXd::Random(n).cwiseAbs().array() + 1;  // all positive.
+  const VectorXd b = A * x;
+
+  NNLS<MatrixXd> nnls(A);
+  const Index max_iters = n - 1;
+  nnls.setMaxIterations(max_iters);
+  const bool solved = nnls.solve(b);
+
+  VERIFY(!solved);
+  VERIFY(nnls.info() == ComputationInfo::NoConvergence);
+  VERIFY(nnls.iterations() == max_iters);
+}
+
 EIGEN_DECLARE_TEST(NNLS) {
   test_known_problems();
   for (int i = 0; i < g_repeat; i++) {
@@ -255,5 +277,6 @@ EIGEN_DECLARE_TEST(NNLS) {
     // "Extra" properties.
     test_nnls_special_case_solves_in_zero_iterations();
     test_nnls_special_case_solves_in_n_iterations();
+    test_nnls_returns_NoConvergence_when_maxIterations_is_too_low();
   }
 }

@@ -94,6 +94,7 @@ class NNLS {
   NNLS(const MatrixType &A, Index max_iter = -1, Scalar tol = NumTraits<Scalar>::dummy_precision())
       : max_iter_(max_iter),
         iterations_(0),
+        info_(ComputationInfo::InvalidInput),
         tolerance_(tol),
         A_(A),
         AtA_(A.cols(), A.cols()),
@@ -151,6 +152,9 @@ class NNLS {
 
   /** \returns the number of iterations (least-squares solves) performed during the last solve */
   Index iterations() const { return iterations_; }
+
+  /** \returns Success if the iterations converged, and an error values otherwise. */
+  ComputationInfo info() const { return info_; }
 
   /** \brief Returns the hat-matrix mapping \f$b\f$ to the coefficients \f$x\f$ as \f$x = H b\f$
    * such that \f$x\f$ minimizes NNLS problem.
@@ -241,6 +245,8 @@ class NNLS {
   Index max_iter_;
   /** Holds the number of iterations. */
   Index iterations_;
+  /** Holds success/fail of the last solve. */
+  ComputationInfo info_;
   /** Size of the P (passive) set. */
   Index Np_;
   /** Accuracy of the algorithm w.r.t the optimality of the solution (gradient). */
@@ -340,6 +346,7 @@ bool NNLS<MatrixType>::solve(const ColVectorType &b, Heuristic heuristic) {
 
   // Initialize solver
   iterations_ = 0;
+  info_ = ComputationInfo::NumericalIssue;
   x_.setZero();
 
   // Together with _Np, P separates the space of coefficients into a active (Z) and passive (P)
@@ -357,7 +364,10 @@ bool NNLS<MatrixType>::solve(const ColVectorType &b, Heuristic heuristic) {
     updateGradient_();
 
     // Check if system is solved:
-    if ((A_.cols() == Np_) || ((max_Z_(w_) - tolerance_) < 0)) return true;
+    if ((A_.cols() == Np_) || ((max_Z_(w_) - tolerance_) < 0)) {
+      info_ = ComputationInfo::Success;
+      return true;
+    }
 
     switch (heuristic) {
       // find index of max descent and add it to P
@@ -369,7 +379,10 @@ bool NNLS<MatrixType>::solve(const ColVectorType &b, Heuristic heuristic) {
     // INNER LOOP
     while (true) {
       // Check if max. number of iterations is reached
-      if ((0 < max_iter_) && (iterations_ >= max_iter_)) return false;
+      if ((0 < max_iter_) && (iterations_ >= max_iter_)) {
+        info_ = ComputationInfo::NoConvergence;
+        return false;
+      }
 
       // Solve LS problem in P only, this step is rather trivial as _addToP & _remFromP
       // updates the QR decomposition of A^P.
