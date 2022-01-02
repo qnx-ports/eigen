@@ -354,7 +354,7 @@ bool NNLS<MatrixType>::solve(const ColVectorType &b, Heuristic heuristic) {
       for (Index i = 0; i < Np_; i++) {
         Index idx = P_.indices()(i);
         if (y_(idx) < 0) {
-          // t shoudl always be in [0,1].
+          // t should always be in [0,1].
           Scalar t = -x_(idx) / (y_(idx) - x_(idx));
           if (alpha > t) {
             alpha = t;
