@@ -86,8 +86,12 @@ class NNLS {
    * \param A Specifies the system matrix.
    * \param max_iter Specifies the maximum number of iterations to solve the system, if
    *        @c max_iter<0 there is no limit and the algorithm will only return on convergence.
-   * \param eps Specifies the precision of the optimum. */
-  NNLS(const MatrixType &A, Index max_iter = -1, Scalar eps = 1e-10)
+   *        Beware: that may cause an infinite loop, as this algorithm does not guarantee convergence.
+   * \param eps Specifies the precision of the optimum.
+   *        This is an absolute tolerance on the gradient of the Lagrangian, \f$A^T(Ax-b)-\lambda\f$
+   *        (with Lagrange multipliers \f$\lambda\f$).
+   */
+  NNLS(const MatrixType &A, Index max_iter = -1, Scalar eps = NumTraits<Scalar>::dummy_precision())
       : _max_iter(max_iter),
         _num_ls(0),
         _epsilon(eps),
@@ -132,7 +136,7 @@ class NNLS {
    *         \f$ \min \left\Vert Ax-b\right\Vert_2^2\quad s.t.\, x\ge 0 \f$.
    * Returns @c true on success and @c false otherwise. The result is stored in @c x on exit. */
   static inline bool solve(const MatrixType &A, const ColVectorType &b, RowVectorType &x, Index max_iter = -1,
-                           typename MatrixType::Scalar eps = 1e-10) {
+                           typename MatrixType::Scalar eps = NumTraits<Scalar>::dummy_precision()) {
     NNLS<MatrixType> nnls(A, max_iter, eps);
     if (!nnls.solve(b)) {
       return false;
