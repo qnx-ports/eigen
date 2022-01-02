@@ -11,6 +11,29 @@
 #include <unsupported/Eigen/NNLS>
 #include <iostream>
 
+template <typename MatrixType, typename VectorB, typename VectorX, typename Scalar>
+void verify_nnls_optimality(const MatrixType &A, const VectorB &b, const VectorX &x, const Scalar tolerance) {
+  // The NNLS optimality conditions are:
+  //
+  // * 0 = A'*A*x - A'*b - lambda
+  // * 0 <= x[i] \forall i
+  // * 0 <= lambda[i] \forall i
+  // * 0 = x[i]*lambda[i] \forall i
+  //
+  // we don't know lambda, but by assuming the first optimality condition is true,
+  // we can derive it and then check the others conditions.
+  const VectorX lambda = A.transpose() * (A * x - b);
+
+  // NNLS solutions are EXACTLY not negative.
+  VERIFY_LE(0, x.minCoeff());
+  // Exact lambda would be non-negative, but computed lambda might leak a little
+  VERIFY_LE(-tolerance, lambda.minCoeff());
+  // x[i]*lambda[i] == 0
+  // <--> max(abs(x[i]*lambda[i])) == 0
+  const Scalar maxComplementarity = (lambda.array() * x.array()).cwiseAbs().maxCoeff();
+  VERIFY_LE(maxComplementarity, tolerance);
+}
+
 template <typename MatrixType, typename VectorB, typename VectorX>
 void test_nnls_known_solution(const MatrixType &A, const VectorB &b, const VectorX &x_expected) {
   using Scalar = typename MatrixType::Scalar;
@@ -22,30 +45,16 @@ void test_nnls_known_solution(const MatrixType &A, const VectorB &b, const Vecto
   const bool solved = nnls.solve(b);
   const auto x = nnls.x();
 
-  // Generally, `gradient - Lagrange_multipliers` should be zero.
-  // The Lagrange multiplers are unknown, but they are zero when is x not zero.
-  // So, gradient[i] should be zero for those `x[i]` that are non-zero.
-  auto gradient = (A.transpose() * (A * x - b)).eval();
-  Scalar gradient_optimality(0);
-  for (Index i = 0; i != x.size(); ++i) {
-    if (0 < x[i]) {
-      using std::abs;
-      using std::max;
-      gradient_optimality = (max)(abs(gradient[i]), gradient_optimality);
-    }
-  }
-
   VERIFY(solved);
   VERIFY_IS_APPROX(x, x_expected);
-  VERIFY_LE(gradient_optimality, tolerance);
-  VERIFY_LE(0, x.minCoeff());  // NNLS solutions are not negative.
+  verify_nnls_optimality(A, b, x, tolerance);
 }
 
 template <typename MatrixType>
-void test_nnls_dense_solution() {
-  typedef typename NumTraits<typename MatrixType::Scalar>::Real RealScalar;
+MatrixType random_full_column_rank() {
   Index cols = MatrixType::ColsAtCompileTime;
   if (cols == Dynamic) cols = internal::random<Index>(1, EIGEN_TEST_MAX_SIZE);
+
   // To have a unique solution: rows >= cols.
   Index rows = MatrixType::RowsAtCompileTime;
   if (rows == Dynamic) rows = internal::random<Index>(cols, EIGEN_TEST_MAX_SIZE);
@@ -57,12 +66,25 @@ void test_nnls_dense_solution() {
     A = MatrixType::Random(rows, cols);
   } while (A.colPivHouseholderQr().rank() != cols);
 
-  using VectorX = decltype(A.row(0).transpose().eval());
-  using VectorB = decltype(A.col(0).eval());
-  const VectorX x_expected = VectorX::Random(cols).cwiseAbs();  // non-negative, so it's feasible.
-  const VectorB b = A * x_expected;
+  return A;
+}
 
-  test_nnls_known_solution(A, b, x_expected);
+template <typename MatrixType>
+void test_nnls_random_problem() {
+  const MatrixType A = random_full_column_rank<MatrixType>();
+  using VectorB = decltype(A.col(0).eval());
+  const VectorB b = VectorB::Random(A.rows());
+
+  using Scalar = typename MatrixType::Scalar;
+
+  using std::sqrt;
+  const Scalar tolerance = sqrt(Eigen::GenericNumTraits<Scalar>::epsilon());
+  Index max_iter = 5 * A.cols();  // A heuristic guess.
+  NNLS<MatrixType> nnls(A, static_cast<int>(max_iter), tolerance);
+  const bool solved = nnls.solve(b);
+  const auto x = nnls.x();
+
+  verify_nnls_optimality(A, b, x, tolerance);
 }
 
 // 4x2 problem, unconstrained solution positive
@@ -141,9 +163,9 @@ void test_known_problems() {
 EIGEN_DECLARE_TEST(NNLS) {
   test_known_problems();
   for (int i = 0; i < g_repeat; i++) {
-    test_nnls_dense_solution<MatrixXf>();
-    test_nnls_dense_solution<MatrixXd>();
+    test_nnls_random_problem<MatrixXf>();
+    test_nnls_random_problem<MatrixXd>();
     using MatFixed = Matrix<double, 12, 5>;
-    test_nnls_dense_solution<MatFixed>();
+    test_nnls_random_problem<MatFixed>();
   }
 }
