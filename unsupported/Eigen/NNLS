@@ -26,6 +26,9 @@
 #ifndef __EIGEN_NNLS_H__
 #define __EIGEN_NNLS_H__
 
+#include "../../Eigen/Core"
+#include "../../Eigen/QR"
+
 #include <limits>
 
 namespace Eigen {
@@ -345,7 +348,7 @@ bool NNLS<MatrixType>::solve(const ColVectorType &b, Heuristic heuristic) {
 
       // Check feasability...
       bool feasable = true;
-      Scalar alpha = std::numeric_limits<Scalar>::max();
+      Scalar alpha = (std::numeric_limits<Scalar>::max)();
       Index remIdx;
       for (Index i = 0; i < _Np; i++) {
         Index idx = _P.indices()(i);
