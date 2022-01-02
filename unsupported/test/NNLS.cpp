@@ -178,9 +178,9 @@ void test_nnls_with_half_precision() {
   // The random matrix generation tools don't work with `half`,
   // so here's a simpler setup mostly just to check that NNLS compiles & runs with custom scalar types.
 
-  using Mat = Matrix<half, 4, 4>;
-  using Vec = Matrix<half, 4, 1>;
-  Mat A = Mat::Random();
+  using Mat = Matrix<half, 8, 2>;
+  using Vec = Matrix<half, 8, 1>;
+  Mat A = Mat::Random();  // full-column rank with high probability.
   Vec b = Vec::Random();
 
   NNLS<Mat> nnls(A, 20, half(1e-2f));
@@ -191,13 +191,69 @@ void test_nnls_with_half_precision() {
   verify_nnls_optimality(A, b, x, half(1e-1));
 }
 
+void test_nnls_special_case_solves_in_zero_iterations() {
+  // The particular NNLS algorithm that is implemented starts with all variables
+  // in the active set.
+  // This test builds a system where all constraints are active at the solution,
+  // so that initial guess is already correct.
+  //
+  // If the implementation changes to another algorithm that does not have this property,
+  // then this test will need to change (e.g. starting from all constraints inactive,
+  // or using ADMM, or an interior point solver).
+
+  const Index n = 10;
+  const Index m = 3 * n;
+  const VectorXd b = VectorXd::Random(m);
+  // With high probability, this is full column rank, which we need for uniqueness.
+  MatrixXd A = MatrixXd::Random(m, n);
+  // Make every column of `A` such that adding it to the active set only /increases/ the objective,
+  // this ensuring the NNLS solution is all zeros.
+  const VectorXd alignment = -(A.transpose() * b).cwiseSign();
+  A = A * alignment.asDiagonal();
+
+  NNLS<MatrixXd> nnls(A);
+  const bool solved = nnls.solve(b);
+
+  VERIFY(solved);
+  VERIFY(nnls.iterations() == 0);
+}
+
+void test_nnls_special_case_solves_in_n_iterations() {
+  // The particular NNLS algorithm that is implemented starts with all variables
+  // in the active set and then adds one variable to the passive set each iteration.
+  // This test builds a system where all variables are passive at the solution,
+  // so it should take 'n' iterations to get there.
+  //
+  // If the implementation changes to another algorithm that does not have this property,
+  // then this test will need to change (e.g. starting from all constraints inactive,
+  // or using ADMM, or an interior point solver).
+
+  const Index n = 10;
+  const Index m = 3 * n;
+  // With high probability, this is full column rank, which we need for uniqueness.
+  const MatrixXd A = MatrixXd::Random(m, n);
+  const VectorXd x = VectorXd::Random(n).cwiseAbs().array() + 1;  // all positive.
+  const VectorXd b = A * x;
+
+  NNLS<MatrixXd> nnls(A);
+  const bool solved = nnls.solve(b);
+
+  VERIFY(solved);
+  VERIFY(nnls.iterations() == n);
+}
+
 EIGEN_DECLARE_TEST(NNLS) {
   test_known_problems();
-  test_nnls_with_half_precision();
   for (int i = 0; i < g_repeat; i++) {
+    // Essential properties, across different types.
     test_nnls_random_problem<MatrixXf>();
     test_nnls_random_problem<MatrixXd>();
     using MatFixed = Matrix<double, 12, 5>;
     test_nnls_random_problem<MatFixed>();
+    test_nnls_with_half_precision();
+
+    // "Extra" properties.
+    test_nnls_special_case_solves_in_zero_iterations();
+    test_nnls_special_case_solves_in_n_iterations();
   }
 }

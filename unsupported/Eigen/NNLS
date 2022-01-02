@@ -93,7 +93,7 @@ class NNLS {
    */
   NNLS(const MatrixType &A, Index max_iter = -1, Scalar tol = NumTraits<Scalar>::dummy_precision())
       : max_iter_(max_iter),
-        num_ls_(0),
+        iterations_(0),
         tolerance_(tol),
         A_(A),
         AtA_(A.cols(), A.cols()),
@@ -136,6 +136,22 @@ class NNLS {
     return *this;
   }
 
+  /** \returns the max number of iterations.
+   * It is either the value set by setMaxIterations or, by default, infinite (-1).
+   */
+  Index maxIterations() const { return max_iter_; }
+
+  /** Sets the max number of iterations.
+   * Default is twice the number of columns of the matrix.
+   */
+  NNLS<MatrixType> &setMaxIterations(Index maxIters) {
+    max_iter_ = maxIters;
+    return *this;
+  }
+
+  /** \returns the number of iterations (least-squares solves) performed during the last solve */
+  Index iterations() const { return iterations_; }
+
   /** \brief Returns the hat-matrix mapping \f$b\f$ to the coefficients \f$x\f$ as \f$x = H b\f$
    * such that \f$x\f$ minimizes NNLS problem.
    * Please note that in constrast to unconstrained LS, the hat matrix does not necessarily imply
@@ -143,9 +159,6 @@ class NNLS {
    * minimizes \left\Vert A x_2 - b_2\right\Vert_2\f$. This means, that the hat matrix does not
    * solve the NNLS problem generally for some specific system matrix \f$A\f$. */
   void hat(HatMatrixType &H) const;
-
-  /** \brief Returns the number of LS problems needed to be solved to converge. */
-  inline size_t numLS() const { return num_ls_; }
 
   /** \brief Solves the NNLS problem
    *         \f$ \min \left\Vert Ax-b\right\Vert_2^2\quad s.t.\, x\ge 0 \f$.
@@ -227,7 +240,7 @@ class NNLS {
    * limit. */
   Index max_iter_;
   /** Holds the number of iterations. */
-  Index num_ls_;
+  Index iterations_;
   /** Size of the P (passive) set. */
   Index Np_;
   /** Accuracy of the algorithm w.r.t the optimality of the solution (gradient). */
@@ -326,7 +339,7 @@ bool NNLS<MatrixType>::solve(const ColVectorType &b, Heuristic heuristic) {
 #endif
 
   // Initialize solver
-  num_ls_ = 0;
+  iterations_ = 0;
   x_.setZero();
 
   // Together with _Np, P separates the space of coefficients into a active (Z) and passive (P)
@@ -356,7 +369,7 @@ bool NNLS<MatrixType>::solve(const ColVectorType &b, Heuristic heuristic) {
     // INNER LOOP
     while (true) {
       // Check if max. number of iterations is reached
-      if ((0 < max_iter_) && (num_ls_ >= max_iter_)) return false;
+      if ((0 < max_iter_) && (iterations_ >= max_iter_)) return false;
 
       // Solve LS problem in P only, this step is rather trivial as _addToP & _remFromP
       // updates the QR decomposition of A^P.
@@ -466,7 +479,7 @@ void NNLS<MatrixType>::solveLS_P_(const ColVectorType &b) {
   y_ = P_ * y_;
 
   // Increment LS counter
-  num_ls_++;
+  iterations_++;
 }
 
 }  // namespace Eigen
