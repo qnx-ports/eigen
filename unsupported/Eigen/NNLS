@@ -48,10 +48,10 @@ namespace Eigen {
  *       not converge. In "nature" these cases are extremely rare. However, you can specify the
  *       maximum number of iterations with the constructor to avoid endless loops.
  * \todo Restrict the scalar type to real floating point types. */
-template <class _MatrixType>
+template <class MatrixType_>
 class NNLS {
  public:
-  typedef _MatrixType MatrixType;
+  typedef MatrixType_ MatrixType;
 
   enum {
     RowsAtCompileTime = MatrixType::RowsAtCompileTime,
@@ -92,23 +92,23 @@ class NNLS {
    *        (with Lagrange multipliers \f$\lambda\f$).
    */
   NNLS(const MatrixType &A, Index max_iter = -1, Scalar eps = NumTraits<Scalar>::dummy_precision())
-      : _max_iter(max_iter),
-        _num_ls(0),
-        _epsilon(eps),
-        _A(A),
-        _AtA(_A.cols(), _A.cols()),
-        _x(_A.cols()),
-        _w(_A.cols()),
-        _y(_A.cols()),
-        _P(_A.cols()),
-        _QR(_A.rows(), _A.cols()),
-        _qrCoeffs(_A.cols()),
-        _tempVector(_A.cols()) {
+      : max_iter_(max_iter),
+        num_ls_(0),
+        epsilon_(eps),
+        A_(A),
+        AtA_(A.cols(), A.cols()),
+        x_(A.cols()),
+        w_(A.cols()),
+        y_(A.cols()),
+        P_(A.cols()),
+        QR_(A.rows(), A.cols()),
+        qrCoeffs_(A.cols()),
+        tempVector_(A.cols()) {
     // Ensure Scalar type is real.
     EIGEN_STATIC_ASSERT(!NumTraits<Scalar>::IsComplex, NUMERIC_TYPE_MUST_BE_REAL);
 
     // Precompute A^T*A
-    _AtA = A.transpose() * A;
+    AtA_ = A.transpose() * A;
   }
 
   /** \brief Solves the NNLS problem.
@@ -119,7 +119,7 @@ class NNLS {
 
   /** \brief Returns the solution if a problem was solved.
    * If not, an uninitialized vector may be returned. */
-  inline const RowVectorType &x() const { return _x; }
+  inline const RowVectorType &x() const { return x_; }
 
   /** \brief Returns the hat-matrix mapping \f$b\f$ to the coefficients \f$x\f$ as \f$x = H b\f$
    * such that \f$x\f$ minimizes NNLS problem.
@@ -130,7 +130,7 @@ class NNLS {
   void hat(HatMatrixType &H) const;
 
   /** \brief Returns the number of LS problems needed to be solved to converge. */
-  inline size_t numLS() const { return _num_ls; }
+  inline size_t numLS() const { return num_ls_; }
 
   /** \brief Solves the NNLS problem
    *         \f$ \min \left\Vert Ax-b\right\Vert_2^2\quad s.t.\, x\ge 0 \f$.
@@ -148,11 +148,11 @@ class NNLS {
  protected:
   /** Searches for the index in Z with the largest value of @c v
    *  (\f$argmax v^P\f$) . */
-  Index _argmax_Z(const RowVectorType &v) {
-    const IndicesType &idxs = _P.indices();
-    Index m_idx = _Np;
+  Index argmax_Z_(const RowVectorType &v) {
+    const IndicesType &idxs = P_.indices();
+    Index m_idx = Np_;
     Scalar m = v(idxs(m_idx));
-    for (Index i = (_Np + 1); i < _A.cols(); i++) {
+    for (Index i = (Np_ + 1); i < A_.cols(); i++) {
       Index idx = idxs(i);
       if (m < v(idx)) {
         m = v(idx);
@@ -163,10 +163,10 @@ class NNLS {
   }
 
   /** Searches for the largest value in \f$v^Z\f$. */
-  Scalar _max_Z(const RowVectorType &v) {
-    const IndicesType &idxs = _P.indices();
-    Scalar m = v(idxs(_Np));
-    for (Index i = (_Np + 1); i < _A.cols(); i++) {
+  Scalar max_Z_(const RowVectorType &v) {
+    const IndicesType &idxs = P_.indices();
+    Scalar m = v(idxs(Np_));
+    for (Index i = (Np_ + 1); i < A_.cols(); i++) {
       Index idx = idxs(i);
       if (m < v(idx)) {
         m = v(idx);
@@ -176,11 +176,11 @@ class NNLS {
   }
 
   /** Searches for the smallest value in \f$v^P\f$. */
-  Scalar _min_P(const RowVectorType &v) {
-    eigen_assert(_Np > 0);
-    const IndicesType &idxs = _P.indices();
+  Scalar min_P_(const RowVectorType &v) {
+    eigen_assert(Np_ > 0);
+    const IndicesType &idxs = P_.indices();
     Scalar m = v(idxs(0));
-    for (Index i = 1; i < _Np; i++) {
+    for (Index i = 1; i < Np_; i++) {
       Index idx = idxs(i);
       if (m > v(idx)) {
         m = v(idx);
@@ -190,54 +190,54 @@ class NNLS {
   }
 
   /** Adds the given index @c idx to the set P and updates the QR decomposition of \f$A^P\f$. */
-  void _addToP(Index idx);
+  void addToP_(Index idx);
 
   /** Removes the given index idx from the set P and updates the QR decomposition of \f$A^P\f$. */
-  void _remFromP(Index idx);
+  void remFromP_(Index idx);
 
   /** Solves the LS problem \f$\left\Vert y-A^Px\right\Vert_2^2\f$. */
-  void _solveLS_P(const ColVectorType &b);
+  void solveLS_P_(const ColVectorType &b);
 
   /** Updates the gradient \c _w using the current partial solution \c _x. */
-  void _updateGradient() {
+  void updateGradient_() {
     // w <- A^T b - A^TA x
-    _w = _Atb - _AtA * _x;
+    w_ = Atb_ - AtA_ * x_;
 #ifdef EIGEN3_NNLS_DEBUG
-    std::cerr << "NNLS(): Gradient at (" << _x.transpose() << ") = (" << _w.transpose() << ")" << std::endl;
+    std::cerr << "NNLS(): Gradient at (" << x_.transpose() << ") = (" << w_.transpose() << ")" << std::endl;
 #endif
   }
 
  protected:
   /** Holds the maximum number of iterations for the NNLS algorithm, @c -1 means that there is no
    * limit. */
-  Index _max_iter;
+  Index max_iter_;
   /** Holds the number of iterations. */
-  Index _num_ls;
+  Index num_ls_;
   /** Size of the P (passive) set. */
-  Index _Np;
+  Index Np_;
   /** Accuracy of the algorithm w.r.t the optimality of the solution (gradient). */
-  Scalar _epsilon;
+  Scalar epsilon_;
   /** The system matrix, a copy of the one given to the constructor. */
-  MatrixType _A;
+  MatrixType A_;
   /** Precomputed product \f$A^TA\f$. */
-  MatrixAtAType _AtA;
+  MatrixAtAType AtA_;
   /** Will hold the solution. */
-  RowVectorType _x;
+  RowVectorType x_;
   /** Will hold the current gradient. */
-  RowVectorType _w;
+  RowVectorType w_;
   /** Will hold the partial solution. */
-  RowVectorType _y;
+  RowVectorType y_;
   /** Precomputed product \f$A^Tb\f$. */
-  RowVectorType _Atb;
+  RowVectorType Atb_;
   /** Holds the current permutation matrix, the first @c _Np columns form the set P and the rest
    * the set Z. */
-  PermutationType _P;
+  PermutationType P_;
   /** QR decomposition to solve the (passive) sub system (together with @c _qrCoeffs). */
-  MatrixType _QR;
+  MatrixType QR_;
   /** QR decomposition to solve the (passive) sub system (together with @c _QR). */
-  RowVectorType _qrCoeffs;
+  RowVectorType qrCoeffs_;
   /** Some workspace for QR decomposition. */
-  RowVectorType _tempVector;
+  RowVectorType tempVector_;
 };
 
 /* ********************************************************************************************
@@ -306,56 +306,56 @@ template <typename MatrixType>
 bool NNLS<MatrixType>::solve(const ColVectorType &b, Heuristic heuristic) {
 #ifdef EIGEN3_NNLS_DEBUG
   std::cerr << "NNLS(): Start..." << std::endl;
-  _QR.setZero();
-  _qrCoeffs.setZero();
+  QR_.setZero();
+  qrCoeffs_.setZero();
 #endif
 
   // Initialize solver
-  _num_ls = 0;
-  _x.setZero();
+  num_ls_ = 0;
+  x_.setZero();
 
   // Together with _Np, P separates the space of coefficients into a active (Z) and passive (P)
   // set. The first _Np elements form the passive set P and the remaining elements form the
   // active set Z.
-  _P.setIdentity();
-  _Np = 0;
+  P_.setIdentity();
+  Np_ = 0;
 
   // Precompute A^T*b
-  _Atb = _A.transpose() * b;
+  Atb_ = A_.transpose() * b;
 
   // OUTER LOOP
   while (true) {
     // Update gradient _w
-    _updateGradient();
+    updateGradient_();
 
     // Check if system is solved:
-    if ((_A.cols() == _Np) || ((_max_Z(_w) - _epsilon) < 0)) return true;
+    if ((A_.cols() == Np_) || ((max_Z_(w_) - epsilon_) < 0)) return true;
 
     switch (heuristic) {
       // find index of max descent and add it to P
       case MAX_DESCENT:
-        _addToP(_argmax_Z(_w));
+        addToP_(argmax_Z_(w_));
         break;
     }
 
     // INNER LOOP
     while (true) {
       // Check if max. number of iterations is reached
-      if ((0 < _max_iter) && (int(_num_ls) >= _max_iter)) return false;
+      if ((0 < max_iter_) && (num_ls_ >= max_iter_)) return false;
 
       // Solve LS problem in P only, this step is rather trivial as _addToP & _remFromP
       // updates the QR decomposition of A^P.
-      _solveLS_P(b);
+      solveLS_P_(b);
 
       // Check feasability...
       bool feasable = true;
       Scalar alpha = (std::numeric_limits<Scalar>::max)();
       Index remIdx;
-      for (Index i = 0; i < _Np; i++) {
-        Index idx = _P.indices()(i);
-        if (_y(idx) < 0) {
+      for (Index i = 0; i < Np_; i++) {
+        Index idx = P_.indices()(i);
+        if (y_(idx) < 0) {
           // t shoudl always be in [0,1].
-          Scalar t = -_x(idx) / (_y(idx) - _x(idx));
+          Scalar t = -x_(idx) / (y_(idx) - x_(idx));
           if (alpha > t) {
             alpha = t;
             remIdx = i;
@@ -366,18 +366,18 @@ bool NNLS<MatrixType>::solve(const ColVectorType &b, Heuristic heuristic) {
 
       // If solution is feasable, exit to outer loop
       if (feasable) {
-        _x = _y;
+        x_ = y_;
         break;
       }
 
       // Infeasable solution -> interpolate to feasable one
-      for (Index i = 0; i < _Np; i++) {
-        Index idx = _P.indices()(i);
-        _x(idx) += alpha * (_y(idx) - _x(idx));
+      for (Index i = 0; i < Np_; i++) {
+        Index idx = P_.indices()(i);
+        x_(idx) += alpha * (y_(idx) - x_(idx));
       }
 
       // Remove these indices from P and update QR decomposition
-      _remFromP(remIdx);
+      remFromP_(remIdx);
     }
   }
 }
@@ -390,67 +390,67 @@ void NNLS<MatrixType>::hat(HatMatrixType &H) const {
   // is given by H = P^T R^{-1} Q^T.
 
   /// @todo Avoid creation of complete Q matrix!!!
-  H.noalias() = QMatrixType(householderSequence(_QR, _qrCoeffs).transpose()).topRows(_A.cols());
-  _QR.topRightCorner(_A.cols(), _A.cols()).template triangularView<Upper>().solveInPlace(H);
-  H = _P * H;
+  H.noalias() = QMatrixType(householderSequence(QR_, qrCoeffs_).transpose()).topRows(A_.cols());
+  QR_.topRightCorner(A_.cols(), A_.cols()).template triangularView<Upper>().solveInPlace(H);
+  H = P_ * H;
 #ifdef EIGEN3_NNLS_DEBUG
-  std::cerr << "x: (" << _x.transpose() << ")" << std::endl;
-  std::cerr << "H^T * A * _x = (" << (H * _A * _x).transpose() << ")" << std::endl;
+  std::cerr << "x: (" << x_.transpose() << ")" << std::endl;
+  std::cerr << "H^T * A * _x = (" << (H * A_ * x_).transpose() << ")" << std::endl;
 #endif
 }
 
 template <typename MatrixType>
-void NNLS<MatrixType>::_addToP(Index idx) {
+void NNLS<MatrixType>::addToP_(Index idx) {
   // Update permutation matrix:
-  IndicesType &idxs = _P.indices();
+  IndicesType &idxs = P_.indices();
 #ifdef EIGEN3_NNLS_DEBUG
   std::cerr << "NNLS(): Add index " << idxs(idx) << "@" << idx << " to passive set ("
-            << _P.indices().head(_Np).transpose() << ")" << std::endl;
+            << P_.indices().head(Np_).transpose() << ")" << std::endl;
 #endif
 
-  std::swap(idxs(idx), idxs(_Np));
-  _Np++;
+  std::swap(idxs(idx), idxs(Np_));
+  Np_++;
 
   // Perform rank-1 update of the QR decomposition stored in _QR & _qrCoeff
-  internal::nnls_householder_qr_inplace_update(_QR, _qrCoeffs, _A.col(idxs(_Np - 1)), _Np - 1, _tempVector.data());
+  internal::nnls_householder_qr_inplace_update(QR_, qrCoeffs_, A_.col(idxs(Np_ - 1)), Np_ - 1, tempVector_.data());
 }
 
 template <typename MatrixType>
-void NNLS<MatrixType>::_remFromP(Index idx) {
+void NNLS<MatrixType>::remFromP_(Index idx) {
 #ifdef EIGEN3_NNLS_DEBUG
-  std::cerr << "NNLS(): Remove Idx " << _P.indices()(idx) << "@" << idx << " from passive set ("
-            << _P.indices().head(_Np).transpose() << ")" << std::endl;
+  std::cerr << "NNLS(): Remove Idx " << P_.indices()(idx) << "@" << idx << " from passive set ("
+            << P_.indices().head(Np_).transpose() << ")" << std::endl;
 #endif
   // swap index with last passive one & reduce number of passive columns
-  std::swap(_P.indices()(idx), _P.indices()(_Np - 1));
-  _Np--;
+  std::swap(P_.indices()(idx), P_.indices()(Np_ - 1));
+  Np_--;
   // Update QR decomposition starting from the removed index up to the end [idx, ..., _Np]
-  for (Index i = idx; i < _Np; i++) {
-    Index col = _P.indices()(i);
-    internal::nnls_householder_qr_inplace_update(_QR, _qrCoeffs, _A.col(col), i, _tempVector.data());
+  for (Index i = idx; i < Np_; i++) {
+    Index col = P_.indices()(i);
+    internal::nnls_householder_qr_inplace_update(QR_, qrCoeffs_, A_.col(col), i, tempVector_.data());
   }
 }
 
 template <typename MatrixType>
-void NNLS<MatrixType>::_solveLS_P(const ColVectorType &b) {
-  eigen_assert(_Np > 0);
+void NNLS<MatrixType>::solveLS_P_(const ColVectorType &b) {
+  eigen_assert(Np_ > 0);
   // Solve in permuted sub space
   ColVectorType tmp(b.rows());
   tmp.noalias() = b;
-  internal::nnls_householder_qr_inplace_solve(_QR, _qrCoeffs, tmp, _Np);
-  _y.setZero();
-  _y.head(_Np) = tmp.head(_Np);
+  internal::nnls_householder_qr_inplace_solve(QR_, qrCoeffs_, tmp, Np_);
+  y_.setZero();
+  y_.head(Np_) = tmp.head(Np_);
 #ifdef EIGEN3_NNLS_DEBUG
-  HouseholderQR<Matrix<Scalar, Dynamic, Dynamic> > qr((_A * _P).leftCols(_Np));
-  std::cerr << "NNLS(): Partial solution: (" << _y.head(_Np).transpose() << "); True: (" << qr.solve(b).transpose()
+  HouseholderQR<Matrix<Scalar, Dynamic, Dynamic> > qr((A_ * P_).leftCols(Np_));
+  std::cerr << "NNLS(): Partial solution: (" << y_.head(Np_).transpose() << "); True: (" << qr.solve(b).transpose()
             << ")" << std::endl;
 #endif
 
   // Back permute y into original column order of A
-  _y = _P * _y;
+  y_ = P_ * y_;
 
   // Increment LS counter
-  _num_ls++;
+  num_ls_++;
 }
 
 }  // namespace Eigen
