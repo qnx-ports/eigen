@@ -348,7 +348,7 @@ bool NNLS<MatrixType>::solve(const ColVectorType &b, Heuristic heuristic) {
       solveLS_P_(b);
 
       // Check feasability...
-      bool feasable = true;
+      bool feasible = true;
       Scalar alpha = NumTraits<Scalar>::highest();
       Index remIdx = -1;
       for (Index i = 0; i < Np_; i++) {
@@ -359,19 +359,19 @@ bool NNLS<MatrixType>::solve(const ColVectorType &b, Heuristic heuristic) {
           if (alpha > t) {
             alpha = t;
             remIdx = i;
-            feasable = false;
+            feasible = false;
           }
         }
       }
-      eigen_assert(feasable || 0 <= remIdx);
+      eigen_assert(feasible || 0 <= remIdx);
 
-      // If solution is feasable, exit to outer loop
-      if (feasable) {
+      // If solution is feasible, exit to outer loop
+      if (feasible) {
         x_ = y_;
         break;
       }
 
-      // Infeasable solution -> interpolate to feasable one
+      // Infeasible solution -> interpolate to feasible one
       for (Index i = 0; i < Np_; i++) {
         Index idx = P_.indices()(i);
         x_(idx) += alpha * (y_(idx) - x_(idx));
