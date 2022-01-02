@@ -156,14 +156,14 @@ struct evaluator<PartialReduxExpr<ArgType, MemberOp, Direction> >
     
     _ArgFlags = evaluator<ArgType>::Flags,
 
-    _Vectorizable =  bool(int(_ArgFlags)&PacketAccessBit)
+    Vectorizable_ =  bool(int(_ArgFlags)&PacketAccessBit)
                   && bool(MemberOp::Vectorizable)
                   && (Direction==int(Vertical) ? bool(_ArgFlags&RowMajorBit) : (_ArgFlags&RowMajorBit)==0)
                   && (TraversalSize!=0),
                   
     Flags = (traits<XprType>::Flags&RowMajorBit)
           | (evaluator<ArgType>::Flags&(HereditaryBits&(~RowMajorBit)))
-          | (_Vectorizable ? PacketAccessBit : 0)
+          | (Vectorizable_ ? PacketAccessBit : 0)
           | LinearAccessBit,
     
     Alignment = 0 // FIXME this will need to be improved once PartialReduxExpr is vectorized

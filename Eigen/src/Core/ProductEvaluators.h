@@ -847,13 +847,13 @@ public:
                            ||(int(StorageOrder_) == RowMajor && int(ProductOrder) == OnTheRight)),
     _SameTypes = is_same<typename MatrixType::Scalar, typename DiagonalType::Scalar>::value,
     // FIXME currently we need same types, but in the future the next rule should be the one
-    //_Vectorizable = bool(int(MatrixFlags)&PacketAccessBit) && ((!_PacketOnDiag) || (_SameTypes && bool(int(DiagFlags)&PacketAccessBit))),
-    _Vectorizable =   bool(int(MatrixFlags)&PacketAccessBit)
+    //Vectorizable_ = bool(int(MatrixFlags)&PacketAccessBit) && ((!_PacketOnDiag) || (_SameTypes && bool(int(DiagFlags)&PacketAccessBit))),
+    Vectorizable_ =   bool(int(MatrixFlags)&PacketAccessBit)
                   &&  _SameTypes
                   && (SameStorageOrder_ || (MatrixFlags&LinearAccessBit)==LinearAccessBit)
                   && (_ScalarAccessOnDiag || (bool(int(DiagFlags)&PacketAccessBit))),
     LinearAccessMask_ = (MatrixType::RowsAtCompileTime==1 || MatrixType::ColsAtCompileTime==1) ? LinearAccessBit : 0,
-    Flags = ((HereditaryBits|LinearAccessMask_) & (unsigned int)(MatrixFlags)) | (_Vectorizable ? PacketAccessBit : 0),
+    Flags = ((HereditaryBits|LinearAccessMask_) & (unsigned int)(MatrixFlags)) | (Vectorizable_ ? PacketAccessBit : 0),
     Alignment = evaluator<MatrixType>::Alignment,
 
     AsScalarProduct =     (DiagonalType::SizeAtCompileTime==1)
