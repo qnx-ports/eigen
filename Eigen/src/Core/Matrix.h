@@ -218,7 +218,7 @@ class Matrix
       return Base::_set(other);
     }
 
-#if EIGEN_COMP_CXXVER >= 20
+#if EIGEN_COMP_HAS_P0848R3
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE Matrix& operator=(
         const Matrix& other) requires internal::has_trivially_copyable_storage<Matrix>::value = default;
@@ -293,7 +293,7 @@ class Matrix
       return *this;
     }
 
-#if EIGEN_COMP_CXXVER >= 20
+#if EIGEN_COMP_HAS_P0848R3
     EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Matrix(Matrix&& other) EIGEN_NOEXCEPT
         requires internal::has_trivially_copyable_storage<Matrix>::value = default;
     EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Matrix& operator=(Matrix&& other) EIGEN_NOEXCEPT
@@ -425,7 +425,7 @@ class Matrix
     EIGEN_STRONG_INLINE Matrix(const Matrix& other) : Base(other)
     { }
 
-#if EIGEN_COMP_CXXVER >= 20
+#if EIGEN_COMP_HAS_P0848R3
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE Matrix(const Matrix& other) requires internal::has_trivially_copyable_storage<Matrix>::value =
         default;

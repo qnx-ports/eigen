@@ -124,7 +124,7 @@ class Array
       return Base::_set(other);
     }
 
-#if EIGEN_COMP_CXXVER >= 20
+#if EIGEN_COMP_HAS_P0848R3
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE Array& operator=(
         const Array& other) requires internal::has_trivially_copyable_storage<Array>::value = default;
@@ -169,7 +169,7 @@ class Array
       return *this;
     }
 
-#if EIGEN_COMP_CXXVER >= 20
+#if EIGEN_COMP_HAS_P0848R3
     EIGEN_DEVICE_FUNC Array(Array&& other) EIGEN_NOEXCEPT
         requires internal::has_trivially_copyable_storage<Array>::value = default;
     EIGEN_DEVICE_FUNC Array& operator=(Array&& other) EIGEN_NOEXCEPT
@@ -283,7 +283,7 @@ class Array
             : Base(other)
     { }
 
-#if EIGEN_COMP_CXXVER >= 20
+#if EIGEN_COMP_HAS_P0848R3
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE Array(const Array& other) requires internal::has_trivially_copyable_storage<Array>::value =
         default;

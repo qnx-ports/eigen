@@ -463,7 +463,7 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
       return _set(other);
     }
 
-#if EIGEN_COMP_CXXVER >= 20
+#if EIGEN_COMP_HAS_P0848R3
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE PlainObjectBase& operator=(
         const PlainObjectBase& other) requires internal::has_trivially_copyable_storage<Derived>::value = default;
@@ -520,7 +520,7 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
       return *this;
     }
 
-#if EIGEN_COMP_CXXVER >= 20
+#if EIGEN_COMP_HAS_P0848R3
     EIGEN_DEVICE_FUNC
     PlainObjectBase(PlainObjectBase&& other) EIGEN_NOEXCEPT
         requires internal::has_trivially_copyable_storage<Derived>::value = default;
@@ -535,7 +535,7 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
     EIGEN_STRONG_INLINE PlainObjectBase(const PlainObjectBase& other)
       : Base(), m_storage(other.m_storage) { }
 
-#if EIGEN_COMP_CXXVER >= 20
+#if EIGEN_COMP_HAS_P0848R3
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE PlainObjectBase(
         const PlainObjectBase& other) requires internal::has_trivially_copyable_storage<Derived>::value = default;
