@@ -37,7 +37,7 @@ struct traits<TensorCwiseNullaryOp<NullaryOp, XprType> >
   typedef traits<XprType> XprTraits;
   typedef typename XprType::Scalar Scalar;
   typedef typename XprType::Nested XprTypeNested;
-  typedef typename remove_reference<XprTypeNested>::type _XprTypeNested;
+  typedef typename remove_reference<XprTypeNested>::type XprTypeNested_;
   static const int NumDimensions = XprTraits::NumDimensions;
   static const int Layout = XprTraits::Layout;
   typedef typename XprTraits::PointerType PointerType;
@@ -88,7 +88,7 @@ struct traits<TensorCwiseUnaryOp<UnaryOp, XprType> >
   typedef typename result_of<UnaryOp(typename XprType::Scalar)>::type Scalar;
   typedef traits<XprType> XprTraits;
   typedef typename XprType::Nested XprTypeNested;
-  typedef typename remove_reference<XprTypeNested>::type _XprTypeNested;
+  typedef typename remove_reference<XprTypeNested>::type XprTypeNested_;
   static const int NumDimensions = XprTraits::NumDimensions;
   static const int Layout = XprTraits::Layout;
   typedef typename TypeConversion<Scalar, 
