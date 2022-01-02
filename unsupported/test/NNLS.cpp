@@ -43,7 +43,7 @@ void test_nnls_known_solution(const MatrixType &A, const VectorB &b, const Vecto
   using std::sqrt;
   const Scalar tolerance = sqrt(Eigen::GenericNumTraits<Scalar>::epsilon());
   Index max_iter = 5 * A.cols();  // A heuristic guess.
-  NNLS<MatrixType> nnls(A, static_cast<int>(max_iter), tolerance);
+  NNLS<MatrixType> nnls(A, max_iter, tolerance);
   const bool solved = nnls.solve(b);
   const auto x = nnls.x();
 
@@ -89,7 +89,7 @@ void test_nnls_random_problem() {
   const Scalar tolerance =
       sqrt(Eigen::GenericNumTraits<Scalar>::epsilon()) * b.cwiseAbs().maxCoeff() * A.cwiseAbs().maxCoeff();
   Index max_iter = 5 * A.cols();  // A heuristic guess.
-  NNLS<MatrixType> nnls(A, static_cast<int>(max_iter), tolerance);
+  NNLS<MatrixType> nnls(A, max_iter, tolerance);
   const bool solved = nnls.solve(b);
   const auto x = nnls.x();
 
