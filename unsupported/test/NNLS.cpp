@@ -11,6 +11,8 @@
 #include <unsupported/Eigen/NNLS>
 #include <iostream>
 
+/// Check that 'x' solves the NNLS optimization problem `min ||A*x-b|| s.t. 0 <= x`.
+/// The \p tolerance parameter is the absolute tolerance on the gradient, A'*(A*x-b).
 template <typename MatrixType, typename VectorB, typename VectorX, typename Scalar>
 void verify_nnls_optimality(const MatrixType &A, const VectorB &b, const VectorX &x, const Scalar tolerance) {
   // The NNLS optimality conditions are:
@@ -26,12 +28,12 @@ void verify_nnls_optimality(const MatrixType &A, const VectorB &b, const VectorX
 
   // NNLS solutions are EXACTLY not negative.
   VERIFY_LE(0, x.minCoeff());
+
   // Exact lambda would be non-negative, but computed lambda might leak a little
   VERIFY_LE(-tolerance, lambda.minCoeff());
-  // x[i]*lambda[i] == 0
-  // <--> max(abs(x[i]*lambda[i])) == 0
-  const Scalar maxComplementarity = (lambda.array() * x.array()).cwiseAbs().maxCoeff();
-  VERIFY_LE(maxComplementarity, tolerance);
+
+  // x[i]*lambda[i] == 0 <~~> (x[i]==0) || (lambda[i] is small)
+  VERIFY(((x.array() == 0) || (lambda.array() <= tolerance)).all());
 }
 
 template <typename MatrixType, typename VectorB, typename VectorX>
@@ -51,39 +53,51 @@ void test_nnls_known_solution(const MatrixType &A, const VectorB &b, const Vecto
 }
 
 template <typename MatrixType>
-MatrixType random_full_column_rank() {
+void test_nnls_random_problem() {
+  //
+  // SETUP
+  //
+
   Index cols = MatrixType::ColsAtCompileTime;
   if (cols == Dynamic) cols = internal::random<Index>(1, EIGEN_TEST_MAX_SIZE);
-
-  // To have a unique solution: rows >= cols.
   Index rows = MatrixType::RowsAtCompileTime;
   if (rows == Dynamic) rows = internal::random<Index>(cols, EIGEN_TEST_MAX_SIZE);
+  VERIFY_LE(cols, rows);  // To have a unique LS solution: cols <= rows.
 
-  MatrixType A;
-  do {
-    // To have a unique solution, `A` must be full rank.
-    // A Random() matrix might not be full rank, but the probability is very low.
-    A = MatrixType::Random(rows, cols);
-  } while (A.colPivHouseholderQr().rank() != cols);
+  // Make some sort of random test problem from a wide range of scales and condition numbers.
+  using std::pow;
+  using Scalar = typename MatrixType::Scalar;
+  const Scalar sqrtConditionNumber = pow(Scalar(10), internal::random<Scalar>(0, 2));
+  const Scalar scaleA = pow(Scalar(10), internal::random<Scalar>(-3, 3));
+  const Scalar minSingularValue = scaleA / sqrtConditionNumber;
+  const Scalar maxSingularValue = scaleA * sqrtConditionNumber;
+  const auto svs = setupRangeSvs<Matrix<Scalar, Dynamic, 1>>(cols, minSingularValue, maxSingularValue);
+  MatrixType A(rows, cols);
+  generateRandomMatrixSvs(svs, rows, cols, A);
 
-  return A;
-}
-
-template <typename MatrixType>
-void test_nnls_random_problem() {
-  const MatrixType A = random_full_column_rank<MatrixType>();
+  // Make a random RHS also with a random scaling.
   using VectorB = decltype(A.col(0).eval());
-  const VectorB b = VectorB::Random(A.rows());
+  const Scalar scaleB = pow(Scalar(10), internal::random<Scalar>(-3, 3));
+  const VectorB b = scaleB * VectorB::Random(A.rows());
+
+  //
+  // ACT
+  //
 
   using Scalar = typename MatrixType::Scalar;
-
   using std::sqrt;
-  const Scalar tolerance = sqrt(Eigen::GenericNumTraits<Scalar>::epsilon());
+  const Scalar tolerance =
+      sqrt(Eigen::GenericNumTraits<Scalar>::epsilon()) * b.cwiseAbs().maxCoeff() * A.cwiseAbs().maxCoeff();
   Index max_iter = 5 * A.cols();  // A heuristic guess.
   NNLS<MatrixType> nnls(A, static_cast<int>(max_iter), tolerance);
   const bool solved = nnls.solve(b);
   const auto x = nnls.x();
 
+  //
+  // VERIFY
+  //
+
+  VERIFY(solved);  // In fact, NNLS can fail on some problems, but they are rare in practice.
   verify_nnls_optimality(A, b, x, tolerance);
 }
 
