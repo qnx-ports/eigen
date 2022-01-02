@@ -845,11 +845,11 @@ public:
 
     ScalarAccessOnDiag_ =  !((int(StorageOrder_) == ColMajor && int(ProductOrder) == OnTheLeft)
                            ||(int(StorageOrder_) == RowMajor && int(ProductOrder) == OnTheRight)),
-    _SameTypes = is_same<typename MatrixType::Scalar, typename DiagonalType::Scalar>::value,
+    SameTypes_ = is_same<typename MatrixType::Scalar, typename DiagonalType::Scalar>::value,
     // FIXME currently we need same types, but in the future the next rule should be the one
-    //Vectorizable_ = bool(int(MatrixFlags)&PacketAccessBit) && ((!_PacketOnDiag) || (_SameTypes && bool(int(DiagFlags)&PacketAccessBit))),
+    //Vectorizable_ = bool(int(MatrixFlags)&PacketAccessBit) && ((!_PacketOnDiag) || (SameTypes_ && bool(int(DiagFlags)&PacketAccessBit))),
     Vectorizable_ =   bool(int(MatrixFlags)&PacketAccessBit)
-                  &&  _SameTypes
+                  &&  SameTypes_
                   && (SameStorageOrder_ || (MatrixFlags&LinearAccessBit)==LinearAccessBit)
                   && (ScalarAccessOnDiag_ || (bool(int(DiagFlags)&PacketAccessBit))),
     LinearAccessMask_ = (MatrixType::RowsAtCompileTime==1 || MatrixType::ColsAtCompileTime==1) ? LinearAccessBit : 0,
