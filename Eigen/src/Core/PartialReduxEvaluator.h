@@ -154,11 +154,11 @@ struct evaluator<PartialReduxExpr<ArgType, MemberOp, Direction> >
                   : TraversalSize==0 ? 1
                   : int(TraversalSize) * int(evaluator<ArgType>::CoeffReadCost) + int(CostOpType::value),
     
-    _ArgFlags = evaluator<ArgType>::Flags,
+    ArgFlags_ = evaluator<ArgType>::Flags,
 
-    Vectorizable_ =  bool(int(_ArgFlags)&PacketAccessBit)
+    Vectorizable_ =  bool(int(ArgFlags_)&PacketAccessBit)
                   && bool(MemberOp::Vectorizable)
-                  && (Direction==int(Vertical) ? bool(_ArgFlags&RowMajorBit) : (_ArgFlags&RowMajorBit)==0)
+                  && (Direction==int(Vertical) ? bool(ArgFlags_&RowMajorBit) : (ArgFlags_&RowMajorBit)==0)
                   && (TraversalSize!=0),
                   
     Flags = (traits<XprType>::Flags&RowMajorBit)
