@@ -113,10 +113,13 @@ class NNLS {
   }
 
   /** \brief Solves the NNLS problem.
-   * The dimension of @c b must be equal to the number of rows of @c A, given to the constructor
-   * (of cause). Returns @c true on success and @c false otherwise. The solution can be obtained
-   * by the @c x method. */
-  bool solve(const ColVectorType &b, Heuristic heuristic = MAX_DESCENT);
+   *
+   * The dimension of @c b must be equal to the number of rows of @c A, given to the constructor.
+   *
+   * \returns The approximate solution vector \f$ x \f$. Use info() to determine if the solve was a success or not.
+   * \sa info()
+   */
+  const RowVectorType &solve(const ColVectorType &b, Heuristic heuristic = MAX_DESCENT);
 
   /** \brief Returns the solution if a problem was solved.
    * If not, an uninitialized vector may be returned. */
@@ -170,11 +173,8 @@ class NNLS {
   static inline bool solve(const MatrixType &A, const ColVectorType &b, RowVectorType &x, Index max_iter = -1,
                            typename MatrixType::Scalar tol = NumTraits<Scalar>::dummy_precision()) {
     NNLS<MatrixType> nnls(A, max_iter, tol);
-    if (!nnls.solve(b)) {
-      return false;
-    }
-    x.noalias() = nnls.x();
-    return true;
+    x.noalias() = nnls.solve(b);
+    return nnls.info() == ComputationInfo::Success;
   }
 
  protected:
@@ -337,7 +337,7 @@ void nnls_householder_qr_inplace_solve(const MatrixQR &mat, const HCoeffs &hCoef
 }  // namespace internal
 
 template <typename MatrixType>
-bool NNLS<MatrixType>::solve(const ColVectorType &b, Heuristic heuristic) {
+const typename NNLS<MatrixType>::RowVectorType &NNLS<MatrixType>::solve(const ColVectorType &b, Heuristic heuristic) {
 #ifdef EIGEN3_NNLS_DEBUG
   std::cerr << "NNLS(): Start..." << std::endl;
   QR_.setZero();
@@ -366,7 +366,7 @@ bool NNLS<MatrixType>::solve(const ColVectorType &b, Heuristic heuristic) {
     // Check if system is solved:
     if ((A_.cols() == Np_) || ((max_Z_(w_) - tolerance_) < 0)) {
       info_ = ComputationInfo::Success;
-      return true;
+      return x_;
     }
 
     switch (heuristic) {
@@ -381,7 +381,7 @@ bool NNLS<MatrixType>::solve(const ColVectorType &b, Heuristic heuristic) {
       // Check if max. number of iterations is reached
       if ((0 < max_iter_) && (iterations_ >= max_iter_)) {
         info_ = ComputationInfo::NoConvergence;
-        return false;
+        return x_;
       }
 
       // Solve LS problem in P only, this step is rather trivial as _addToP & _remFromP

@@ -44,10 +44,9 @@ void test_nnls_known_solution(const MatrixType &A, const VectorB &b, const Vecto
   const Scalar tolerance = sqrt(Eigen::GenericNumTraits<Scalar>::epsilon());
   Index max_iter = 5 * A.cols();  // A heuristic guess.
   NNLS<MatrixType> nnls(A, max_iter, tolerance);
-  const bool solved = nnls.solve(b);
-  const auto x = nnls.x();
+  const auto x = nnls.solve(b);
 
-  VERIFY(solved);
+  VERIFY_IS_EQUAL(nnls.info(), ComputationInfo::Success);
   VERIFY_IS_APPROX(x, x_expected);
   verify_nnls_optimality(A, b, x, tolerance);
 }
@@ -90,14 +89,14 @@ void test_nnls_random_problem() {
       sqrt(Eigen::GenericNumTraits<Scalar>::epsilon()) * b.cwiseAbs().maxCoeff() * A.cwiseAbs().maxCoeff();
   Index max_iter = 5 * A.cols();  // A heuristic guess.
   NNLS<MatrixType> nnls(A, max_iter, tolerance);
-  const bool solved = nnls.solve(b);
-  const auto x = nnls.x();
+  const auto x = nnls.solve(b);
 
   //
   // VERIFY
   //
 
-  VERIFY(solved);  // In fact, NNLS can fail on some problems, but they are rare in practice.
+  // In fact, NNLS can fail on some problems, but they are rare in practice.
+  VERIFY_IS_EQUAL(nnls.info(), ComputationInfo::Success);
   verify_nnls_optimality(A, b, x, tolerance);
 }
 
@@ -184,10 +183,9 @@ void test_nnls_with_half_precision() {
   Vec b = Vec::Random();
 
   NNLS<Mat> nnls(A, 20, half(1e-2f));
-  const bool solved = nnls.solve(b);
-  const auto x = nnls.x();
+  const auto x = nnls.solve(b);
 
-  VERIFY(solved);
+  VERIFY_IS_EQUAL(nnls.info(), ComputationInfo::Success);
   verify_nnls_optimality(A, b, x, half(1e-1));
 }
 
@@ -212,9 +210,9 @@ void test_nnls_special_case_solves_in_zero_iterations() {
   A = A * alignment.asDiagonal();
 
   NNLS<MatrixXd> nnls(A);
-  const bool solved = nnls.solve(b);
+  nnls.solve(b);
 
-  VERIFY(solved);
+  VERIFY_IS_EQUAL(nnls.info(), ComputationInfo::Success);
   VERIFY(nnls.iterations() == 0);
 }
 
@@ -236,9 +234,9 @@ void test_nnls_special_case_solves_in_n_iterations() {
   const VectorXd b = A * x;
 
   NNLS<MatrixXd> nnls(A);
-  const bool solved = nnls.solve(b);
+  nnls.solve(b);
 
-  VERIFY(solved);
+  VERIFY_IS_EQUAL(nnls.info(), ComputationInfo::Success);
   VERIFY(nnls.iterations() == n);
 }
 
@@ -257,10 +255,9 @@ void test_nnls_returns_NoConvergence_when_maxIterations_is_too_low() {
   NNLS<MatrixXd> nnls(A);
   const Index max_iters = n - 1;
   nnls.setMaxIterations(max_iters);
-  const bool solved = nnls.solve(b);
+  nnls.solve(b);
 
-  VERIFY(!solved);
-  VERIFY(nnls.info() == ComputationInfo::NoConvergence);
+  VERIFY_IS_EQUAL(nnls.info(), ComputationInfo::NoConvergence);
   VERIFY(nnls.iterations() == max_iters);
 }
 
