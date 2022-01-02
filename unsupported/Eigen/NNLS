@@ -223,7 +223,7 @@ class NNLS {
   /** Solves the LS problem \f$\left\Vert y-A^Px\right\Vert_2^2\f$. */
   void solveLS_P_(const ColVectorType &b);
 
-  /** Updates the gradient \c _w using the current partial solution \c _x. */
+  /** Updates the gradient \c w_ using the current partial solution \c x_. */
   void updateGradient_() {
     // w <- A^T b - A^TA x
     w_ = Atb_ - AtA_ * x_;
@@ -256,12 +256,12 @@ class NNLS {
   RowVectorType y_;
   /** Precomputed product \f$A^Tb\f$. */
   RowVectorType Atb_;
-  /** Holds the current permutation matrix, the first @c _Np columns form the set P and the rest
+  /** Holds the current permutation matrix, the first @c Np_ columns form the set P and the rest
    * the set Z. */
   PermutationType P_;
-  /** QR decomposition to solve the (passive) sub system (together with @c _qrCoeffs). */
+  /** QR decomposition to solve the (passive) sub system (together with @c qrCoeffs_). */
   MatrixType QR_;
-  /** QR decomposition to solve the (passive) sub system (together with @c _QR). */
+  /** QR decomposition to solve the (passive) sub system (together with @c QR_). */
   RowVectorType qrCoeffs_;
   /** Some workspace for QR decomposition. */
   RowVectorType tempVector_;
@@ -342,8 +342,8 @@ const typename NNLS<MatrixType>::RowVectorType &NNLS<MatrixType>::solve(const Co
   info_ = ComputationInfo::NumericalIssue;
   x_.setZero();
 
-  // Together with _Np, P separates the space of coefficients into a active (Z) and passive (P)
-  // set. The first _Np elements form the passive set P and the remaining elements form the
+  // Together with Np_, P separates the space of coefficients into a active (Z) and passive (P)
+  // set. The first Np_ elements form the passive set P and the remaining elements form the
   // active set Z.
   P_.setIdentity();
   Np_ = 0;
@@ -353,7 +353,7 @@ const typename NNLS<MatrixType>::RowVectorType &NNLS<MatrixType>::solve(const Co
 
   // OUTER LOOP
   while (true) {
-    // Update gradient _w
+    // Update gradient w_
     updateGradient_();
 
     // Check if system is solved:
@@ -376,7 +376,7 @@ const typename NNLS<MatrixType>::RowVectorType &NNLS<MatrixType>::solve(const Co
         return x_;
       }
 
-      // Solve LS problem in P only, this step is rather trivial as _addToP & _remFromP
+      // Solve LS problem in P only, this step is rather trivial as A_ddToP & remFromP_
       // updates the QR decomposition of A^P.
       solveLS_P_(b);
 
@@ -418,8 +418,8 @@ const typename NNLS<MatrixType>::RowVectorType &NNLS<MatrixType>::solve(const Co
 
 template <typename MatrixType>
 void NNLS<MatrixType>::hat(HatMatrixType &H) const {
-  // After a call to solve(), the matrix _QR together with _qrCoeff holds the QR decomposition
-  // of A^P, the matrix A with its column permuted according to the permutation matrix _P.
+  // After a call to solve(), the matrix QR_ together with qrCoeff_ holds the QR decomposition
+  // of A^P, the matrix A with its column permuted according to the permutation matrix P_.
   // This means that the solution is actually given by Q R P x = b and the associated hat matrix
   // is given by H = P^T R^{-1} Q^T.
 
@@ -429,7 +429,7 @@ void NNLS<MatrixType>::hat(HatMatrixType &H) const {
   H = P_ * H;
 #ifdef EIGEN3_NNLS_DEBUG
   std::cerr << "x: (" << x_.transpose() << ")" << std::endl;
-  std::cerr << "H^T * A * _x = (" << (H * A_ * x_).transpose() << ")" << std::endl;
+  std::cerr << "H^T * A * x_ = (" << (H * A_ * x_).transpose() << ")" << std::endl;
 #endif
 }
 
@@ -445,7 +445,7 @@ void NNLS<MatrixType>::addToP_(Index idx) {
   std::swap(idxs(idx), idxs(Np_));
   Np_++;
 
-  // Perform rank-1 update of the QR decomposition stored in _QR & _qrCoeff
+  // Perform rank-1 update of the QR decomposition stored in QR_ & qrCoeff_
   internal::nnls_householder_qr_inplace_update(QR_, qrCoeffs_, A_.col(idxs(Np_ - 1)), Np_ - 1, tempVector_.data());
 }
 
@@ -458,7 +458,7 @@ void NNLS<MatrixType>::remFromP_(Index idx) {
   // swap index with last passive one & reduce number of passive columns
   std::swap(P_.indices()(idx), P_.indices()(Np_ - 1));
   Np_--;
-  // Update QR decomposition starting from the removed index up to the end [idx, ..., _Np]
+  // Update QR decomposition starting from the removed index up to the end [idx, ..., Np_]
   for (Index i = idx; i < Np_; i++) {
     Index col = P_.indices()(i);
     internal::nnls_householder_qr_inplace_update(QR_, qrCoeffs_, A_.col(col), i, tempVector_.data());
