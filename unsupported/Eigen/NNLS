@@ -141,9 +141,6 @@ class NNLS {
     return true;
   }
 
-  /** \brief This method checks if the Karush-Kuhn-Tucker (KKT) conditions are satisfied by the solution. */
-  bool check(const ColVectorType &b);
-
  protected:
   /** Searches for the index in Z with the largest value of @c v
    *  (\f$argmax v^P\f$) . */
@@ -450,19 +447,6 @@ void NNLS<MatrixType>::_solveLS_P(const ColVectorType &b) {
 
   // Increment LS counter
   _num_ls++;
-}
-
-template <typename MatrixType>
-bool NNLS<MatrixType>::check(const ColVectorType &b) {
-  // Check if x is positive:
-  for (Index i = 0; i < _A.cols(); i++) {
-    if (0 > _x(i)) {
-      return false;
-    }
-  }
-  // Check for optimality (gradient):
-  ColVectorType tmp1 = _A * _x;
-  return std::abs((tmp1 - b).transpose() * tmp1) <= _epsilon;
 }
 
 }  // namespace Eigen
