@@ -87,14 +87,14 @@ class NNLS {
    * \param max_iter Specifies the maximum number of iterations to solve the system, if
    *        @c max_iter<0 there is no limit and the algorithm will only return on convergence.
    *        Beware: that may cause an infinite loop, as this algorithm does not guarantee convergence.
-   * \param eps Specifies the precision of the optimum.
+   * \param tol Specifies the precision of the optimum.
    *        This is an absolute tolerance on the gradient of the Lagrangian, \f$A^T(Ax-b)-\lambda\f$
    *        (with Lagrange multipliers \f$\lambda\f$).
    */
-  NNLS(const MatrixType &A, Index max_iter = -1, Scalar eps = NumTraits<Scalar>::dummy_precision())
+  NNLS(const MatrixType &A, Index max_iter = -1, Scalar tol = NumTraits<Scalar>::dummy_precision())
       : max_iter_(max_iter),
         num_ls_(0),
-        epsilon_(eps),
+        tolerance_(tol),
         A_(A),
         AtA_(A.cols(), A.cols()),
         x_(A.cols()),
@@ -121,6 +121,21 @@ class NNLS {
    * If not, an uninitialized vector may be returned. */
   inline const RowVectorType &x() const { return x_; }
 
+  /** \returns the tolerance threshold used by the stopping criteria.
+   * \sa setTolerance()
+   */
+  Scalar tolerance() const { return tolerance_; }
+
+  /** Sets the tolerance threshold used by the stopping criteria.
+   *
+   * This is an absolute tolerance on the gradient of the Lagrangian, \f$A^T(Ax-b)-\lambda\f$
+   * (with Lagrange multipliers \f$\lambda\f$).
+   */
+  NNLS<MatrixType> &setTolerance(const Scalar &tolerance) {
+    tolerance_ = tolerance;
+    return *this;
+  }
+
   /** \brief Returns the hat-matrix mapping \f$b\f$ to the coefficients \f$x\f$ as \f$x = H b\f$
    * such that \f$x\f$ minimizes NNLS problem.
    * Please note that in constrast to unconstrained LS, the hat matrix does not necessarily imply
@@ -136,8 +151,8 @@ class NNLS {
    *         \f$ \min \left\Vert Ax-b\right\Vert_2^2\quad s.t.\, x\ge 0 \f$.
    * Returns @c true on success and @c false otherwise. The result is stored in @c x on exit. */
   static inline bool solve(const MatrixType &A, const ColVectorType &b, RowVectorType &x, Index max_iter = -1,
-                           typename MatrixType::Scalar eps = NumTraits<Scalar>::dummy_precision()) {
-    NNLS<MatrixType> nnls(A, max_iter, eps);
+                           typename MatrixType::Scalar tol = NumTraits<Scalar>::dummy_precision()) {
+    NNLS<MatrixType> nnls(A, max_iter, tol);
     if (!nnls.solve(b)) {
       return false;
     }
@@ -216,7 +231,7 @@ class NNLS {
   /** Size of the P (passive) set. */
   Index Np_;
   /** Accuracy of the algorithm w.r.t the optimality of the solution (gradient). */
-  Scalar epsilon_;
+  Scalar tolerance_;
   /** The system matrix, a copy of the one given to the constructor. */
   MatrixType A_;
   /** Precomputed product \f$A^TA\f$. */
@@ -329,7 +344,7 @@ bool NNLS<MatrixType>::solve(const ColVectorType &b, Heuristic heuristic) {
     updateGradient_();
 
     // Check if system is solved:
-    if ((A_.cols() == Np_) || ((max_Z_(w_) - epsilon_) < 0)) return true;
+    if ((A_.cols() == Np_) || ((max_Z_(w_) - tolerance_) < 0)) return true;
 
     switch (heuristic) {
       // find index of max descent and add it to P
