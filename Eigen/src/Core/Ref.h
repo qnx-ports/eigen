@@ -16,16 +16,16 @@ namespace Eigen {
 
 namespace internal {
 
-template<typename _PlainObjectType, int Options_, typename _StrideType>
-struct traits<Ref<_PlainObjectType, Options_, _StrideType> >
-  : public traits<Map<_PlainObjectType, Options_, _StrideType> >
+template<typename PlainObjectType_, int Options_, typename _StrideType>
+struct traits<Ref<PlainObjectType_, Options_, _StrideType> >
+  : public traits<Map<PlainObjectType_, Options_, _StrideType> >
 {
-  typedef _PlainObjectType PlainObjectType;
+  typedef PlainObjectType_ PlainObjectType;
   typedef _StrideType StrideType;
   enum {
     Options = Options_,
-    Flags = traits<Map<_PlainObjectType, Options_, _StrideType> >::Flags | NestByRefBit,
-    Alignment = traits<Map<_PlainObjectType, Options_, _StrideType> >::Alignment
+    Flags = traits<Map<PlainObjectType_, Options_, _StrideType> >::Flags | NestByRefBit,
+    Alignment = traits<Map<PlainObjectType_, Options_, _StrideType> >::Alignment
   };
 
   template<typename Derived> struct match {
