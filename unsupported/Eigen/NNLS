@@ -349,7 +349,7 @@ bool NNLS<MatrixType>::solve(const ColVectorType &b, Heuristic heuristic) {
 
       // Check feasability...
       bool feasable = true;
-      Scalar alpha = (std::numeric_limits<Scalar>::max)();
+      Scalar alpha = NumTraits<Scalar>::highest();
       Index remIdx;
       for (Index i = 0; i < Np_; i++) {
         Index idx = P_.indices()(i);
