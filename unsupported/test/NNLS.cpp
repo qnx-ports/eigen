@@ -33,7 +33,7 @@ void verify_nnls_optimality(const MatrixType &A, const VectorB &b, const VectorX
   VERIFY_LE(-tolerance, lambda.minCoeff());
 
   // x[i]*lambda[i] == 0 <~~> (x[i]==0) || (lambda[i] is small)
-  VERIFY(((x.array() == 0) || (lambda.array() <= tolerance)).all());
+  VERIFY(((x.array() == Scalar(0)) || (lambda.array() <= tolerance)).all());
 }
 
 template <typename MatrixType, typename VectorB, typename VectorX>
@@ -67,8 +67,8 @@ void test_nnls_random_problem() {
   // Make some sort of random test problem from a wide range of scales and condition numbers.
   using std::pow;
   using Scalar = typename MatrixType::Scalar;
-  const Scalar sqrtConditionNumber = pow(Scalar(10), internal::random<Scalar>(0, 2));
-  const Scalar scaleA = pow(Scalar(10), internal::random<Scalar>(-3, 3));
+  const Scalar sqrtConditionNumber = pow(Scalar(10), internal::random<Scalar>(Scalar(0), Scalar(2)));
+  const Scalar scaleA = pow(Scalar(10), internal::random<Scalar>(Scalar(-3), Scalar(3)));
   const Scalar minSingularValue = scaleA / sqrtConditionNumber;
   const Scalar maxSingularValue = scaleA * sqrtConditionNumber;
   const auto svs = setupRangeSvs<Matrix<Scalar, Dynamic, 1>>(cols, minSingularValue, maxSingularValue);
@@ -77,7 +77,7 @@ void test_nnls_random_problem() {
 
   // Make a random RHS also with a random scaling.
   using VectorB = decltype(A.col(0).eval());
-  const Scalar scaleB = pow(Scalar(10), internal::random<Scalar>(-3, 3));
+  const Scalar scaleB = pow(Scalar(10), internal::random<Scalar>(Scalar(-3), Scalar(3)));
   const VectorB b = scaleB * VectorB::Random(A.rows());
 
   //
@@ -174,8 +174,26 @@ void test_known_problems() {
   test_nnls_known_5();
 }
 
+void test_nnls_with_half_precision() {
+  // The random matrix generation tools don't work with `half`,
+  // so here's a simpler setup mostly just to check that NNLS compiles & runs with custom scalar types.
+
+  using Mat = Matrix<half, 4, 4>;
+  using Vec = Matrix<half, 4, 1>;
+  Mat A = Mat::Random();
+  Vec b = Vec::Random();
+
+  NNLS<Mat> nnls(A, 20, half(1e-2f));
+  const bool solved = nnls.solve(b);
+  const auto x = nnls.x();
+
+  VERIFY(solved);
+  verify_nnls_optimality(A, b, x, half(1e-1));
+}
+
 EIGEN_DECLARE_TEST(NNLS) {
   test_known_problems();
+  test_nnls_with_half_precision();
   for (int i = 0; i < g_repeat; i++) {
     test_nnls_random_problem<MatrixXf>();
     test_nnls_random_problem<MatrixXd>();
