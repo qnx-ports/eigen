@@ -75,13 +75,6 @@ class NNLS {
   typedef PermutationMatrix<ColsAtCompileTime, ColsAtCompileTime, Index> PermutationType;
   typedef typename PermutationType::IndicesType IndicesType;
 
-  /** Defines the possible heuristic to choose the next parameter for the system update.
-   * Currently there is only one, @c MAX_DESCENT, which chooses the one with the largest
-   * gradient. */
-  typedef enum {
-    MAX_DESCENT  ///< Choose the one with the largest gradient.
-  } Heuristic;
-
   /** \brief Constructs a NNLS sovler and initializes it with the given system matrix @c A.
    * \param A Specifies the system matrix.
    * \param max_iter Specifies the maximum number of iterations to solve the system, if
@@ -119,7 +112,7 @@ class NNLS {
    * \returns The approximate solution vector \f$ x \f$. Use info() to determine if the solve was a success or not.
    * \sa info()
    */
-  const RowVectorType &solve(const ColVectorType &b, Heuristic heuristic = MAX_DESCENT);
+  const RowVectorType &solve(const ColVectorType &b);
 
   /** \brief Returns the solution if a problem was solved.
    * If not, an uninitialized vector may be returned. */
@@ -337,7 +330,7 @@ void nnls_householder_qr_inplace_solve(const MatrixQR &mat, const HCoeffs &hCoef
 }  // namespace internal
 
 template <typename MatrixType>
-const typename NNLS<MatrixType>::RowVectorType &NNLS<MatrixType>::solve(const ColVectorType &b, Heuristic heuristic) {
+const typename NNLS<MatrixType>::RowVectorType &NNLS<MatrixType>::solve(const ColVectorType &b) {
 #ifdef EIGEN3_NNLS_DEBUG
   std::cerr << "NNLS(): Start..." << std::endl;
   QR_.setZero();
@@ -369,12 +362,11 @@ const typename NNLS<MatrixType>::RowVectorType &NNLS<MatrixType>::solve(const Co
       return x_;
     }
 
-    switch (heuristic) {
-      // find index of max descent and add it to P
-      case MAX_DESCENT:
-        addToP_(argmax_Z_(w_));
-        break;
-    }
+    // We need a heuristic to choose the next parameter for the system update.
+    // We choose the one with largest gradient.
+    // Other heuristics are possible, but unimplemented.
+    // Here is where those other options would go.
+    addToP_(argmax_Z_(w_));
 
     // INNER LOOP
     while (true) {
