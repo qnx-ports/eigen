@@ -20,10 +20,6 @@
  * where \f$A^P\f$ is a matrix formed by selecting all columns of A which are in the passive set
  * \f$P\f$. */
 
-#ifdef EIGEN3_NNLS_DEBUG
-#include <iostream>
-#endif
-
 #ifndef __EIGEN_NNLS_H__
 #define __EIGEN_NNLS_H__
 
@@ -207,9 +203,6 @@ class NNLS {
   void updateGradient_() {
     // w <- A^T b - A^TA x
     w_ = Atb_ - AtA_ * x_;
-#ifdef EIGEN3_NNLS_DEBUG
-    std::cerr << "NNLS(): Gradient at (" << x_.transpose() << ") = (" << w_.transpose() << ")" << std::endl;
-#endif
   }
 
  protected:
@@ -314,12 +307,6 @@ void nnls_householder_qr_inplace_solve(const MatrixQR &mat, const HCoeffs &hCoef
 
 template <typename MatrixType>
 const typename NNLS<MatrixType>::RowVectorType &NNLS<MatrixType>::solve(const ColVectorType &b) {
-#ifdef EIGEN3_NNLS_DEBUG
-  std::cerr << "NNLS(): Start..." << std::endl;
-  QR_.setZero();
-  qrCoeffs_.setZero();
-#endif
-
   // Initialize solver
   iterations_ = 0;
   info_ = ComputationInfo::NumericalIssue;
@@ -405,10 +392,6 @@ template <typename MatrixType>
 void NNLS<MatrixType>::addToP_(Index idx) {
   // Update permutation matrix:
   IndicesType &idxs = P_.indices();
-#ifdef EIGEN3_NNLS_DEBUG
-  std::cerr << "NNLS(): Add index " << idxs(idx) << "@" << idx << " to passive set ("
-            << P_.indices().head(Np_).transpose() << ")" << std::endl;
-#endif
 
   std::swap(idxs(idx), idxs(Np_));
   Np_++;
@@ -419,10 +402,6 @@ void NNLS<MatrixType>::addToP_(Index idx) {
 
 template <typename MatrixType>
 void NNLS<MatrixType>::removeFromP_(Index idx) {
-#ifdef EIGEN3_NNLS_DEBUG
-  std::cerr << "NNLS(): Remove Idx " << P_.indices()(idx) << "@" << idx << " from passive set ("
-            << P_.indices().head(Np_).transpose() << ")" << std::endl;
-#endif
   // swap index with last passive one & reduce number of passive columns
   std::swap(P_.indices()(idx), P_.indices()(Np_ - 1));
   Np_--;
@@ -436,22 +415,16 @@ void NNLS<MatrixType>::removeFromP_(Index idx) {
 template <typename MatrixType>
 void NNLS<MatrixType>::solveLS_P_(const ColVectorType &b) {
   eigen_assert(Np_ > 0);
+
   // Solve in permuted sub space
   tempColVector_ = b;
   internal::nnls_householder_qr_inplace_solve(QR_, qrCoeffs_, tempColVector_, Np_);
   y_.head(Np_) = tempColVector_.head(Np_);
   y_.tail(y_.size() - Np_).setZero();
 
-#ifdef EIGEN3_NNLS_DEBUG
-  HouseholderQR<Matrix<Scalar, Dynamic, Dynamic> > qr((A_ * P_).leftCols(Np_));
-  std::cerr << "NNLS(): Partial solution: (" << y_.head(Np_).transpose() << "); True: (" << qr.solve(b).transpose()
-            << ")" << std::endl;
-#endif
-
   // Back permute y into original column order of A
   y_ = P_ * y_;
 
-  // Increment LS counter
   iterations_++;
 }
 
