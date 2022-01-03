@@ -124,6 +124,79 @@ void test_nnls_handles_zero_rhs() {
   VERIFY_IS_EQUAL(x, VectorXd::Zero(cols));
 }
 
+void test_nnls_handles_Mx0_matrix() {
+  //
+  // SETUP
+  //
+  const Index rows = internal::random<Index>(1, EIGEN_TEST_MAX_SIZE);
+  const MatrixXd A(rows, 0);
+  const VectorXd b = VectorXd::Random(rows);
+
+  //
+  // ACT
+  //
+  NNLS<MatrixXd> nnls(A);
+  const auto x = nnls.solve(b);
+
+  //
+  // VERIFY
+  //
+  VERIFY_IS_EQUAL(nnls.info(), ComputationInfo::Success);
+  VERIFY_LE(nnls.iterations(), 0);
+  VERIFY_IS_EQUAL(x.size(), 0);
+}
+
+void test_nnls_handles_0x0_matrix() {
+  //
+  // SETUP
+  //
+  const MatrixXd A(0, 0);
+  const VectorXd b(0);
+
+  //
+  // ACT
+  //
+  NNLS<MatrixXd> nnls(A);
+  const auto x = nnls.solve(b);
+
+  //
+  // VERIFY
+  //
+  VERIFY_IS_EQUAL(nnls.info(), ComputationInfo::Success);
+  VERIFY_LE(nnls.iterations(), 0);
+  VERIFY_IS_EQUAL(x.size(), 0);
+}
+
+void test_nnls_handles_dependent_columns() {
+  //
+  // SETUP
+  //
+  const Index rank = internal::random<Index>(1, EIGEN_TEST_MAX_SIZE / 2);
+  const Index cols = 2 * rank;
+  const Index rows = internal::random<Index>(cols, EIGEN_TEST_MAX_SIZE);
+  const MatrixXd A = MatrixXd::Random(rows, rank) * MatrixXd::Random(rank, cols);
+  const VectorXd b = VectorXd::Random(rows);
+
+  //
+  // ACT
+  //
+  const double tolerance = 1e-8;
+  NNLS<MatrixXd> nnls(A);
+  const VectorXd &x = nnls.solve(b);
+
+  //
+  // VERIFY
+  //
+  // What should happen when the input 'A' has dependent columns?
+  // We might still succeed. Or we might not converge.
+  // Either outcome is fine. If Success is indicated,
+  // then 'x' must actually be a solution vector.
+
+  if (nnls.info() == ComputationInfo::Success) {
+    verify_nnls_optimality(A, b, x, tolerance);
+  }
+}
+
 // 4x2 problem, unconstrained solution positive
 void test_nnls_known_1() {
   Matrix<double, 4, 2> A(4, 2);
@@ -310,6 +383,11 @@ void test_nnls_does_not_allocate_during_solve() {
 
 EIGEN_DECLARE_TEST(NNLS) {
   test_known_problems();
+
+  // Robustness tests:
+  test_nnls_handles_Mx0_matrix();
+  test_nnls_handles_0x0_matrix();
+
   for (int i = 0; i < g_repeat; i++) {
     // Essential properties, across different types.
     test_nnls_random_problem<MatrixXf>();
@@ -318,8 +396,9 @@ EIGEN_DECLARE_TEST(NNLS) {
     test_nnls_random_problem<MatFixed>();
     test_nnls_with_half_precision();
 
-    // Robustness against edge cases:
+    // Robustness tests:
     test_nnls_handles_zero_rhs();
+    test_nnls_handles_dependent_columns();
 
     // Properties specific to the implementation,
     // not NNLS in general.
@@ -328,7 +407,7 @@ EIGEN_DECLARE_TEST(NNLS) {
     test_nnls_returns_NoConvergence_when_maxIterations_is_too_low();
     test_nnls_default_maxIterations_is_twice_column_count();
 
-    // Test does not pass. It hits allocations in HouseholderSequence.h
+    // This test fails. It hits allocations in HouseholderSequence.h
     // test_nnls_does_not_allocate_during_solve();
   }
 }
