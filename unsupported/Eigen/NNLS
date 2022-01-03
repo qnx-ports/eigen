@@ -152,24 +152,6 @@ class NNLS {
   /** \returns Success if the iterations converged, and an error values otherwise. */
   ComputationInfo info() const { return info_; }
 
-  /** \brief Returns the hat-matrix mapping \f$b\f$ to the coefficients \f$x\f$ as \f$x = H b\f$
-   * such that \f$x\f$ minimizes NNLS problem.
-   * Please note that in constrast to unconstrained LS, the hat matrix does not necessarily imply
-   * that \f$x_2 = Hb_2\f$ minimizes \left\Vert A x_2 - b_2\right\Vert_2\f$ if \f$x_1 = Hb_2\f$
-   * minimizes \left\Vert A x_2 - b_2\right\Vert_2\f$. This means, that the hat matrix does not
-   * solve the NNLS problem generally for some specific system matrix \f$A\f$. */
-  void hat(HatMatrixType &H) const;
-
-  /** \brief Solves the NNLS problem
-   *         \f$ \min \left\Vert Ax-b\right\Vert_2^2\quad s.t.\, x\ge 0 \f$.
-   * Returns @c true on success and @c false otherwise. The result is stored in @c x on exit. */
-  static inline bool solve(const MatrixType &A, const ColVectorType &b, RowVectorType &x, Index max_iter = -1,
-                           typename MatrixType::Scalar tol = NumTraits<Scalar>::dummy_precision()) {
-    NNLS<MatrixType> nnls(A, max_iter, tol);
-    x.noalias() = nnls.solve(b);
-    return nnls.info() == ComputationInfo::Success;
-  }
-
  protected:
   /** Searches for the index in Z with the largest value of @c v
    *  (\f$argmax v^P\f$) . */
