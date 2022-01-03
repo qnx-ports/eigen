@@ -101,6 +101,29 @@ void test_nnls_random_problem() {
   verify_nnls_optimality(A, b, x, tolerance);
 }
 
+void test_nnls_handles_zero_rhs() {
+  //
+  // SETUP
+  //
+  const Index cols = internal::random<Index>(1, EIGEN_TEST_MAX_SIZE);
+  const Index rows = internal::random<Index>(cols, EIGEN_TEST_MAX_SIZE);
+  const MatrixXd A = MatrixXd::Random(rows, cols);
+  const VectorXd b = VectorXd::Zero(rows);
+
+  //
+  // ACT
+  //
+  NNLS<MatrixXd> nnls(A);
+  const auto x = nnls.solve(b);
+
+  //
+  // VERIFY
+  //
+  VERIFY_IS_EQUAL(nnls.info(), ComputationInfo::Success);
+  VERIFY_LE(nnls.iterations(), 1);  // 0 or 1 would be be fine for an edge case like this.
+  VERIFY_IS_EQUAL(x, VectorXd::Zero(cols));
+}
+
 // 4x2 problem, unconstrained solution positive
 void test_nnls_known_1() {
   Matrix<double, 4, 2> A(4, 2);
@@ -295,7 +318,11 @@ EIGEN_DECLARE_TEST(NNLS) {
     test_nnls_random_problem<MatFixed>();
     test_nnls_with_half_precision();
 
-    // "Extra" properties.
+    // Robustness against edge cases:
+    test_nnls_handles_zero_rhs();
+
+    // Properties specific to the implementation,
+    // not NNLS in general.
     test_nnls_special_case_solves_in_zero_iterations();
     test_nnls_special_case_solves_in_n_iterations();
     test_nnls_returns_NoConvergence_when_maxIterations_is_too_low();
