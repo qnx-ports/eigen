@@ -79,6 +79,7 @@ class NNLS {
       : max_iter_(max_iter),
         iterations_(0),
         info_(ComputationInfo::InvalidInput),
+        Np_(0),
         tolerance_(tol),
         A_(A),
         AtA_(A.transpose() * A),
