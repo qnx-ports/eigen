@@ -33,7 +33,7 @@ namespace Eigen {
 /** \ingroup nnls
  * \class NNLS
  * \brief Implementation of the Non-Negative Least Squares (NNLS) algorithm.
- * \param MatrixType The type of the system matrix \f$A\f$.
+ * \tparam MatrixType The type of the system matrix \f$A\f$.
  *
  * This class implements the NNLS algorithm as described in "SOLVING LEAST SQUARES PROBLEMS",
  * Charles L. Lawson and Richard J. Hanson, Prentice-Hall, 1974. This algorithm solves a least
