@@ -413,6 +413,31 @@ void test_nnls_does_not_allocate_during_solve() {
   internal::set_is_malloc_allowed(true);
 }
 
+void test_nnls_repeated_calls_to_compute_and_solve() {
+  const Index cols2 = internal::random<Index>(1, EIGEN_TEST_MAX_SIZE);
+  const Index rows2 = internal::random<Index>(cols2, EIGEN_TEST_MAX_SIZE);
+  const MatrixXd A2 = MatrixXd::Random(rows2, cols2);
+  const VectorXd b2 = VectorXd::Random(rows2);
+
+  NNLS<MatrixXd> nnls;
+
+  for (int i = 0; i < 4; ++i) {
+    const Index cols = internal::random<Index>(1, EIGEN_TEST_MAX_SIZE);
+    const Index rows = internal::random<Index>(cols, EIGEN_TEST_MAX_SIZE);
+    const MatrixXd A = MatrixXd::Random(rows, cols);
+
+    nnls.compute(A);
+    VERIFY_IS_EQUAL(nnls.info(), ComputationInfo::Success);
+
+    for (int j = 0; j < 3; ++j) {
+      const VectorXd b = VectorXd::Random(rows);
+      const VectorXd x = nnls.solve(b);
+      VERIFY_IS_EQUAL(nnls.info(), ComputationInfo::Success);
+      verify_nnls_optimality(A, b, x, 1e-4);
+    }
+  }
+}
+
 EIGEN_DECLARE_TEST(NNLS) {
   test_known_problems();
 
@@ -421,7 +446,7 @@ EIGEN_DECLARE_TEST(NNLS) {
   test_nnls_handles_0x0_matrix();
 
   for (int i = 0; i < g_repeat; i++) {
-    // Essential properties, across different types.
+    // Essential NNLS properties, across different types.
     test_nnls_random_problem<MatrixXf>();
     test_nnls_random_problem<MatrixXd>();
     using MatFixed = Matrix<double, 12, 5>;
@@ -439,6 +464,7 @@ EIGEN_DECLARE_TEST(NNLS) {
     test_nnls_special_case_solves_in_n_iterations();
     test_nnls_returns_NoConvergence_when_maxIterations_is_too_low();
     test_nnls_default_maxIterations_is_twice_column_count();
+    test_nnls_repeated_calls_to_compute_and_solve();
 
     // This test fails. It hits allocations in HouseholderSequence.h
     // test_nnls_does_not_allocate_during_solve();

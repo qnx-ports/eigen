@@ -71,6 +71,9 @@ class NNLS {
   typedef PermutationMatrix<ColsAtCompileTime, ColsAtCompileTime, Index> PermutationType;
   typedef typename PermutationType::IndicesType IndicesType;
 
+  /** */
+  NNLS();
+
   /** \brief Constructs a NNLS sovler and initializes it with the given system matrix @c A.
    * \param A Specifies the system matrix.
    * \param max_iter Specifies the maximum number of iterations to solve the system.
@@ -79,6 +82,14 @@ class NNLS {
    *        (with Lagrange multipliers \f$\lambda\f$).
    */
   NNLS(const MatrixType &A, Index max_iter = -1, Scalar tol = NumTraits<Scalar>::dummy_precision());
+
+  /** Initializes the solver with the matrix \a A for further solving NNLS problems.
+   *
+   * This function mostly initializes/computes the preconditioner. In the future
+   * we might, for instance, implement column reordering for faster matrix vector products.
+   */
+  template <typename MatrixDerived>
+  NNLS<MatrixType> &compute(const EigenBase<MatrixDerived> &A);
 
   /** \brief Solves the NNLS problem.
    *
@@ -283,25 +294,42 @@ void nnls_householder_qr_inplace_solve(const MatrixQR &mat, const HCoeffs &hCoef
 }  // namespace internal
 
 template <typename MatrixType>
-NNLS<MatrixType>::NNLS(const MatrixType &A, Index max_iter, Scalar tol)
-    : max_iter_(max_iter),
+NNLS<MatrixType>::NNLS()
+    : max_iter_(-1),
       iterations_(0),
       info_(ComputationInfo::InvalidInput),
       Np_(0),
-      tolerance_(tol),
-      A_(A),
-      AtA_(A.transpose() * A),
-      x_(A.cols()),
-      w_(A.cols()),
-      y_(A.cols()),
-      Atb_(A.cols()),
-      P_(A.cols()),
-      QR_(A.rows(), A.cols()),
-      qrCoeffs_(A.cols()),
-      tempRowVector_(A.cols()),
-      tempColVector_(A.rows()) {
+      tolerance_(NumTraits<Scalar>::dummy_precision()) {}
+
+template <typename MatrixType>
+NNLS<MatrixType>::NNLS(const MatrixType &A, Index max_iter, Scalar tol) : max_iter_(max_iter), tolerance_(tol) {
+  compute(A);
+}
+
+template <typename MatrixType>
+template <typename MatrixDerived>
+NNLS<MatrixType> &NNLS<MatrixType>::compute(const EigenBase<MatrixDerived> &A) {
   // Ensure Scalar type is real. The non-negativity constraint doesn't obviously extend to complex numbers.
   EIGEN_STATIC_ASSERT(!NumTraits<Scalar>::IsComplex, NUMERIC_TYPE_MUST_BE_REAL);
+
+  // max_iter_: unchanged
+  iterations_ = 0;
+  info_ = ComputationInfo::Success;
+  Np_ = 0;
+  // tolerance: unchanged
+  A_ = A.derived();
+  AtA_.noalias() = A_.transpose() * A_;
+  x_.resize(A_.cols());
+  w_.resize(A_.cols());
+  y_.resize(A_.cols());
+  Atb_.resize(A_.cols());
+  P_.resize(A_.cols());
+  QR_.resize(A_.rows(), A_.cols());
+  qrCoeffs_.resize(A_.cols());
+  tempRowVector_.resize(A_.cols());
+  tempColVector_.resize(A_.rows());
+
+  return *this;
 }
 
 template <typename MatrixType>
