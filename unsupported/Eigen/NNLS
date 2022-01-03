@@ -16,7 +16,7 @@
  * \f[ \min \left\Vert Ax-b\right\Vert_2^2\quad s.t.\, x\ge 0\,.\f]
  *
  * The algorithm solves the constrained least quares (LS) problem above by subsequently solving a
- * subset of the problem called passiv set, i.e. \f$\left\Vert A^Px^P-b\right\Vert_2^2\f$,
+ * subset of the problem called passive set, i.e. \f$\left\Vert A^Px^P-b\right\Vert_2^2\f$,
  * where \f$A^P\f$ is a matrix formed by selecting all columns of A which are in the passive set
  * \f$P\f$. */
 
@@ -42,8 +42,7 @@ namespace Eigen {
  * \f[ \min \left\Vert Ax-b\right\Vert_2^2\quad s.t.\, x\ge 0 \f]
  *
  * \note Please note that it is possible to construct an NNLS problem for which the algorithm does
- *       not converge. In "nature" these cases are extremely rare. However, you can specify the
- *       maximum number of iterations to avoid endless loops.
+ *       not converge. In "nature" these cases are extremely rare.
  */
 template <class MatrixType_>
 class NNLS {
@@ -82,7 +81,7 @@ class NNLS {
         info_(ComputationInfo::InvalidInput),
         tolerance_(tol),
         A_(A),
-        AtA_(A.cols(), A.cols()),
+        AtA_(A.transpose() * A),
         x_(A.cols()),
         w_(A.cols()),
         y_(A.cols()),
@@ -91,11 +90,8 @@ class NNLS {
         qrCoeffs_(A.cols()),
         tempRowVector_(A.cols()),
         tempColVector_(A.rows()) {
-    // Ensure Scalar type is real.
+    // Ensure Scalar type is real. The non-negativity constraint doesn't obviously extend to complex numbers.
     EIGEN_STATIC_ASSERT(!NumTraits<Scalar>::IsComplex, NUMERIC_TYPE_MUST_BE_REAL);
-
-    // Precompute A^T*A
-    AtA_ = A.transpose() * A;
   }
 
   /** \brief Solves the NNLS problem.
@@ -109,7 +105,7 @@ class NNLS {
 
   /** \brief Returns the solution if a problem was solved.
    * If not, an uninitialized vector may be returned. */
-  inline const RowVectorType &x() const { return x_; }
+  const RowVectorType &x() const { return x_; }
 
   /** \returns the tolerance threshold used by the stopping criteria.
    * \sa setTolerance()
