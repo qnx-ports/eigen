@@ -85,6 +85,7 @@ class NNLS {
         x_(A.cols()),
         w_(A.cols()),
         y_(A.cols()),
+        Atb_(A.cols()),
         P_(A.cols()),
         QR_(A.rows(), A.cols()),
         qrCoeffs_(A.cols()),

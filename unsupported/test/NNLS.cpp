@@ -7,6 +7,8 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+#define EIGEN_RUNTIME_NO_MALLOC
+
 #include "main.h"
 #include <unsupported/Eigen/NNLS>
 #include <iostream>
@@ -261,7 +263,7 @@ void test_nnls_returns_NoConvergence_when_maxIterations_is_too_low() {
   VERIFY(nnls.iterations() == max_iters);
 }
 
-void test_default_maxIterations_is_twice_column_count() {
+void test_nnls_default_maxIterations_is_twice_column_count() {
   const Index cols = internal::random<Index>(1, EIGEN_TEST_MAX_SIZE);
   const Index rows = internal::random<Index>(cols, EIGEN_TEST_MAX_SIZE);
   const MatrixXd A = MatrixXd::Random(rows, cols);
@@ -269,6 +271,19 @@ void test_default_maxIterations_is_twice_column_count() {
   NNLS<MatrixXd> nnls(A);
 
   VERIFY_IS_EQUAL(nnls.maxIterations(), 2 * cols);
+}
+
+void test_nnls_does_not_allocate_during_solve() {
+  const Index cols = internal::random<Index>(1, EIGEN_TEST_MAX_SIZE);
+  const Index rows = internal::random<Index>(cols, EIGEN_TEST_MAX_SIZE);
+  const MatrixXd A = MatrixXd::Random(rows, cols);
+  const VectorXd b = VectorXd::Random(rows);
+
+  NNLS<MatrixXd> nnls(A);
+
+  internal::set_is_malloc_allowed(false);
+  nnls.solve(b);
+  internal::set_is_malloc_allowed(true);
 }
 
 EIGEN_DECLARE_TEST(NNLS) {
@@ -285,6 +300,9 @@ EIGEN_DECLARE_TEST(NNLS) {
     test_nnls_special_case_solves_in_zero_iterations();
     test_nnls_special_case_solves_in_n_iterations();
     test_nnls_returns_NoConvergence_when_maxIterations_is_too_low();
-    test_default_maxIterations_is_twice_column_count();
+    test_nnls_default_maxIterations_is_twice_column_count();
+
+    // Test does not pass. It hits allocations in HouseholderSequence.h
+    // test_nnls_does_not_allocate_during_solve();
   }
 }
