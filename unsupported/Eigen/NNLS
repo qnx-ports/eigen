@@ -417,23 +417,6 @@ const typename NNLS<MatrixType>::RowVectorType &NNLS<MatrixType>::solve(const Co
 }
 
 template <typename MatrixType>
-void NNLS<MatrixType>::hat(HatMatrixType &H) const {
-  // After a call to solve(), the matrix QR_ together with qrCoeff_ holds the QR decomposition
-  // of A^P, the matrix A with its column permuted according to the permutation matrix P_.
-  // This means that the solution is actually given by Q R P x = b and the associated hat matrix
-  // is given by H = P^T R^{-1} Q^T.
-
-  /// @todo Avoid creation of complete Q matrix!!!
-  H.noalias() = QMatrixType(householderSequence(QR_, qrCoeffs_).transpose()).topRows(A_.cols());
-  QR_.topRightCorner(A_.cols(), A_.cols()).template triangularView<Upper>().solveInPlace(H);
-  H = P_ * H;
-#ifdef EIGEN3_NNLS_DEBUG
-  std::cerr << "x: (" << x_.transpose() << ")" << std::endl;
-  std::cerr << "H^T * A * x_ = (" << (H * A_ * x_).transpose() << ")" << std::endl;
-#endif
-}
-
-template <typename MatrixType>
 void NNLS<MatrixType>::addToP_(Index idx) {
   // Update permutation matrix:
   IndicesType &idxs = P_.indices();
