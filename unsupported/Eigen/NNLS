@@ -93,7 +93,8 @@ class NNLS {
         P_(A.cols()),
         QR_(A.rows(), A.cols()),
         qrCoeffs_(A.cols()),
-        tempVector_(A.cols()) {
+        tempRowVector_(A.cols()),
+        tempColVector_(A.rows()) {
     // Ensure Scalar type is real.
     EIGEN_STATIC_ASSERT(!NumTraits<Scalar>::IsComplex, NUMERIC_TYPE_MUST_BE_REAL);
 
@@ -245,7 +246,8 @@ class NNLS {
   /** QR decomposition to solve the (passive) sub system (together with @c QR_). */
   RowVectorType qrCoeffs_;
   /** Some workspace for QR decomposition. */
-  RowVectorType tempVector_;
+  RowVectorType tempRowVector_;
+  ColVectorType tempColVector_;
 };
 
 /* ********************************************************************************************
@@ -412,7 +414,7 @@ void NNLS<MatrixType>::addToP_(Index idx) {
   Np_++;
 
   // Perform rank-1 update of the QR decomposition stored in QR_ & qrCoeff_
-  internal::nnls_householder_qr_inplace_update(QR_, qrCoeffs_, A_.col(idxs(Np_ - 1)), Np_ - 1, tempVector_.data());
+  internal::nnls_householder_qr_inplace_update(QR_, qrCoeffs_, A_.col(idxs(Np_ - 1)), Np_ - 1, tempRowVector_.data());
 }
 
 template <typename MatrixType>
@@ -427,7 +429,7 @@ void NNLS<MatrixType>::removeFromP_(Index idx) {
   // Update QR decomposition starting from the removed index up to the end [idx, ..., Np_]
   for (Index i = idx; i < Np_; i++) {
     Index col = P_.indices()(i);
-    internal::nnls_householder_qr_inplace_update(QR_, qrCoeffs_, A_.col(col), i, tempVector_.data());
+    internal::nnls_householder_qr_inplace_update(QR_, qrCoeffs_, A_.col(col), i, tempRowVector_.data());
   }
 }
 
@@ -435,11 +437,11 @@ template <typename MatrixType>
 void NNLS<MatrixType>::solveLS_P_(const ColVectorType &b) {
   eigen_assert(Np_ > 0);
   // Solve in permuted sub space
-  ColVectorType tmp(b.rows());
-  tmp.noalias() = b;
-  internal::nnls_householder_qr_inplace_solve(QR_, qrCoeffs_, tmp, Np_);
-  y_.setZero();
-  y_.head(Np_) = tmp.head(Np_);
+  tempColVector_ = b;
+  internal::nnls_householder_qr_inplace_solve(QR_, qrCoeffs_, tempColVector_, Np_);
+  y_.head(Np_) = tempColVector_.head(Np_);
+  y_.tail(y_.size() - Np_).setZero();
+
 #ifdef EIGEN3_NNLS_DEBUG
   HouseholderQR<Matrix<Scalar, Dynamic, Dynamic> > qr((A_ * P_).leftCols(Np_));
   std::cerr << "NNLS(): Partial solution: (" << y_.head(Np_).transpose() << "); True: (" << qr.solve(b).transpose()
