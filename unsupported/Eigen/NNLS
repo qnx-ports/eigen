@@ -47,7 +47,7 @@ namespace Eigen {
  * \note Please note that it is possible to construct an NNLS problem for which the algorithm does
  *       not converge. In "nature" these cases are extremely rare. However, you can specify the
  *       maximum number of iterations with the constructor to avoid endless loops.
- * \todo Restrict the scalar type to real floating point types. */
+ */
 template <class MatrixType_>
 class NNLS {
  public:
