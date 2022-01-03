@@ -1,5 +1,6 @@
 /* Non-Negagive Least Squares Algorithm for Eigen.
  *
+ * Copyright (C) 2021 Essex Edwards, <essex.edwards@gmail.com>
  * Copyright (C) 2013 Hannes Matuschek, hannes.matuschek at uni-potsdam.de
  *
  * This Source Code Form is subject to the terms of the Mozilla
@@ -46,7 +47,7 @@ namespace Eigen {
  *
  * \note Please note that it is possible to construct an NNLS problem for which the algorithm does
  *       not converge. In "nature" these cases are extremely rare. However, you can specify the
- *       maximum number of iterations with the constructor to avoid endless loops.
+ *       maximum number of iterations to avoid endless loops.
  */
 template <class MatrixType_>
 class NNLS {
@@ -64,9 +65,6 @@ class NNLS {
   typedef typename MatrixType::Scalar Scalar;
   typedef typename MatrixType::RealScalar RealScalar;
   typedef typename MatrixType::Index Index;
-  typedef Matrix<Scalar, ColsAtCompileTime, ColsAtCompileTime> MatrixAtAType;
-  typedef Matrix<Scalar, ColsAtCompileTime, RowsAtCompileTime> HatMatrixType;
-  typedef Matrix<Scalar, RowsAtCompileTime, RowsAtCompileTime> QMatrixType;
 
   /** Type of a row vector of the system matrix \f$A\f$. */
   typedef Matrix<Scalar, ColsAtCompileTime, 1> RowVectorType;
@@ -200,7 +198,7 @@ class NNLS {
   void addToP_(Index idx);
 
   /** Removes the given index idx from the set P and updates the QR decomposition of \f$A^P\f$. */
-  void remFromP_(Index idx);
+  void removeFromP_(Index idx);
 
   /** Solves the LS problem \f$\left\Vert y-A^Px\right\Vert_2^2\f$. */
   void solveLS_P_(const ColVectorType &b);
@@ -215,6 +213,8 @@ class NNLS {
   }
 
  protected:
+  typedef Matrix<Scalar, ColsAtCompileTime, ColsAtCompileTime> MatrixAtAType;
+
   /** Holds the maximum number of iterations for the NNLS algorithm, @c -1 means that there is no
    * limit. */
   Index max_iter_;
@@ -358,7 +358,7 @@ const typename NNLS<MatrixType>::RowVectorType &NNLS<MatrixType>::solve(const Co
         return x_;
       }
 
-      // Solve LS problem in P only, this step is rather trivial as A_ddToP & remFromP_
+      // Solve LS problem in P only, this step is rather trivial as addToP_ & removeFromP_
       // updates the QR decomposition of A^P.
       solveLS_P_(b);
 
@@ -393,7 +393,7 @@ const typename NNLS<MatrixType>::RowVectorType &NNLS<MatrixType>::solve(const Co
       }
 
       // Remove these indices from P and update QR decomposition
-      remFromP_(remIdx);
+      removeFromP_(remIdx);
     }
   }
 }
@@ -415,7 +415,7 @@ void NNLS<MatrixType>::addToP_(Index idx) {
 }
 
 template <typename MatrixType>
-void NNLS<MatrixType>::remFromP_(Index idx) {
+void NNLS<MatrixType>::removeFromP_(Index idx) {
 #ifdef EIGEN3_NNLS_DEBUG
   std::cerr << "NNLS(): Remove Idx " << P_.indices()(idx) << "@" << idx << " from passive set ("
             << P_.indices().head(Np_).transpose() << ")" << std::endl;
