@@ -261,6 +261,16 @@ void test_nnls_returns_NoConvergence_when_maxIterations_is_too_low() {
   VERIFY(nnls.iterations() == max_iters);
 }
 
+void test_default_maxIterations_is_twice_column_count() {
+  const Index cols = internal::random<Index>(1, EIGEN_TEST_MAX_SIZE);
+  const Index rows = internal::random<Index>(cols, EIGEN_TEST_MAX_SIZE);
+  const MatrixXd A = MatrixXd::Random(rows, cols);
+
+  NNLS<MatrixXd> nnls(A);
+
+  VERIFY_IS_EQUAL(nnls.maxIterations(), 2 * cols);
+}
+
 EIGEN_DECLARE_TEST(NNLS) {
   test_known_problems();
   for (int i = 0; i < g_repeat; i++) {
@@ -275,5 +285,6 @@ EIGEN_DECLARE_TEST(NNLS) {
     test_nnls_special_case_solves_in_zero_iterations();
     test_nnls_special_case_solves_in_n_iterations();
     test_nnls_returns_NoConvergence_when_maxIterations_is_too_low();
+    test_default_maxIterations_is_twice_column_count();
   }
 }

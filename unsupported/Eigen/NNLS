@@ -75,9 +75,7 @@ class NNLS {
 
   /** \brief Constructs a NNLS sovler and initializes it with the given system matrix @c A.
    * \param A Specifies the system matrix.
-   * \param max_iter Specifies the maximum number of iterations to solve the system, if
-   *        @c max_iter<0 there is no limit and the algorithm will only return on convergence.
-   *        Beware: that may cause an infinite loop, as this algorithm does not guarantee convergence.
+   * \param max_iter Specifies the maximum number of iterations to solve the system.
    * \param tol Specifies the precision of the optimum.
    *        This is an absolute tolerance on the gradient of the Lagrangian, \f$A^T(Ax-b)-\lambda\f$
    *        (with Lagrange multipliers \f$\lambda\f$).
@@ -132,12 +130,13 @@ class NNLS {
   }
 
   /** \returns the max number of iterations.
-   * It is either the value set by setMaxIterations or, by default, infinite (-1).
+   * It is either the value set by setMaxIterations or, by default, twice the number of columns of the matrix.
    */
-  Index maxIterations() const { return max_iter_; }
+  Index maxIterations() const { return max_iter_ < 0 ? 2 * A_.cols() : max_iter_; }
 
   /** Sets the max number of iterations.
    * Default is twice the number of columns of the matrix.
+   * The algorithm requires at least k iterations to produce a solution vector with k non-zero entries.
    */
   NNLS<MatrixType> &setMaxIterations(Index maxIters) {
     max_iter_ = maxIters;
@@ -333,6 +332,8 @@ const typename NNLS<MatrixType>::RowVectorType &NNLS<MatrixType>::solve(const Co
   // Precompute A^T*b
   Atb_ = A_.transpose() * b;
 
+  const Index maxIterations = this->maxIterations();
+
   // OUTER LOOP
   while (true) {
     // Update gradient w_
@@ -353,7 +354,7 @@ const typename NNLS<MatrixType>::RowVectorType &NNLS<MatrixType>::solve(const Co
     // INNER LOOP
     while (true) {
       // Check if max. number of iterations is reached
-      if ((0 < max_iter_) && (iterations_ >= max_iter_)) {
+      if (iterations_ >= maxIterations) {
         info_ = ComputationInfo::NoConvergence;
         return x_;
       }
