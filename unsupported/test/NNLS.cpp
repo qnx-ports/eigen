@@ -197,6 +197,38 @@ void test_nnls_handles_dependent_columns() {
   }
 }
 
+void test_nnls_handles_wide_matrix() {
+  //
+  // SETUP
+  //
+  const Index rows = internal::random<Index>(2, EIGEN_TEST_MAX_SIZE);
+  const Index cols = internal::random<Index>(1, rows - 1);
+  const MatrixXd A = MatrixXd::Random(rows, cols);
+  const VectorXd b = VectorXd::Random(rows);
+
+  //
+  // ACT
+  //
+  const double tolerance = 1e-8;
+  NNLS<MatrixXd> nnls(A);
+  const VectorXd &x = nnls.solve(b);
+
+  //
+  // VERIFY
+  //
+  // What should happen when the input 'A' is wide?
+  // The unconstrained least-squares problem has infinitely many solutions.
+  // Subject the the non-negativity constraints,
+  // the solution might actually be unique (e.g. it is [0,0,..,0].
+  // So, NNLS might succeed or it might fail.
+  // Either outcome is fine. If Success is indicated,
+  // then 'x' must actually be a solution vector.
+
+  if (nnls.info() == ComputationInfo::Success) {
+    verify_nnls_optimality(A, b, x, tolerance);
+  }
+}
+
 // 4x2 problem, unconstrained solution positive
 void test_nnls_known_1() {
   Matrix<double, 4, 2> A(4, 2);
@@ -399,6 +431,7 @@ EIGEN_DECLARE_TEST(NNLS) {
     // Robustness tests:
     test_nnls_handles_zero_rhs();
     test_nnls_handles_dependent_columns();
+    test_nnls_handles_wide_matrix();
 
     // Properties specific to the implementation,
     // not NNLS in general.
