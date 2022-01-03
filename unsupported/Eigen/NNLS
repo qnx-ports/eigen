@@ -20,8 +20,8 @@
  * where \f$A^P\f$ is a matrix formed by selecting all columns of A which are in the passive set
  * \f$P\f$. */
 
-#ifndef __EIGEN_NNLS_H__
-#define __EIGEN_NNLS_H__
+#ifndef EIGEN_NNLS_H
+#define EIGEN_NNLS_H
 
 #include "../../Eigen/Core"
 #include "../../Eigen/QR"
@@ -430,4 +430,4 @@ void NNLS<MatrixType>::solveLS_P_(const ColVectorType &b) {
 
 }  // namespace Eigen
 
-#endif  // __EIGEN_NNLS_H__
+#endif  // EIGEN_NNLS_H
