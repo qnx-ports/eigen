@@ -41,6 +41,9 @@ namespace Eigen {
  *
  * \f[ \min \left\Vert Ax-b\right\Vert_2^2\quad s.t.\, x\ge 0 \f]
  *
+ * See <a href="https://en.wikipedia.org/wiki/Non-negative_least_squares">the wikipedia page on non-negative least
+ * squares</a> for more background information.
+ *
  * \note Please note that it is possible to construct an NNLS problem for which the algorithm does
  *       not converge. In "nature" these cases are extremely rare.
  */
