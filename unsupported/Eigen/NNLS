@@ -195,12 +195,6 @@ class NNLS {
   /** Solves the LS problem \f$\left\Vert y-A^Px\right\Vert_2^2\f$. */
   void solveLS_P_(const ColVectorType &b);
 
-  /** Updates the gradient \c w_ using the current partial solution \c x_. */
-  void updateGradient_() {
-    // w <- A^T b - A^TA x
-    w_ = Atb_ - AtA_ * x_;
-  }
-
  protected:
   typedef Matrix<Scalar, ColsAtCompileTime, ColsAtCompileTime> MatrixAtAType;
 
@@ -315,14 +309,14 @@ const typename NNLS<MatrixType>::RowVectorType &NNLS<MatrixType>::solve(const Co
   Np_ = 0;
 
   // Precompute A^T*b
-  Atb_ = A_.transpose() * b;
+  Atb_.noalias() = A_.transpose() * b;
 
   const Index maxIterations = this->maxIterations();
 
   // OUTER LOOP
   while (true) {
-    // Update gradient w_
-    updateGradient_();
+    // Update the gradient
+    w_.noalias() = Atb_ - AtA_ * x_;
 
     // Check if system is solved:
     if ((A_.cols() == Np_) || ((max_Z_(w_) - tolerance_) < 0)) {
