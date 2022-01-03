@@ -78,26 +78,7 @@ class NNLS {
    *        This is an absolute tolerance on the gradient of the Lagrangian, \f$A^T(Ax-b)-\lambda\f$
    *        (with Lagrange multipliers \f$\lambda\f$).
    */
-  NNLS(const MatrixType &A, Index max_iter = -1, Scalar tol = NumTraits<Scalar>::dummy_precision())
-      : max_iter_(max_iter),
-        iterations_(0),
-        info_(ComputationInfo::InvalidInput),
-        Np_(0),
-        tolerance_(tol),
-        A_(A),
-        AtA_(A.transpose() * A),
-        x_(A.cols()),
-        w_(A.cols()),
-        y_(A.cols()),
-        Atb_(A.cols()),
-        P_(A.cols()),
-        QR_(A.rows(), A.cols()),
-        qrCoeffs_(A.cols()),
-        tempRowVector_(A.cols()),
-        tempColVector_(A.rows()) {
-    // Ensure Scalar type is real. The non-negativity constraint doesn't obviously extend to complex numbers.
-    EIGEN_STATIC_ASSERT(!NumTraits<Scalar>::IsComplex, NUMERIC_TYPE_MUST_BE_REAL);
-  }
+  NNLS(const MatrixType &A, Index max_iter = -1, Scalar tol = NumTraits<Scalar>::dummy_precision());
 
   /** \brief Solves the NNLS problem.
    *
@@ -148,8 +129,7 @@ class NNLS {
   ComputationInfo info() const { return info_; }
 
  protected:
-  /** Searches for the index in Z with the largest value of @c v
-   *  (\f$argmax v^P\f$) . */
+  /** \internal Searches for the index in Z with the largest value of @c v (\f$argmax v^P\f$) . */
   Index argmax_Z_(const RowVectorType &v) {
     const IndicesType &idxs = P_.indices();
     Index m_idx = Np_;
@@ -164,7 +144,7 @@ class NNLS {
     return m_idx;
   }
 
-  /** Searches for the largest value in \f$v^Z\f$. */
+  /** \internal Searches for the largest value in \f$v^Z\f$. */
   Scalar max_Z_(const RowVectorType &v) {
     const IndicesType &idxs = P_.indices();
     Scalar m = v(idxs(Np_));
@@ -177,7 +157,7 @@ class NNLS {
     return m;
   }
 
-  /** Searches for the smallest value in \f$v^P\f$. */
+  /** \internal Searches for the smallest value in \f$v^P\f$. */
   Scalar min_P_(const RowVectorType &v) {
     eigen_assert(Np_ > 0);
     const IndicesType &idxs = P_.indices();
@@ -191,49 +171,49 @@ class NNLS {
     return m;
   }
 
-  /** Adds the given index @c idx to the set P and updates the QR decomposition of \f$A^P\f$. */
+  /** \internal Adds the given index @c idx to the set P and updates the QR decomposition of \f$A^P\f$. */
   void addToP_(Index idx);
 
-  /** Removes the given index idx from the set P and updates the QR decomposition of \f$A^P\f$. */
+  /** \internal Removes the given index idx from the set P and updates the QR decomposition of \f$A^P\f$. */
   void removeFromP_(Index idx);
 
-  /** Solves the LS problem \f$\left\Vert y-A^Px\right\Vert_2^2\f$. */
+  /** \internal Solves the LS problem \f$\left\Vert y-A^Px\right\Vert_2^2\f$. */
   void solveLS_P_(const ColVectorType &b);
 
  protected:
   typedef Matrix<Scalar, ColsAtCompileTime, ColsAtCompileTime> MatrixAtAType;
 
-  /** Holds the maximum number of iterations for the NNLS algorithm, @c -1 means that there is no
-   * limit. */
+  /** \internal Holds the maximum number of iterations for the NNLS algorithm.
+   *  @c -1 means to use the default value. */
   Index max_iter_;
-  /** Holds the number of iterations. */
+  /** \internal Holds the number of iterations. */
   Index iterations_;
-  /** Holds success/fail of the last solve. */
+  /** \internal Holds success/fail of the last solve. */
   ComputationInfo info_;
-  /** Size of the P (passive) set. */
+  /** \internal Size of the P (passive) set. */
   Index Np_;
-  /** Accuracy of the algorithm w.r.t the optimality of the solution (gradient). */
+  /** \internal Accuracy of the algorithm w.r.t the optimality of the solution (gradient). */
   Scalar tolerance_;
-  /** The system matrix, a copy of the one given to the constructor. */
+  /** \internal The system matrix, a copy of the one given to the constructor. */
   MatrixType A_;
-  /** Precomputed product \f$A^TA\f$. */
+  /** \internal Precomputed product \f$A^TA\f$. */
   MatrixAtAType AtA_;
-  /** Will hold the solution. */
+  /** \internal Will hold the solution. */
   RowVectorType x_;
-  /** Will hold the current gradient. */
+  /** \internal Will hold the current gradient. */
   RowVectorType w_;
-  /** Will hold the partial solution. */
+  /** \internal Will hold the partial solution. */
   RowVectorType y_;
-  /** Precomputed product \f$A^Tb\f$. */
+  /** \internal Precomputed product \f$A^Tb\f$. */
   RowVectorType Atb_;
-  /** Holds the current permutation matrix, the first @c Np_ columns form the set P and the rest
-   * the set Z. */
+  /** \internal Holds the current permutation matrix,
+   * the first @c Np_ columns form the set P and the rest the set Z. */
   PermutationType P_;
-  /** QR decomposition to solve the (passive) sub system (together with @c qrCoeffs_). */
+  /** \internal QR decomposition to solve the (passive) sub system (together with @c qrCoeffs_). */
   MatrixType QR_;
-  /** QR decomposition to solve the (passive) sub system (together with @c QR_). */
+  /** \internal QR decomposition to solve the (passive) sub system (together with @c QR_). */
   RowVectorType qrCoeffs_;
-  /** Some workspace for QR decomposition. */
+  /** \internal Some workspace for QR decomposition. */
   RowVectorType tempRowVector_;
   ColVectorType tempColVector_;
 };
@@ -244,7 +224,8 @@ class NNLS {
 
 namespace internal {
 
-/** Basically a modified copy of @c Eigen::internal::householder_qr_inplace_unblocked that
+/** \internal
+ * Basically a modified copy of @c Eigen::internal::householder_qr_inplace_unblocked that
  * performs a rank-1 update of the QR matrix in compact storage. This function assumes, that
  * the first @c k-1 columns of the matrix @c mat contain the QR decomposition of \f$A^P\f$ up to
  * column k-1. Then the QR decomposition of the k-th column (given by @c newColumn) is computed by
@@ -285,7 +266,8 @@ void nnls_householder_qr_inplace_update(MatrixQR &mat, HCoeffs &hCoeffs, const V
   mat.coeffRef(k, k) = beta;
 }
 
-/** Solves the system Ax=b, where A is given as its QR decomposition in the first @c rank columns
+/** \internal
+ * Solves the system Ax=b, where A is given as its QR decomposition in the first @c rank columns
  * in @c mat. */
 template <typename MatrixQR, typename HCoeffs, typename Dest>
 void nnls_householder_qr_inplace_solve(const MatrixQR &mat, const HCoeffs &hCoeffs, Dest &c,
@@ -299,6 +281,28 @@ void nnls_householder_qr_inplace_solve(const MatrixQR &mat, const HCoeffs &hCoef
   mat.topLeftCorner(rank, rank).template triangularView<Upper>().solveInPlace(c.head(rank));
 }
 }  // namespace internal
+
+template <typename MatrixType>
+NNLS<MatrixType>::NNLS(const MatrixType &A, Index max_iter, Scalar tol)
+    : max_iter_(max_iter),
+      iterations_(0),
+      info_(ComputationInfo::InvalidInput),
+      Np_(0),
+      tolerance_(tol),
+      A_(A),
+      AtA_(A.transpose() * A),
+      x_(A.cols()),
+      w_(A.cols()),
+      y_(A.cols()),
+      Atb_(A.cols()),
+      P_(A.cols()),
+      QR_(A.rows(), A.cols()),
+      qrCoeffs_(A.cols()),
+      tempRowVector_(A.cols()),
+      tempColVector_(A.rows()) {
+  // Ensure Scalar type is real. The non-negativity constraint doesn't obviously extend to complex numbers.
+  EIGEN_STATIC_ASSERT(!NumTraits<Scalar>::IsComplex, NUMERIC_TYPE_MUST_BE_REAL);
+}
 
 template <typename MatrixType>
 const typename NNLS<MatrixType>::RowVectorType &NNLS<MatrixType>::solve(const ColVectorType &b) {
