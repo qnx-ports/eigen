@@ -45,7 +45,7 @@ static void test_nnls_known_solution(const MatrixType &A, const VectorB &b, cons
   const Scalar tolerance = sqrt(Eigen::GenericNumTraits<Scalar>::epsilon());
   Index max_iter = 5 * A.cols();  // A heuristic guess.
   NNLS<MatrixType> nnls(A, max_iter, tolerance);
-  const auto x = nnls.solve(b);
+  const VectorX x = nnls.solve(b);
 
   VERIFY_IS_EQUAL(nnls.info(), ComputationInfo::Success);
   VERIFY_IS_APPROX(x, x_expected);
@@ -71,9 +71,9 @@ static void test_nnls_random_problem() {
   const Scalar scaleA = pow(Scalar(10), internal::random<Scalar>(Scalar(-3), Scalar(3)));
   const Scalar minSingularValue = scaleA / sqrtConditionNumber;
   const Scalar maxSingularValue = scaleA * sqrtConditionNumber;
-  const auto svs = setupRangeSvs<Matrix<Scalar, Dynamic, 1>>(cols, minSingularValue, maxSingularValue);
   MatrixType A(rows, cols);
-  generateRandomMatrixSvs(svs, rows, cols, A);
+  generateRandomMatrixSvs(setupRangeSvs<Matrix<Scalar, Dynamic, 1>>(cols, minSingularValue, maxSingularValue), rows,
+                          cols, A);
 
   // Make a random RHS also with a random scaling.
   using VectorB = decltype(A.col(0).eval());
@@ -90,7 +90,7 @@ static void test_nnls_random_problem() {
       sqrt(Eigen::GenericNumTraits<Scalar>::epsilon()) * b.cwiseAbs().maxCoeff() * A.cwiseAbs().maxCoeff();
   Index max_iter = 5 * A.cols();  // A heuristic guess.
   NNLS<MatrixType> nnls(A, max_iter, tolerance);
-  const auto x = nnls.solve(b);
+  const NNLS<MatrixType>::RowVectorType &x = nnls.solve(b);
 
   //
   // VERIFY
@@ -114,7 +114,7 @@ static void test_nnls_handles_zero_rhs() {
   // ACT
   //
   NNLS<MatrixXd> nnls(A);
-  const auto x = nnls.solve(b);
+  const VectorXd x = nnls.solve(b);
 
   //
   // VERIFY
@@ -136,7 +136,7 @@ static void test_nnls_handles_Mx0_matrix() {
   // ACT
   //
   NNLS<MatrixXd> nnls(A);
-  const auto x = nnls.solve(b);
+  const VectorXd x = nnls.solve(b);
 
   //
   // VERIFY
@@ -157,7 +157,7 @@ static void test_nnls_handles_0x0_matrix() {
   // ACT
   //
   NNLS<MatrixXd> nnls(A);
-  const auto x = nnls.solve(b);
+  const VectorXd x = nnls.solve(b);
 
   //
   // VERIFY
@@ -307,12 +307,13 @@ static void test_nnls_with_half_precision() {
   // so here's a simpler setup mostly just to check that NNLS compiles & runs with custom scalar types.
 
   using Mat = Matrix<half, 8, 2>;
-  using Vec = Matrix<half, 8, 1>;
+  using VecB = Matrix<half, 8, 1>;
+  using VecX = Matrix<half, 2, 1>;
   Mat A = Mat::Random();  // full-column rank with high probability.
-  Vec b = Vec::Random();
+  VecB b = VecB::Random();
 
   NNLS<Mat> nnls(A, 20, half(1e-2f));
-  const auto x = nnls.solve(b);
+  const VecX x = nnls.solve(b);
 
   VERIFY_IS_EQUAL(nnls.info(), ComputationInfo::Success);
   verify_nnls_optimality(A, b, x, half(1e-1));
