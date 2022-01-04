@@ -441,30 +441,30 @@ static void test_nnls_repeated_calls_to_compute_and_solve() {
 
 EIGEN_DECLARE_TEST(NNLS) {
   // Small matrices with known solutions:
-  test_nnls_small_reference_problems();
-  test_nnls_handles_Mx0_matrix();
-  test_nnls_handles_0x0_matrix();
+  CALL_SUBTEST_1(test_nnls_small_reference_problems());
+  CALL_SUBTEST_1(test_nnls_handles_Mx0_matrix());
+  CALL_SUBTEST_1(test_nnls_handles_0x0_matrix());
 
   for (int i = 0; i < g_repeat; i++) {
     // Essential NNLS properties, across different types.
-    test_nnls_random_problem<MatrixXf>();
-    test_nnls_random_problem<MatrixXd>();
+    CALL_SUBTEST_2(test_nnls_random_problem<MatrixXf>());
+    CALL_SUBTEST_3(test_nnls_random_problem<MatrixXd>());
     using MatFixed = Matrix<double, 12, 5>;
-    test_nnls_random_problem<MatFixed>();
-    test_nnls_with_half_precision();
+    CALL_SUBTEST_4(test_nnls_random_problem<MatFixed>());
+    CALL_SUBTEST_5(test_nnls_with_half_precision());
 
     // Robustness tests:
-    test_nnls_handles_zero_rhs();
-    test_nnls_handles_dependent_columns();
-    test_nnls_handles_wide_matrix();
+    CALL_SUBTEST_6(test_nnls_handles_zero_rhs());
+    CALL_SUBTEST_6(test_nnls_handles_dependent_columns());
+    CALL_SUBTEST_6(test_nnls_handles_wide_matrix());
 
     // Properties specific to the implementation,
     // not NNLS in general.
-    test_nnls_special_case_solves_in_zero_iterations();
-    test_nnls_special_case_solves_in_n_iterations();
-    test_nnls_returns_NoConvergence_when_maxIterations_is_too_low();
-    test_nnls_default_maxIterations_is_twice_column_count();
-    test_nnls_repeated_calls_to_compute_and_solve();
+    CALL_SUBTEST_7(test_nnls_special_case_solves_in_zero_iterations());
+    CALL_SUBTEST_7(test_nnls_special_case_solves_in_n_iterations());
+    CALL_SUBTEST_7(test_nnls_returns_NoConvergence_when_maxIterations_is_too_low());
+    CALL_SUBTEST_7(test_nnls_default_maxIterations_is_twice_column_count());
+    CALL_SUBTEST_8(test_nnls_repeated_calls_to_compute_and_solve());
 
     // This test fails. It hits allocations in HouseholderSequence.h
     // test_nnls_does_not_allocate_during_solve();
