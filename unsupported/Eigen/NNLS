@@ -277,20 +277,6 @@ void nnls_householder_qr_inplace_update(MatrixQR &mat, HCoeffs &hCoeffs, const V
   mat.coeffRef(k, k) = beta;
 }
 
-/** \internal
- * Solves the system Ax=b, where A is given as its QR decomposition in the first @c rank columns
- * in @c mat. */
-template <typename MatrixQR, typename HCoeffs, typename Dest>
-void nnls_householder_qr_inplace_solve(const MatrixQR &mat, const HCoeffs &hCoeffs, Dest &c,
-                                       typename MatrixQR::Index &rank) {
-  eigen_assert(mat.rows() == c.size());
-  eigen_assert(mat.cols() == hCoeffs.size());
-  eigen_assert(mat.cols() >= rank);
-
-  c.applyOnTheLeft(householderSequence(mat.leftCols(rank), hCoeffs.head(rank)).transpose());
-
-  mat.topLeftCorner(rank, rank).template triangularView<Upper>().solveInPlace(c.head(rank));
-}
 }  // namespace internal
 
 template <typename MatrixType>
@@ -378,6 +364,7 @@ const typename NNLS<MatrixType>::RowVectorType &NNLS<MatrixType>::solve(const Co
       // Solve LS problem in P only, this step is rather trivial as addToP_ & removeFromP_
       // updates the QR decomposition of A^P.
       solveLS_P_(b);
+      ++iterations_;  // The solve is expensive, so that is what we count as an iteration.
 
       // Check feasability...
       bool feasible = true;
@@ -443,16 +430,22 @@ template <typename MatrixType>
 void NNLS<MatrixType>::solveLS_P_(const ColVectorType &b) {
   eigen_assert(Np_ > 0);
 
-  // Solve in permuted sub space
   tempColVector_ = b;
-  internal::nnls_householder_qr_inplace_solve(QR_, qrCoeffs_, tempColVector_, Np_);
-  y_.head(Np_) = tempColVector_.head(Np_);
-  y_.tail(y_.size() - Np_).setZero();
+
+  // tmp(0:Np) := Q'*b
+  // tmp(Np:end) := useless stuff we would rather not compute at all.
+  tempColVector_.applyOnTheLeft(householderSequence(QR_.leftCols(Np_), qrCoeffs_.head(Np_)).transpose());
+
+  // tmp(0:Np) := inv(R) * Q' * b = the least-squares solution for the passive variables.
+  QR_.topLeftCorner(Np_, Np_)                   //
+      .template triangularView<Upper>()         //
+      .solveInPlace(tempColVector_.head(Np_));  //
+
+  // tmp(Np:A.rows()) := 0 = the value for the constrained variables.
+  tempColVector_.middleRows(Np_, y_.size() - Np_).setZero();
 
   // Back permute y into original column order of A
-  y_ = P_ * y_;
-
-  iterations_++;
+  y_.noalias() = P_ * tempColVector_.head(y_.size());
 }
 
 }  // namespace Eigen
