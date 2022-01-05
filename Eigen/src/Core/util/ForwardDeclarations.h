@@ -91,7 +91,7 @@ template<typename XprType>                                class Inverse;
 template<typename Lhs, typename Rhs, int Option = DefaultProduct> class Product;
 
 template<typename Derived> class DiagonalBase;
-template<typename _DiagonalVectorType> class DiagonalWrapper;
+template<typename DiagonalVectorType_> class DiagonalWrapper;
 template<typename Scalar_, int SizeAtCompileTime, int MaxSizeAtCompileTime=SizeAtCompileTime> class DiagonalMatrix;
 template<typename MatrixType, typename DiagonalType, int ProductOrder> class DiagonalProduct;
 template<typename MatrixType, int Index = 0> class Diagonal;
