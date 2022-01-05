@@ -23,6 +23,7 @@ static_assert(std::is_trivially_copyable<DenseStorageD3x3>::value, "DenseStorage
 #if EIGEN_COMP_HAS_P0848R3
 static_assert(std::is_trivially_copyable<Eigen::Matrix3d>::value, "Eigen::Matrix3d not trivially_copyable");
 static_assert(std::is_trivially_copyable<Eigen::Array33d>::value, "Eigen::Array33d not trivially_copyable");
+static_assert(!std::is_trivially_copyable<Eigen::Matrix3<AnnoyingScalar>>::value, "Eigen::Matrix3<AnnoyingScalar> is trivially_copyable");
 #endif
 #endif
 

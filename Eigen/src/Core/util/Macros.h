@@ -1089,7 +1089,7 @@ namespace Eigen {
  * \brief Macro for conditionally trivial special member functions for supporting trivially copyable types.
  * This feature is officially known as C++20's P0848R3 and is enabled on supported compilers.
  */
-#if (EIGEN_COMP_CXXVER >= 20) && (EIGEN_COMP_GNUC || EIGEN_COMP_MSVC_STRICT)
+#if (EIGEN_COMP_CXXVER >= 20) && (EIGEN_COMP_GNUC_STRICT || EIGEN_COMP_MSVC_STRICT)
 #define EIGEN_COMP_HAS_P0848R3 1
 #else
 #define EIGEN_COMP_HAS_P0848R3 0
