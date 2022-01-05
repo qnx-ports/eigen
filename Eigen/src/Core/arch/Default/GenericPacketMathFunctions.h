@@ -263,8 +263,6 @@ Packet plog_impl_double(const Packet _x)
 
   const Packet cst_1              = pset1<Packet>(1.0);
   const Packet cst_neg_half       = pset1<Packet>(-0.5);
-  // The smallest non denormalized double.
-  const Packet cst_min_norm_pos   = pset1frombits<Packet>( static_cast<uint64_t>(0x0010000000000000ull));
   const Packet cst_minus_inf      = pset1frombits<Packet>( static_cast<uint64_t>(0xfff0000000000000ull));
   const Packet cst_pos_inf        = pset1frombits<Packet>( static_cast<uint64_t>(0x7ff0000000000000ull));
 
@@ -285,9 +283,6 @@ Packet plog_impl_double(const Packet _x)
   const Packet cst_cephes_log_q3 = pset1<Packet>(8.29875266912776603211E1);
   const Packet cst_cephes_log_q4 = pset1<Packet>(7.11544750618563894466E1);
   const Packet cst_cephes_log_q5 = pset1<Packet>(2.31251620126765340583E1);
-
-  // Truncate input values to the minimum positive normal.
-  x = pmax(x, cst_min_norm_pos);
 
   Packet e;
   // extract significant in the range [0.5,1) and exponent
