@@ -89,11 +89,9 @@ EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED
 Packet4f psqrt<Packet4f>(const Packet4f& _x)
 {
   const Packet4f minus_half_x = pmul(_x, pset1<Packet4f>(-0.5f));
-  const Packet4f neg_zero = pset1<Packet4f>(-0.0f);
-
-  Packet4f denormal_mask = pandnot(
+  const Packet4f denormal_mask = pandnot(
       pcmp_lt(_x, pset1<Packet4f>((std::numeric_limits<float>::min)())),
-      pcmp_lt(_x, neg_zero));
+      pcmp_lt(_x, pzero(_x)));
 
   // Compute approximate reciprocal sqrt.
   Packet4f x = _mm_rsqrt_ps(_x);
