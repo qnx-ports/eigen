@@ -103,15 +103,14 @@ EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED
 Packet8f psqrt<Packet8f>(const Packet8f& _x) {
   const Packet8f minus_half = pset1<Packet8f>(-0.5f);
   const Packet8f minus_half_x = pmul(_x, minus_half);
-  const Packet8f neg_zero = pset1<Packet8f>(-0.0f);
-  // Flush negative arguments to -0.5 to work around the fact that negative denormals are flushed to zero by
-  // _mm256_rsqrt_ps.
-  Packet8f negative_mask = pcmp_lt(_x, neg_zero);
-  Packet8f x = pselect(negative_mask, minus_half, _x);
-  Packet8f denormal_mask = pandnot(
+  const Packet8f negative_mask = pcmp_lt(_x, pzero(_x));
+  const Packet8f denormal_mask = pandnot(
       pcmp_lt(_x, pset1<Packet8f>((std::numeric_limits<float>::min)())),
       negative_mask);
 
+  // Flush negative arguments to -0.5 to work around the fact that negative
+  // denormals are flushed to zero by _mm256_rsqrt_ps.
+  Packet8f x = pselect(negative_mask, minus_half, _x);
   // Compute approximate reciprocal sqrt.
   x = _mm256_rsqrt_ps(x);
   // Do a single step of Newton's iteration.
