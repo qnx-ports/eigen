@@ -87,11 +87,18 @@
   #define EIGEN_COMP_LLVM 0
 #endif
 
-/// \internal EIGEN_COMP_ICC set to __INTEL_COMPILER if the compiler is Intel compiler, 0 otherwise
+/// \internal EIGEN_COMP_ICC set to __INTEL_COMPILER if the compiler is Intel icc compiler, 0 otherwise
 #if defined(__INTEL_COMPILER)
   #define EIGEN_COMP_ICC __INTEL_COMPILER
 #else
   #define EIGEN_COMP_ICC 0
+#endif
+
+/// \internal EIGEN_COMP_CLANGICC set to __INTEL_CLANG_COMPILER if the compiler is Intel icx compiler, 0 otherwise
+#if defined(__INTEL_CLANG_COMPILER)
+  #define EIGEN_COMP_CLANGICC __INTEL_CLANG_COMPILER
+#else
+  #define EIGEN_COMP_CLANGICC 0
 #endif
 
 /// \internal EIGEN_COMP_MINGW set to 1 if the compiler is mingw
@@ -166,8 +173,17 @@
 // 4.5   0x0405
 // 5.0   0x0500
 // 12.1  0x0C01
-#if defined(__IBMCPP__) || defined(__xlc__) || defined(__ibmxl__)
+// 13.1  0x0D01
+// 16.1  0x1001
+// \note For releases starting from IBM XL C/C++ for Linux, V13.1.6,
+// the default is -qnoxlcompatmacros which makes __IBMCPP__, __xlc__,
+// and __xlC__ legacy macros that are disabled by default. The macro
+// __ibmxl__ is always defined in all versions of XL C/C++ for Linux
+// for little endian distributions
+#if defined(__IBMCPP__) || defined(__xlc__)
   #define EIGEN_COMP_IBM __xlC__
+#elif defined(__ibmxl__)
+  #define EIGEN_COMP_IBM (__ibmxl_version__*100+__ibmxl_release__*10+__ibmxl_modification__)
 #else
   #define EIGEN_COMP_IBM 0
 #endif
@@ -193,9 +209,45 @@
   #define EIGEN_COMP_EMSCRIPTEN 0
 #endif
 
+/// \internal EIGEN_COMP_FCC set to FCC version if the compiler is Fujitsu Compiler (traditional mode)
+/// \note The Fujitsu C/C++ compiler uses the traditional mode based
+/// on EDG g++ 6.1 by default or if envoked with the -Nnoclang flag
+#if defined(__FUJITSU)
+  #define EIGEN_COMP_FCC (__FCC_major__*100+__FCC_minor__*10+__FCC_patchlevel__)
+#else
+  #define EIGEN_COMP_FCC 0
+#endif
+
+/// \internal EIGEN_COMP_CLANGFCC set to FCC version if the compiler is Fujitsu Compiler (Clang mode)
+/// \note The Fujitsu C/C++ compiler uses the non-traditional mode
+/// based on Clang 7.1.0 if envoked with the -Nclang flag
+#if defined(__CLANG_FUJITSU)
+  #define EIGEN_COMP_CLANGFCC (__FCC_major__*100+__FCC_minor__*10+__FCC_patchlevel__)
+#else
+  #define EIGEN_COMP_CLANGFCC 0
+#endif
+
+/// \internal EIGEN_COMP_CPE set to CPE version if the compiler is HPE Cray Compiler (GCC based)
+/// \note This is the SVE-enabled C/C++ compiler from the HPE Cray
+/// Programming Environment (CPE) based on Cray GCC 8.1
+#if defined(_CRAYC) && !defined(__clang__)
+  #define EIGEN_COMP_CPE (_RELEASE_MAJOR*100+_RELEASE_MINOR*10+_RELEASE_PATCHLEVEL)
+#else
+  #define EIGEN_COMP_CPE 0
+#endif
+
+/// \internal EIGEN_COMP_CLANGCPE set to CPE version if the compiler is HPE Cray Compiler (Clang based)
+/// \note This is the C/C++ compiler from the HPE Cray Programming
+/// Environment (CPE) based on Cray Clang 11.0 without SVE-support
+#if defined(_CRAYC) && defined(__clang__)
+  #define EIGEN_COMP_CLANGCPE (_RELEASE_MAJOR*100+_RELEASE_MINOR*10+_RELEASE_PATCHLEVEL)
+#else
+  #define EIGEN_COMP_CLANGCPE 0
+#endif
+
 
 /// \internal EIGEN_GNUC_STRICT set to 1 if the compiler is really GCC and not a compatible compiler (e.g., ICC, clang, mingw, etc.)
-#if EIGEN_COMP_GNUC && !(EIGEN_COMP_CLANG || EIGEN_COMP_ICC || EIGEN_COMP_MINGW || EIGEN_COMP_PGI || EIGEN_COMP_IBM || EIGEN_COMP_ARM || EIGEN_COMP_EMSCRIPTEN)
+#if EIGEN_COMP_GNUC && !(EIGEN_COMP_CLANG || EIGEN_COMP_ICC || EIGEN_COMP_CLANGICC || EIGEN_COMP_MINGW || EIGEN_COMP_PGI || EIGEN_COMP_IBM || EIGEN_COMP_ARM || EIGEN_COMP_EMSCRIPTEN || EIGEN_COMP_FCC || EIGEN_COMP_CLANGFCC || EIGEN_COMP_CPE || EIGEN_COMP_CLANGCPE)
   #define EIGEN_COMP_GNUC_STRICT 1
 #else
   #define EIGEN_COMP_GNUC_STRICT 0
