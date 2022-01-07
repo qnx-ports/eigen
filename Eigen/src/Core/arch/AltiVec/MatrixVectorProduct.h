@@ -64,6 +64,7 @@
 #define GEMV_IS_SCALAR          (sizeof(ResPacket) != 16)
 #define GEMV_IS_COMPLEX_FLOAT   (ResPacketSize == (16 / sizeof(std::complex<float>)))
 
+/** \internal multiply and add and store results */
 template<typename ResPacket, typename ResScalar>
 EIGEN_ALWAYS_INLINE void storeMaddData(ResScalar* res, ResPacket& palpha, ResPacket& data)
 {
@@ -322,6 +323,7 @@ EIGEN_ALWAYS_INLINE void storeMaddData(ResScalar* res, ResScalar& alpha, ResScal
     pstoreu(res + i + (iter * ResPacketSize), pmadd(c##iter, palpha, ploadu<ResPacket>(res + i + (iter * ResPacketSize)))); \
   }
 
+/** \internal main macro for gemv_col - initialize accumulators, multiply and add inputs, and store results */
 #define GEMV_PROCESS_COL_ONE(N) \
   GEMV_UNROLL(GEMV_INIT, N) \
   Index j = j2; \
@@ -1539,6 +1541,7 @@ EIGEN_ALWAYS_INLINE void disassembleResults(__vector_quad* c0, PacketBlock<Scala
     pstoreu_pmadd_complex<Scalar, ScalarPacket, PResPacket, ResPacket, ResScalar, AlphaData>(c0##iter, alpha_data, res + i + (iter * ResPacketSize)); \
   }
 
+/** \internal main macro for gemv_complex_col - initialize accumulators, multiply and add inputs, and store results */
 #define GEMV_PROCESS_COL_COMPLEX_ONE(N) \
   GEMV_UNROLL(GEMV_INIT_COMPLEX, N) \
   Index j = j2; \
@@ -1888,6 +1891,7 @@ EIGEN_ALWAYS_INLINE ScalarBlock<ResScalar, 2> predux_complex(ResPacket& a, ResPa
     storeMaddData<ResScalar>(res + ((i + iter3) * resIncr), alpha, cc##iter1.scalar[1]); \
   }
 
+/** \internal main macro for gemv_row - initialize accumulators, multiply and add inputs, predux and store results */
 #define GEMV_PROCESS_ROW(N) \
   for (; i < n##N; i += N) { \
     GEMV_UNROLL_ROW(GEMV_INIT_ROW, N) \
@@ -2098,6 +2102,7 @@ EIGEN_ALWAYS_INLINE ScalarBlock<ResScalar, 2> predux_complex(PResPacket& a0, PRe
   GEMV_UNROLL_ROW(GEMV_INIT_COMPLEX, N) \
   GEMV_PROCESS_ROW_COMPLEX_SINGLE_WORK(GEMV_WORK_ROW_COMPLEX, N)
 
+/** \internal main macro for gemv_complex_row - initialize accumulators, multiply and add inputs, predux and store results */
 #define GEMV_PROCESS_ROW_COMPLEX_ONE_NEW(N) \
   for (; i < n##N; i += N) { \
     GEMV_PROCESS_ROW_COMPLEX_SINGLE_NEW(N) \
