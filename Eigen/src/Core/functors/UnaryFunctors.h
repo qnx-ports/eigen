@@ -1035,10 +1035,18 @@ struct scalar_logistic_op {
 
 /** \internal
   * \brief Template specialization of the logistic function for float.
-  * Computes S(x) = exp(x) / (1 + exp(x)) using roughly the same algorithm as pexp_float in
-  * GenericPacketMathFunctions.h, but also use that exp(r) = exp(r/2)^2 to avoid the
-  * expensive call to pldexp in favor of pldexp_fast_impl. exp(r/2) is computed using a
-  * degree 5 minimax polynomial approximant calculated using the Sollya tool.
+  * Computes S(x) = exp(x) / (1 + exp(x)), where exp(x) is implemented
+  * using an algorithm partly adopted from the implementation of
+  * pexp_float. See the individual steps described in the code below.
+  * Note that compared to pexp, we use an additional outer multiplicative
+  * range reduction step using the identity exp(x) = exp(x/2)^2.
+  * This prevert us from having to call ldexp on values that could produce
+  * a denormal result, which allows us to call the faster implementation in
+  * pldexp_fast_impl<Packet>::run(p, m).
+  * The final squaring, however, doubles the error bound on the final
+  * approximation. Exhaustive testing shows that we have a worst case error
+  * of 4.5 ulps (compared to computing S(x) in double precision, which is
+  * acceptable.
   */
 template <>
 struct scalar_logistic_op<float> {
@@ -1057,25 +1065,35 @@ struct scalar_logistic_op<float> {
     const Packet cst_exp_hi = pset1<Packet>(16.f);
     const Packet cst_exp_lo = pset1<Packet>(-104.f);
 
-    // Clamp x.
+    // Clamp x to the non-trivial range where S(x). Outside this
+    // interval the correctly rounded value of S(x) is either zero
+    // or one.
     Packet zero_mask = pcmp_lt(_x, cst_exp_lo);
     Packet x = pmin(_x, cst_exp_hi);
+
+    // 1. Multiplicative range reduction:
+    // Reduce the range of x by a factor of 2. This avoids having
+    // to compute exp(x) accurately where the result is a denormalized
+    // value.
     x = pmul(x, cst_half);
 
-    // Express exp(x) as exp(m*ln(2) + r), start by extracting
-    // m = floor(x/ln(2) + 0.5).
+    // 2. Subtractive range reduction:
+    // Express exp(x) as exp(m*ln(2) + r) = 2^m*exp(r), start by extracting
+    // m = floor(x/ln(2) + 0.5), such that x = m*ln(2) + r.
     const Packet cst_cephes_LOG2EF = pset1<Packet>(1.44269504088896341f);
     Packet m = pfloor(pmadd(x, cst_cephes_LOG2EF, cst_half));
-
-    // Get r = x - m*ln(2). If no FMA instructions are available, m*ln(2) is
-    // subtracted out in two parts, m*C1+m*C2 = m*ln(2), to avoid accumulating
-    // truncation errors.
+    // Get r = x - m*ln(2). We use a trick from Cephes where the term
+    // m*ln(2) is subtracted out in two parts, m*C1+m*C2 = m*ln(2),
+    // to avoid accumulating truncation errors.
     const Packet cst_cephes_exp_C1 = pset1<Packet>(-0.693359375f);
     const Packet cst_cephes_exp_C2 = pset1<Packet>(2.12194440e-4f);
     Packet r = pmadd(m, cst_cephes_exp_C1, x);
     r = pmadd(m, cst_cephes_exp_C2, r);
-    Packet r2 = pmul(r, r);
 
+    // 3. Compute an approximation to exp(r) using a degree 5 minimax polynomial.
+    // We compute even and odd terms separately to increase instruction level
+    // parallelism.
+    Packet r2 = pmul(r, r);
     const Packet cst_p2 = pset1<Packet>(0.49999141693115234375f);
     const Packet cst_p3 = pset1<Packet>(0.16666877269744873046875f);
     const Packet cst_p4 = pset1<Packet>(4.1898667812347412109375e-2f);
@@ -1087,11 +1105,13 @@ struct scalar_logistic_op<float> {
     Packet p = pmadd(r, p_odd, p_even);
     p = pmadd(r2, p, p_low);
 
-    // Compute exp(x) = 2^m * exp(r).
+    // 4. Undo subtractive range reduction exp(m*ln(2) + r) = 2^m * exp(r).
     Packet e = pldexp_fast_impl<Packet>::run(p, m);
 
-    // Return exp(x) / (1 + exp(x))
+    // 5. Undo multiplicative range reduction by using exp(r) = exp(r/2)^2.
     e = pmul(e, e);
+
+    // Return exp(x) / (1 + exp(x))
     return pselect(zero_mask, cst_zero, pdiv(e, padd(cst_one, e)));
   }
 };
