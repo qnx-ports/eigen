@@ -1045,7 +1045,7 @@ struct scalar_logistic_op {
   * pldexp_fast_impl<Packet>::run(p, m).
   * The final squaring, however, doubles the error bound on the final
   * approximation. Exhaustive testing shows that we have a worst case error
-  * of 4.5 ulps (compared to computing S(x) in double precision, which is
+  * of 4.5 ulps (compared to computing S(x) in double precision), which is
   * acceptable.
   */
 template <>
