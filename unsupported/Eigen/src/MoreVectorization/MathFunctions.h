@@ -24,20 +24,20 @@ template<typename Packet> inline static Packet pasin(Packet a) { return std::asi
 
 template<> EIGEN_DONT_INLINE Packet4f pasin(Packet4f x)
 {
-  EIGEN_DECLARE_CONST_Packet4f_(half, 0.5);
-  EIGEN_DECLARE_CONST_Packet4f_(minus_half, -0.5);
-  EIGEN_DECLARE_CONST_Packet4f_(3half, 1.5);
+  EIGEN_DECLARE_CONST_Packet4f(half, 0.5);
+  EIGEN_DECLARE_CONST_Packet4f(minus_half, -0.5);
+  EIGEN_DECLARE_CONST_Packet4f(3half, 1.5);
 
-  EIGEN_DECLARE_CONST_Packet4f_FROM_INT_(sign_mask, 0x80000000);
+  EIGEN_DECLARE_CONST_Packet4f_FROM_INT(sign_mask, 0x80000000);
 
-  EIGEN_DECLARE_CONST_Packet4f_(pi, 3.141592654);
-  EIGEN_DECLARE_CONST_Packet4f_(pi_over_2, 3.141592654*0.5);
+  EIGEN_DECLARE_CONST_Packet4f(pi, 3.141592654);
+  EIGEN_DECLARE_CONST_Packet4f(pi_over_2, 3.141592654*0.5);
 
-  EIGEN_DECLARE_CONST_Packet4f_(asin1, 4.2163199048E-2);
-  EIGEN_DECLARE_CONST_Packet4f_(asin2, 2.4181311049E-2);
-  EIGEN_DECLARE_CONST_Packet4f_(asin3, 4.5470025998E-2);
-  EIGEN_DECLARE_CONST_Packet4f_(asin4, 7.4953002686E-2);
-  EIGEN_DECLARE_CONST_Packet4f_(asin5, 1.6666752422E-1);
+  EIGEN_DECLARE_CONST_Packet4f(asin1, 4.2163199048E-2);
+  EIGEN_DECLARE_CONST_Packet4f(asin2, 2.4181311049E-2);
+  EIGEN_DECLARE_CONST_Packet4f(asin3, 4.5470025998E-2);
+  EIGEN_DECLARE_CONST_Packet4f(asin4, 7.4953002686E-2);
+  EIGEN_DECLARE_CONST_Packet4f(asin5, 1.6666752422E-1);
 
   Packet4f a = pabs(x);//got the absolute value
 
