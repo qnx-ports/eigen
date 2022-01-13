@@ -42,6 +42,11 @@ template<typename T> struct evaluator_traits;
 
 template< typename T> struct evaluator;
 
+template<typename T> struct has_trivially_copyable_storage
+{
+  static const bool value = false;
+};
+
 } // end namespace internal
 
 template<typename T> struct NumTraits;
@@ -86,7 +91,7 @@ template<typename XprType>                                class Inverse;
 template<typename Lhs, typename Rhs, int Option = DefaultProduct> class Product;
 
 template<typename Derived> class DiagonalBase;
-template<typename _DiagonalVectorType> class DiagonalWrapper;
+template<typename DiagonalVectorType_> class DiagonalWrapper;
 template<typename Scalar_, int SizeAtCompileTime, int MaxSizeAtCompileTime=SizeAtCompileTime> class DiagonalMatrix;
 template<typename MatrixType, typename DiagonalType, int ProductOrder> class DiagonalProduct;
 template<typename MatrixType, int Index = 0> class Diagonal;
@@ -272,8 +277,8 @@ template<typename Scalar,int Dim> class Translation;
 template<typename Scalar,int Dim> class AlignedBox;
 template<typename Scalar, int Options = AutoAlign> class Quaternion;
 template<typename Scalar,int Dim,int Mode,int Options_=AutoAlign> class Transform;
-template <typename Scalar_, int _AmbientDim, int Options=AutoAlign> class ParametrizedLine;
-template <typename Scalar_, int _AmbientDim, int Options=AutoAlign> class Hyperplane;
+template <typename Scalar_, int AmbientDim_, int Options=AutoAlign> class ParametrizedLine;
+template <typename Scalar_, int AmbientDim_, int Options=AutoAlign> class Hyperplane;
 template<typename Scalar> class UniformScaling;
 template<typename MatrixType,int Direction> class Homogeneous;
 
