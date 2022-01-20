@@ -75,6 +75,8 @@ Packet4f pcos<Packet4f>(const Packet4f& _x)
   return pcos_float(_x);
 }
 
+#if EIGEN_FAST_MATH
+
 // Functions for sqrt.
 // The EIGEN_FAST_MATH version uses the _mm_rsqrt_ps approximation and one step
 // of Newton's method, at a cost of 1-2 bits of precision as opposed to the
@@ -83,13 +85,11 @@ Packet4f pcos<Packet4f>(const Packet4f& _x)
 // it can be inlined and pipelined with other computations, further reducing its
 // effective latency. This is similar to Quake3's fast inverse square root.
 // For detail see here: http://www.beyond3d.com/content/articles/8/
-#if EIGEN_FAST_MATH
-template<>
-EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED
+template<> EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED
 Packet4f psqrt<Packet4f>(const Packet4f& _x)
 {
-  const Packet4f minus_half_x = pmul(_x, pset1<Packet4f>(-0.5f));
-  const Packet4f denormal_mask = pandnot(
+  Packet4f minus_half_x = pmul(_x, pset1<Packet4f>(-0.5f));
+  Packet4f denormal_mask = pandnot(
       pcmp_lt(_x, pset1<Packet4f>((std::numeric_limits<float>::min)())),
       pcmp_lt(_x, pzero(_x)));
 
@@ -148,20 +148,13 @@ Packet4f prsqrt<Packet4f>(const Packet4f& _x) {
   return pselect<Packet4f>(not_normal_finite_mask, y_approx, y_newton);
 }
 
-#else
-
-template<> EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED
-Packet4f prsqrt<Packet4f>(const Packet4f& x) {
-  // Unfortunately we can't use the much faster mm_rsqrt_ps since it only provides an approximation.
-  return _mm_div_ps(pset1<Packet4f>(1.0f), _mm_sqrt_ps(x));
+template<> EIGEN_STRONG_INLINE Packet4f preciprocal<Packet4f>(const Packet4f& a) {
+  return generic_reciprocal_newton_step(a, _mm_rcp_ps(a));
 }
 
 #endif
 
-template<> EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED
-Packet2d prsqrt<Packet2d>(const Packet2d& x) {
-  return _mm_div_pd(pset1<Packet2d>(1.0), _mm_sqrt_pd(x));
-}
+
 
 // Hyperbolic Tangent function.
 template <>

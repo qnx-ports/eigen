@@ -17,6 +17,21 @@ namespace Eigen {
 
 namespace internal {
 
+/** \internal Fast reciprocal using Newton-Raphson's method.
+ We assume that the starting guess provided in approx_a_recip has at least
+ half the leading mantissa bits in the correct result, such that a single
+ Newton-Raphson step is sufficient to get within 1-2 ulps of the currect result.
+*/
+template <typename Packet>
+EIGEN_STRONG_INLINE Packet generic_reciprocal_newton_step(const Packet& a, const Packet& approx_a_recip) {
+  const Packet neg_a = pnegate(a);
+  const Packet two = pset1<Packet>(2.0f);
+  const Packet x = approx_a_recip;
+
+  // Take one Newton-Raphson step: x_{i+1} = x_i * (2 - a * x_i)
+  return pmul(x, pmadd(neg_a, x, two));
+}
+
 /** \internal \returns the hyperbolic tan of \a a (coeff-wise)
     Doesn't do anything fancy, just a 13/6-degree rational interpolant which
     is accurate up to a couple of ulps in the (approximate) range [-8, 8],
