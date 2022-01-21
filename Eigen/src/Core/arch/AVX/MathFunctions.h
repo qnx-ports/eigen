@@ -167,9 +167,10 @@ Packet8f prsqrt<Packet8f>(const Packet8f& _x) {
 }
 
 template<> EIGEN_STRONG_INLINE Packet8f preciprocal<Packet8f>(const Packet8f& a) {
-  return generic_reciprocal_newton_step(a, _mm256_rcp_ps(a));
+  return generic_reciprocal_newton_step<Packet8f, /*Steps=*/1>::run(a, _mm256_rcp_ps(a));
 }
-#endif  // EIGEN_FAST_MATH
+
+#endif
 
 
 F16_PACKET_FUNCTION(Packet8f, Packet8h, psin)

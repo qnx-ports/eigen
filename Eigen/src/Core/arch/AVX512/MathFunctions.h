@@ -302,7 +302,7 @@ template<> EIGEN_STRONG_INLINE Packet16f preciprocal<Packet16f>(const Packet16f&
 #ifdef EIGEN_VECTORIZE_AVX512ER
   return _mm512_rcp28_ps(a));
 #else
-  return generic_reciprocal_newton_step<1>::run(a, _mm512_rcp14_ps(a));
+  return generic_reciprocal_newton_step<Packet16f, /*Steps=*/1>::run(a, _mm512_rcp14_ps(a));
 #endif
 }
 
