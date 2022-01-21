@@ -84,7 +84,8 @@ Packet4f pcos<Packet4f>(const Packet4f& _x)
 // effective latency. This is similar to Quake3's fast inverse square root.
 // For detail see here: http://www.beyond3d.com/content/articles/8/
 #if EIGEN_FAST_MATH
-template<> EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED
+template<>
+EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED
 Packet4f psqrt<Packet4f>(const Packet4f& _x)
 {
   const Packet4f minus_half_x = pmul(_x, pset1<Packet4f>(-0.5f));
@@ -147,12 +148,11 @@ Packet4f prsqrt<Packet4f>(const Packet4f& _x) {
   return pselect<Packet4f>(not_normal_finite_mask, y_approx, y_newton);
 }
 
-template<> EIGEN_STRONG_INLINE Packet4f preciprocal<Packet4f>(const Packet4f& a) {
-  return generic_reciprocal_newton_step(a, _mm_rcp_ps(a));
-}
-
 #endif
 
+template<> EIGEN_STRONG_INLINE Packet4f preciprocal<Packet4f>(const Packet4f& a) {
+  return generic_reciprocal_newton_step<Packet4f, /*Steps=*/1>::run(a, _mm_rcp_ps(a));
+}
 
 
 // Hyperbolic Tangent function.

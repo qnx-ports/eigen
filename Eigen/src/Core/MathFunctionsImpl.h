@@ -22,15 +22,29 @@ namespace internal {
  half the leading mantissa bits in the correct result, such that a single
  Newton-Raphson step is sufficient to get within 1-2 ulps of the currect result.
 */
-template <typename Packet>
-EIGEN_STRONG_INLINE Packet generic_reciprocal_newton_step(const Packet& a, const Packet& approx_a_recip) {
-  const Packet neg_a = pnegate(a);
-  const Packet two = pset1<Packet>(2.0f);
-  const Packet x = approx_a_recip;
+template <typename Packet, int Steps>
+struct generic_reciprocal_newton_step {
+  static_assert(Steps > 0, "Steps must be at least 1.");
+  EIGEN_DEVICE_FUNC static EIGEN_STRONG_INLINE  Packet
+  run(const Packet& a, const Packet& approx_a_recip) {
+    using Scalar = typename unpacket_traits<Packet>::type;
+    const Packet two = pset1<Packet>(Scalar(2));
+    const Packet neg_a = pnegate(a);
+    // Refine the approximation using one Newton-Raphson step:
+    //   x_{i} = x_{i-1} * (2 - a * x_{i-1})
+    const Packet x =
+        generic_reciprocal_newton_step<Packet,Steps - 1>::run(a, approx_a_recip);
+    return pmul(x, pmadd(neg_a, x, two));
+  }
+};
 
-  // Take one Newton-Raphson step: x_{i+1} = x_i * (2 - a * x_i)
-  return pmul(x, pmadd(neg_a, x, two));
-}
+template<typename Packet>
+struct generic_reciprocal_newton_step<Packet, 0> {
+   EIGEN_DEVICE_FUNC static EIGEN_STRONG_INLINE Packet
+   run(const Packet& /*unused*/, const Packet& approx_a_recip) {
+    return approx_a_recip;
+  }
+};
 
 /** \internal \returns the hyperbolic tan of \a a (coeff-wise)
     Doesn't do anything fancy, just a 13/6-degree rational interpolant which
