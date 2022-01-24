@@ -58,8 +58,8 @@ EIGEN_DECLARE_TEST(rand)
 {
   long long_ref = NumTraits<long>::highest()/10;
   // the minimum guarantees that these conversions are safe
-  auto char_offset = static_cast<signed char>((std::min)(g_repeat,64));
-  auto short_offset = static_cast<signed short>((std::min)(g_repeat,16000));
+  auto char_offset = static_cast<signed char>((std::min)(g_repeat, 64));
+  auto short_offset = static_cast<signed short>((std::min)(g_repeat, 8000));
 
   for(int i = 0; i < g_repeat*10000; i++) {
     CALL_SUBTEST(check_in_range<float>(10,11));
