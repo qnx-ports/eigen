@@ -81,8 +81,8 @@ class AnnoyingScalar
     AnnoyingScalar& operator/=(const AnnoyingScalar& other) { *v /= *other.v; return *this; }
     AnnoyingScalar& operator= (const AnnoyingScalar& other) { *v  = *other.v; return *this; }
 
-    bool operator==(const AnnoyingScalar& other) const { return *v == *other.v; }
-    bool operator!=(const AnnoyingScalar& other) const { return *v != *other.v; }
+    bool operator==(const AnnoyingScalar& other) const { return numext::equal_strict(*v, *other.v); }
+    bool operator!=(const AnnoyingScalar& other) const { return numext::not_equal_strict(*v, *other.v); }
     bool operator<=(const AnnoyingScalar& other) const { return *v <= *other.v; }
     bool operator< (const AnnoyingScalar& other) const { return *v <  *other.v; }
     bool operator>=(const AnnoyingScalar& other) const { return *v >= *other.v; }

@@ -19,7 +19,7 @@ template<typename MatrixType> void verifyIsQuasiTriangular(const MatrixType& T)
   // Check T is lower Hessenberg
   for(int row = 2; row < size; ++row) {
     for(int col = 0; col < row - 1; ++col) {
-      VERIFY(T(row,col) == Scalar(0));
+      VERIFY_IS_EQUAL(T(row,col), Scalar(0));
     }
   }
 

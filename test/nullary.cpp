@@ -27,7 +27,6 @@ bool equalsIdentity(const MatrixType& A)
 
   bool diagOK = (A.diagonal().array() == 1).all();
   return offDiagOK && diagOK;
-
 }
 
 template<typename VectorType>

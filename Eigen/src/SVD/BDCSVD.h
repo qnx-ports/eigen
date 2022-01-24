@@ -813,7 +813,8 @@ void BDCSVD<MatrixType>::computeSingVals(const ArrayRef& col0, const ArrayRef& d
     {
       // check that after the shift, f(mid) is still negative:
       RealScalar midShifted = (right - left) / RealScalar(2);
-      if(shift==right)
+      // we can test exact equality here, because shift comes from `... ? left : right`
+      if(numext::equal_strict(shift, right))
         midShifted = -midShifted;
       RealScalar fMidShifted = secularEq(midShifted, col0, diag, perm, diagShifted, shift);
       if(fMidShifted>0)
@@ -826,7 +827,8 @@ void BDCSVD<MatrixType>::computeSingVals(const ArrayRef& col0, const ArrayRef& d
 
     // initial guess
     RealScalar muPrev, muCur;
-    if (shift == left)
+    // we can test exact equality here, because shift comes from `... ? left : right`
+    if (numext::equal_strict(shift, left))
     {
       muPrev = (right - left) * RealScalar(0.1);
       if (k == actual_n-1) muCur = right - left;
@@ -869,8 +871,9 @@ void BDCSVD<MatrixType>::computeSingVals(const ArrayRef& col0, const ArrayRef& d
       muCur = muZero;
       fCur = fZero;
 
-      if (shift == left  && (muCur < Literal(0) || muCur > right - left)) useBisection = true;
-      if (shift == right && (muCur < -(right - left) || muCur > Literal(0))) useBisection = true;
+      // we can test exact equality here, because shift comes from `... ? left : right`
+      if (numext::equal_strict(shift, left)  && (muCur < Literal(0) || muCur > right - left)) useBisection = true;
+      if (numext::equal_strict(shift, right) && (muCur < -(right - left) || muCur > Literal(0))) useBisection = true;
       if (abs(fCur)>abs(fPrev)) useBisection = true;
     }
 
@@ -881,7 +884,8 @@ void BDCSVD<MatrixType>::computeSingVals(const ArrayRef& col0, const ArrayRef& d
       std::cout << "useBisection for k = " << k << ", actual_n = " << actual_n << "\n";
 #endif
       RealScalar leftShifted, rightShifted;
-      if (shift == left)
+      // we can test exact equality here, because shift comes from `... ? left : right`
+      if (numext::equal_strict(shift, left))
       {
         // to avoid overflow, we must have mu > max(real_min, |z(k)|/sqrt(real_max)),
         // the factor 2 is to be more conservative
@@ -959,7 +963,8 @@ void BDCSVD<MatrixType>::computeSingVals(const ArrayRef& col0, const ArrayRef& d
         // Instead fo abbording or entering an infinite loop,
         // let's just use the middle as the estimated zero-crossing:
         muCur = (right - left) * RealScalar(0.5);
-        if(shift == right)
+        // we can test exact equality here, because shift comes from `... ? left : right`
+        if(numext::equal_strict(shift, right))
           muCur = -muCur;
       }
     }
