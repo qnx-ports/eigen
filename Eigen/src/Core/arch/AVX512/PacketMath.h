@@ -2299,28 +2299,28 @@ EIGEN_STRONG_INLINE Packet16bf F32ToBf16(const Packet16f& a) {
 
 template <>
 EIGEN_STRONG_INLINE Packet16bf ptrue(const Packet16bf& a) {
-  return Packet16bf(ptrue<Packet8i>(a));
+  return Packet16bf(ptrue<Packet8i>(Packet8i(a)));
 }
 
 template <>
 EIGEN_STRONG_INLINE Packet16bf por(const Packet16bf& a, const Packet16bf& b) {
-  return Packet16bf(por<Packet8i>(a, b));
+  return Packet16bf(por<Packet8i>(Packet8i(a), Packet8i(b)));
 }
 
 template <>
 EIGEN_STRONG_INLINE Packet16bf pxor(const Packet16bf& a, const Packet16bf& b) {
-  return Packet16bf(pxor<Packet8i>(a, b));
+  return Packet16bf(pxor<Packet8i>(Packet8i(a), Packet8i(b)));
 }
 
 template <>
 EIGEN_STRONG_INLINE Packet16bf pand(const Packet16bf& a, const Packet16bf& b) {
-  return Packet16bf(pand<Packet8i>(a, b));
+  return Packet16bf(pand<Packet8i>(Packet8i(a), Packet8i(b)));
 }
 
 template <>
 EIGEN_STRONG_INLINE Packet16bf pandnot(const Packet16bf& a,
                                        const Packet16bf& b) {
-  return (pandnot<Packet8i>(a, b));
+  return (pandnot<Packet8i>(Packet8i(a), Packet8i(b)));
 }
 
 template <>
