@@ -2320,7 +2320,7 @@ EIGEN_STRONG_INLINE Packet16bf pand(const Packet16bf& a, const Packet16bf& b) {
 template <>
 EIGEN_STRONG_INLINE Packet16bf pandnot(const Packet16bf& a,
                                        const Packet16bf& b) {
-  return (pandnot<Packet8i>(Packet8i(a), Packet8i(b)));
+  return Packet16bf(pandnot<Packet8i>(Packet8i(a), Packet8i(b)));
 }
 
 template <>
