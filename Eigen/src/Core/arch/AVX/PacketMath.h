@@ -572,7 +572,6 @@ EIGEN_STRONG_INLINE Packet4d pnmadd(const Packet4d& a, const Packet4d& b, const 
 
 template <>
 EIGEN_STRONG_INLINE Packet8f pnmsub(const Packet8f& a, const Packet8f& b, const Packet8f& c) {
-#if ((EIGEN_COMP_GNUC_STRICT && EIGEN_COMP_GNUC < 80) || (EIGEN_COMP_CLANG))
   return _mm256_fnmsub_ps(a, b, c);
 }
 
