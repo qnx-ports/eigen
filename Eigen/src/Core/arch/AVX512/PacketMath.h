@@ -359,6 +359,39 @@ EIGEN_STRONG_INLINE Packet8d pmadd(const Packet8d& a, const Packet8d& b,
                                    const Packet8d& c) {
   return _mm512_fmadd_pd(a, b, c);
 }
+
+template <>
+EIGEN_STRONG_INLINE Packet16f pmsub(const Packet16f& a, const Packet16f& b,
+                                    const Packet16f& c) {
+  return _mm512_fmsub_ps(a, b, c);
+}
+template <>
+EIGEN_STRONG_INLINE Packet8d pmsub(const Packet8d& a, const Packet8d& b,
+                                   const Packet8d& c) {
+  return _mm512_fmsub_pd(a, b, c);
+}
+
+template <>
+EIGEN_STRONG_INLINE Packet16f pnmadd(const Packet16f& a, const Packet16f& b,
+                                    const Packet16f& c) {
+  return _mm512_fnmadd_ps(a, b, c);
+}
+template <>
+EIGEN_STRONG_INLINE Packet8d pnmadd(const Packet8d& a, const Packet8d& b,
+                                   const Packet8d& c) {
+  return _mm512_fnmadd_pd(a, b, c);
+}
+
+template <>
+EIGEN_STRONG_INLINE Packet16f pnmsub(const Packet16f& a, const Packet16f& b,
+                                    const Packet16f& c) {
+  return _mm512_fnmsub_ps(a, b, c);
+}
+template <>
+EIGEN_STRONG_INLINE Packet8d pnmsub(const Packet8d& a, const Packet8d& b,
+                                   const Packet8d& c) {
+  return _mm512_fnmsub_pd(a, b, c);
+}
 #endif
 
 template <>
