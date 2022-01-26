@@ -50,6 +50,21 @@ struct traits<BDCSVD<MatrixType_,Options> >
   typedef MatrixType_ MatrixType;
 };
 
+template<typename MatrixType, int Options>
+struct allocate_small_svd {
+  static void run(JacobiSVD<MatrixType, Options>& smallSvd, Index rows, Index cols, unsigned int computationOptions) {
+    (void) computationOptions;
+    smallSvd = JacobiSVD<MatrixType, Options>(rows, cols);
+  }
+};
+
+template<typename MatrixType>
+struct allocate_small_svd<MatrixType, 0> {
+  static void run(JacobiSVD<MatrixType>& smallSvd, Index rows, Index cols, unsigned int computationOptions) {
+    smallSvd = JacobiSVD<MatrixType>(rows, cols, computationOptions);
+  }
+};
+
 } // end namespace internal
 
 
@@ -222,17 +237,6 @@ private:
   template<typename SVDType>
   void computeBaseCase(SVDType& svd, Index n, Index firstCol, Index firstRowW, Index firstColW, Index shift);
 
-  template<int Options_>
-  void allocateSmallJacobiSVD(Index rows, Index cols, unsigned int computationOptions) {
-    (void) computationOptions;
-    smallSvd = JacobiSVD<MatrixType, Options_>(rows, cols);
-  }
- 
-  template<>
-  void allocateSmallJacobiSVD<0>(Index rows, Index cols, unsigned int computationOptions) {
-    smallSvd = JacobiSVD<MatrixType>(rows, cols, computationOptions);
-  }
-
 protected:
   MatrixXr m_naiveU, m_naiveV;
   MatrixXr m_computed;
@@ -260,7 +264,6 @@ public:
   int m_numIters;
 }; //end class BDCSVD
 
-
 // Method to allocate and initialize matrix and attributes
 template<typename MatrixType, int Options>
 void BDCSVD<MatrixType, Options>::allocate(Eigen::Index rows, Eigen::Index cols, unsigned int computationOptions)
@@ -269,7 +272,7 @@ void BDCSVD<MatrixType, Options>::allocate(Eigen::Index rows, Eigen::Index cols,
     return;
 
   if (cols < m_algoswap)
-    allocateSmallJacobiSVD<Options>(rows, cols, computationOptions);
+    internal::allocate_small_svd<MatrixType, Options>::run(smallSvd, rows, cols, computationOptions);
 
   m_computed = MatrixXr::Zero(m_diagSize + 1, m_diagSize );
   m_compU = computeV();
