@@ -51,17 +51,18 @@ template<typename MatrixType> void real_qz(const MatrixType& m)
   bool all_zeros = true;
   for (Index i=0; i<A.cols(); i++)
     for (Index j=0; j<i; j++) {
-      if (!numext::is_zero_strict(abs(qz.matrixT()(i,j))))
+      if (!numext::is_exactly_zero(abs(qz.matrixT()(i, j))))
       {
         std::cerr << "Error: T(" << i << "," << j << ") = " << qz.matrixT()(i,j) << std::endl;
         all_zeros = false;
       }
-      if (j<i-1 && !numext::is_zero_strict(abs(qz.matrixS()(i,j))))
+      if (j<i-1 && !numext::is_exactly_zero(abs(qz.matrixS()(i, j))))
       {
         std::cerr << "Error: S(" << i << "," << j << ") = " << qz.matrixS()(i,j) << std::endl;
         all_zeros = false;
       }
-      if (j==i-1 && j>0 && !numext::is_zero_strict(abs(qz.matrixS()(i,j))) && !numext::is_zero_strict(abs(qz.matrixS()(i-1,j-1))))
+      if (j==i-1 && j>0 && !numext::is_exactly_zero(abs(qz.matrixS()(i, j))) &&
+              !numext::is_exactly_zero(abs(qz.matrixS()(i - 1, j - 1))))
       {
         std::cerr << "Error: S(" << i << "," << j << ") = " << qz.matrixS()(i,j)  << " && S(" << i-1 << "," << j-1 << ") = " << qz.matrixS()(i-1,j-1) << std::endl;
         all_zeros = false;

@@ -90,11 +90,11 @@ template<typename SparseMatrixType> void sparse_block(const SparseMatrixType& re
           
           VERIFY_IS_APPROX(m.middleCols(j,w).coeff(r,c), refMat.middleCols(j,w).coeff(r,c));
           VERIFY_IS_APPROX(m.middleRows(i,h).coeff(r,c), refMat.middleRows(i,h).coeff(r,c));
-          if(!numext::is_zero_strict(m.middleCols(j,w).coeff(r,c)))
+          if(!numext::is_exactly_zero(m.middleCols(j, w).coeff(r, c)))
           {
             VERIFY_IS_APPROX(m.middleCols(j,w).coeffRef(r,c), refMat.middleCols(j,w).coeff(r,c));
           }
-          if(!numext::is_zero_strict(m.middleRows(i,h).coeff(r,c)))
+          if(!numext::is_exactly_zero(m.middleRows(i, h).coeff(r, c)))
           {
             VERIFY_IS_APPROX(m.middleRows(i,h).coeff(r,c), refMat.middleRows(i,h).coeff(r,c));
           }

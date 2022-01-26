@@ -282,7 +282,7 @@ BDCSVD<MatrixType>& BDCSVD<MatrixType>::compute(const MatrixType& matrix, unsign
     return *this;
   }
 
-  if(numext::is_zero_strict(scale)) scale = Literal(1);
+  if(numext::is_exactly_zero(scale)) scale = Literal(1);
   MatrixX copy;
   if (m_isTranspose) copy = matrix.adjoint()/scale;
   else               copy = matrix/scale;
@@ -621,7 +621,10 @@ void BDCSVD<MatrixType>::computeSVDofM(Eigen::Index firstCol, Eigen::Index n, Ma
   // but others are interleaved and we must ignore them at this stage.
   // To this end, let's compute a permutation skipping them:
   Index actual_n = n;
-  while(actual_n>1 && numext::is_zero_strict(diag(actual_n-1))) {--actual_n; eigen_internal_assert(numext::is_zero_strict(col0(actual_n))); }
+  while(actual_n>1 && numext::is_exactly_zero(diag(actual_n - 1))) {
+    --actual_n;
+    eigen_internal_assert(numext::is_exactly_zero(col0(actual_n)));
+  }
   Index m = 0; // size of the deflated problem
   for(Index k=0;k<actual_n;++k)
     if(abs(col0(k))>considerZero)
@@ -753,11 +756,11 @@ void BDCSVD<MatrixType>::computeSingVals(const ArrayRef& col0, const ArrayRef& d
   Index actual_n = n;
   // Note that here actual_n is computed based on col0(i)==0 instead of diag(i)==0 as above
   // because 1) we have diag(i)==0 => col0(i)==0 and 2) if col0(i)==0, then diag(i) is already a singular value.
-  while(actual_n>1 && numext::is_zero_strict(col0(actual_n-1))) --actual_n;
+  while(actual_n>1 && numext::is_exactly_zero(col0(actual_n - 1))) --actual_n;
 
   for (Index k = 0; k < n; ++k)
   {
-    if (numext::is_zero_strict(col0(k)) || actual_n==1)
+    if (numext::is_exactly_zero(col0(k)) || actual_n == 1)
     {
       // if col0(k) == 0, then entry is deflated, so singular value is on diagonal
       // if actual_n==1, then the deflated problem is already diagonalized
@@ -778,7 +781,7 @@ void BDCSVD<MatrixType>::computeSingVals(const ArrayRef& col0, const ArrayRef& d
       // recall that at this stage we assume that z[j]!=0 and all entries for which z[j]==0 have been put aside.
       // This should be equivalent to using perm[]
       Index l = k+1;
-      while(numext::is_zero_strict(col0(l))) { ++l; eigen_internal_assert(l<actual_n); }
+      while(numext::is_exactly_zero(col0(l))) { ++l; eigen_internal_assert(l < actual_n); }
       right = diag(l);
     }
 
@@ -851,7 +854,7 @@ void BDCSVD<MatrixType>::computeSingVals(const ArrayRef& col0, const ArrayRef& d
     // rational interpolation: fit a function of the form a / mu + b through the two previous
     // iterates and use its zero to compute the next iterate
     bool useBisection = fPrev*fCur>Literal(0);
-    while (!numext::is_zero_strict(fCur) && abs(muCur - muPrev) > Literal(8) * NumTraits<RealScalar>::epsilon() * numext::maxi<RealScalar>(abs(muCur), abs(muPrev)) && abs(fCur - fPrev)>NumTraits<RealScalar>::epsilon() && !useBisection)
+    while (!numext::is_exactly_zero(fCur) && abs(muCur - muPrev) > Literal(8) * NumTraits<RealScalar>::epsilon() * numext::maxi<RealScalar>(abs(muCur), abs(muPrev)) && abs(fCur - fPrev) > NumTraits<RealScalar>::epsilon() && !useBisection)
     {
       ++m_numIters;
 
@@ -1009,7 +1012,7 @@ void BDCSVD<MatrixType>::perturbCol0
   // The offset permits to skip deflated entries while computing zhat
   for (Index k = 0; k < n; ++k)
   {
-    if (numext::is_zero_strict(col0(k))) // deflated
+    if (numext::is_exactly_zero(col0(k))) // deflated
       zhat(k) = Literal(0);
     else
     {
@@ -1082,7 +1085,7 @@ void BDCSVD<MatrixType>::computeSingVecs
 
   for (Index k = 0; k < n; ++k)
   {
-    if (numext::is_zero_strict(zhat(k)))
+    if (numext::is_exactly_zero(zhat(k)))
     {
       U.col(k) = VectorType::Unit(n+1, k);
       if (m_compV) V.col(k) = VectorType::Unit(n, k);
@@ -1128,7 +1131,7 @@ void BDCSVD<MatrixType>::deflation43(Eigen::Index firstCol, Eigen::Index shift, 
   RealScalar c = m_computed(start, start);
   RealScalar s = m_computed(start+i, start);
   RealScalar r = numext::hypot(c,s);
-  if (numext::is_zero_strict(r))
+  if (numext::is_exactly_zero(r))
   {
     m_computed(start+i, start+i) = Literal(0);
     return;
@@ -1168,7 +1171,7 @@ void BDCSVD<MatrixType>::deflation44(Eigen::Index firstColu , Eigen::Index first
     << m_computed(firstColm + i+1, firstColm+i+1) << " "
     << m_computed(firstColm + i+2, firstColm+i+2) << "\n";
 #endif
-  if (numext::is_zero_strict(r))
+  if (numext::is_exactly_zero(r))
   {
     m_computed(firstColm + i, firstColm + i) = m_computed(firstColm + j, firstColm + j);
     return;

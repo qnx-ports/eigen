@@ -234,13 +234,13 @@ void JacobiRotation<Scalar>::makeGivens(const Scalar& p, const Scalar& q, Scalar
 {
   using std::sqrt;
   using std::abs;
-  if(numext::is_zero_strict(q))
+  if(numext::is_exactly_zero(q))
   {
     m_c = p<Scalar(0) ? Scalar(-1) : Scalar(1);
     m_s = Scalar(0);
     if(r) *r = abs(p);
   }
-  else if(numext::is_zero_strict(p))
+  else if(numext::is_exactly_zero(p))
   {
     m_c = Scalar(0);
     m_s = q<Scalar(0) ? Scalar(1) : Scalar(-1);
@@ -468,7 +468,7 @@ void /*EIGEN_DONT_INLINE*/ apply_rotation_in_the_plane(DenseBase<VectorX>& xpr_x
 
   OtherScalar c = j.c();
   OtherScalar s = j.s();
-  if (numext::is_one_strict(c) && numext::is_zero_strict(s))
+  if (numext::is_exactly_one(c) && numext::is_exactly_zero(s))
     return;
 
   apply_rotation_in_the_plane_selector<

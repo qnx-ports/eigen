@@ -16,12 +16,12 @@ bool equalsIdentity(const MatrixType& A)
   bool offDiagOK = true;
   for (Index i = 0; i < A.rows(); ++i) {
     for (Index j = i+1; j < A.cols(); ++j) {
-      offDiagOK = offDiagOK && numext::is_zero_strict(A(i,j));
+      offDiagOK = offDiagOK && numext::is_exactly_zero(A(i, j));
     }
   }
   for (Index i = 0; i < A.rows(); ++i) {
     for (Index j = 0; j < (std::min)(i, A.cols()); ++j) {
-      offDiagOK = offDiagOK && numext::is_zero_strict(A(i,j));
+      offDiagOK = offDiagOK && numext::is_exactly_zero(A(i, j));
     }
   }
 

@@ -263,7 +263,7 @@ template<> struct gemv_dense_selector<OnTheRight,ColMajor,true>
     {
       gemv_static_vector_if<ResScalar,ActualDest::SizeAtCompileTime,ActualDest::MaxSizeAtCompileTime,MightCannotUseDest> static_dest;
 
-      const bool alphaIsCompatible = (!ComplexByReal) || (numext::is_zero_strict(numext::imag(actualAlpha)));
+      const bool alphaIsCompatible = (!ComplexByReal) || (numext::is_exactly_zero(numext::imag(actualAlpha)));
       const bool evalToDest = EvalToDestAtCompileTime && alphaIsCompatible;
 
       ei_declare_aligned_stack_constructed_variable(ResScalar,actualDestPtr,dest.size(),

@@ -436,14 +436,14 @@ bool equal_strict(const double& x,const double& y) { return std::equal_to<double
  * Use this to to bypass -Wfloat-equal warnings when exact zero is what needs to be tested.
 */
 template<typename X> EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC
-bool is_zero_strict(const X& x) { return equal_strict(x, typename NumTraits<X>::Literal{0}); }
+bool is_exactly_zero(const X& x) { return equal_strict(x, typename NumTraits<X>::Literal{0}); }
 
 /**
  * \internal Performs an exact comparison of x to one, e.g. to decide whether a factor needs to be multiplied.
  * Use this to to bypass -Wfloat-equal warnings when exact one is what needs to be tested.
 */
 template<typename X> EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC
-bool is_one_strict(const X& x) { return equal_strict(x, typename NumTraits<X>::Literal{1}); }
+bool is_exactly_one(const X& x) { return equal_strict(x, typename NumTraits<X>::Literal{1}); }
 
 template<typename X, typename Y> EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC
 bool not_equal_strict(const X& x,const Y& y) { return x != y; }
