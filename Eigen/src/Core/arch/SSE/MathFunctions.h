@@ -148,11 +148,15 @@ Packet4f prsqrt<Packet4f>(const Packet4f& _x) {
   return pselect<Packet4f>(not_normal_finite_mask, y_approx, y_newton);
 }
 
-#endif
-
+#ifdef EIGEN_VECTORIZE_FMA
+// Without FMA it is faster to just use the division instruction.
 template<> EIGEN_STRONG_INLINE Packet4f preciprocal<Packet4f>(const Packet4f& a) {
   return generic_reciprocal_newton_step<Packet4f, /*Steps=*/1>::run(a, _mm_rcp_ps(a));
 }
+#endif
+
+#endif
+
 
 
 // Hyperbolic Tangent function.
