@@ -23,7 +23,7 @@ namespace internal {
    1. The starting guess provided in approx_a_recip must have at least half
       the leading mantissa bits in the correct result, such that a single
       Newton-Raphson step is sufficient to get within 1-2 ulps of the currect
-      result.
+      result. This is the case for the _*_rcp_ps instructions on x86.
    2. If a is zero, approx_a_recip must be infinite with the same sign as a.
    3. If a is infinite, approx_a_recip must be zero with the same sign as a.
 
