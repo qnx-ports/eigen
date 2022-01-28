@@ -90,10 +90,6 @@ struct bool_constant<true> : true_type {};
 template<>
 struct bool_constant<false> : false_type {};
 
-template<typename T> struct remove_pointer { typedef T type; };
-template<typename T> struct remove_pointer<T*> { typedef T type; };
-template<typename T> struct remove_pointer<T*const> { typedef T type; };
-
 template <class T> struct remove_const { typedef T type; };
 template <class T> struct remove_const<const T> { typedef T type; };
 template <class T> struct remove_const<const T[]> { typedef T type[]; };

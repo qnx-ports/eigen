@@ -63,13 +63,6 @@ EIGEN_DECLARE_TEST(meta)
   VERIFY(( internal::is_same< internal::add_const_on_value_type<const float* const>::type, const float* const>::value));
   VERIFY(( internal::is_same< internal::add_const_on_value_type<float* const>::type, const float* const>::value));
 
-  VERIFY(( internal::is_same<float, std::remove_reference_t<float&> >::value));
-  VERIFY(( internal::is_same<const float, std::remove_reference_t<const float&> >::value));
-  VERIFY(( internal::is_same<float,internal::remove_pointer<float*>::type >::value));
-  VERIFY(( internal::is_same<const float,internal::remove_pointer<const float*>::type >::value));
-  VERIFY(( internal::is_same<float,internal::remove_pointer<float* const >::type >::value));
-
-
   // is_convertible
   STATIC_CHECK(( internal::is_convertible<float,double>::value ));
   STATIC_CHECK(( internal::is_convertible<int,double>::value ));
