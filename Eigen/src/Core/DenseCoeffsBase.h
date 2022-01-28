@@ -17,7 +17,7 @@ namespace Eigen {
 namespace internal {
 template<typename T> struct add_const_on_value_type_if_arithmetic
 {
-  typedef std::conditional_t<is_arithmetic<T>::value, T, typename add_const_on_value_type<T>::type> type;
+  typedef std::conditional_t<is_arithmetic<T>::value, T, add_const_on_value_type_t<T>> type;
 };
 }
 

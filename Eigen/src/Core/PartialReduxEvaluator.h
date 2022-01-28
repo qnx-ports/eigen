@@ -141,7 +141,7 @@ struct evaluator<PartialReduxExpr<ArgType, MemberOp, Direction> >
 {
   typedef PartialReduxExpr<ArgType, MemberOp, Direction> XprType;
   typedef typename internal::nested_eval<ArgType,1>::type ArgTypeNested;
-  typedef typename internal::add_const_on_value_type<ArgTypeNested>::type ConstArgTypeNested;
+  typedef add_const_on_value_type_t<ArgTypeNested> ConstArgTypeNested;
   typedef internal::remove_all_t<ArgTypeNested> ArgTypeNestedCleaned;
   typedef typename ArgType::Scalar InputScalar;
   typedef typename XprType::Scalar Scalar;

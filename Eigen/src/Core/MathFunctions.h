@@ -1232,7 +1232,7 @@ inline EIGEN_MATHFUNC_RETVAL(real, Scalar) real(const Scalar& x)
 
 template<typename Scalar>
 EIGEN_DEVICE_FUNC
-inline typename internal::add_const_on_value_type< EIGEN_MATHFUNC_RETVAL(real_ref, Scalar) >::type real_ref(const Scalar& x)
+inline internal::add_const_on_value_type_t< EIGEN_MATHFUNC_RETVAL(real_ref, Scalar) > real_ref(const Scalar& x)
 {
   return internal::real_ref_impl<Scalar>::run(x);
 }
@@ -1260,7 +1260,7 @@ inline EIGEN_MATHFUNC_RETVAL(arg, Scalar) arg(const Scalar& x)
 
 template<typename Scalar>
 EIGEN_DEVICE_FUNC
-inline typename internal::add_const_on_value_type< EIGEN_MATHFUNC_RETVAL(imag_ref, Scalar) >::type imag_ref(const Scalar& x)
+inline internal::add_const_on_value_type_t< EIGEN_MATHFUNC_RETVAL(imag_ref, Scalar) > imag_ref(const Scalar& x)
 {
   return internal::imag_ref_impl<Scalar>::run(x);
 }

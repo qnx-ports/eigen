@@ -136,6 +136,9 @@ template<typename T> struct add_const_on_value_type<T*>        { typedef T const
 template<typename T> struct add_const_on_value_type<T* const>  { typedef T const* const type; };
 template<typename T> struct add_const_on_value_type<T const* const>  { typedef T const* const type; };
 
+template<typename T>
+using add_const_on_value_type_t = typename add_const_on_value_type<T>::type;
+
 using std::is_convertible;
 
 /** \internal Allows to enable/disable an overload

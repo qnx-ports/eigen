@@ -428,7 +428,7 @@ struct transfer_constness
 {
   typedef std::conditional_t<
     bool(internal::is_const<T1>::value),
-    typename internal::add_const_on_value_type<T2>::type,
+    add_const_on_value_type_t<T2>,
     T2
   > type;
 };

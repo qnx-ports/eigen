@@ -43,14 +43,14 @@ EIGEN_DECLARE_TEST(meta)
   VERIFY(( internal::is_same<float,internal::remove_all_t<float* const> >::value));
 
   // test add_const_on_value_type
-  VERIFY(( internal::is_same< internal::add_const_on_value_type<float&>::type, float const& >::value));
-  VERIFY(( internal::is_same< internal::add_const_on_value_type<float*>::type, float const* >::value));
+  VERIFY(( internal::is_same< internal::add_const_on_value_type_t<float&>, float const& >::value));
+  VERIFY(( internal::is_same< internal::add_const_on_value_type_t<float*>, float const* >::value));
 
-  VERIFY(( internal::is_same< internal::add_const_on_value_type<float>::type, const float >::value));
-  VERIFY(( internal::is_same< internal::add_const_on_value_type<const float>::type, const float >::value));
+  VERIFY(( internal::is_same< internal::add_const_on_value_type_t<float>, const float >::value));
+  VERIFY(( internal::is_same< internal::add_const_on_value_type_t<const float>, const float >::value));
 
-  VERIFY(( internal::is_same< internal::add_const_on_value_type<const float* const>::type, const float* const>::value));
-  VERIFY(( internal::is_same< internal::add_const_on_value_type<float* const>::type, const float* const>::value));
+  VERIFY(( internal::is_same< internal::add_const_on_value_type_t<const float* const>, const float* const>::value));
+  VERIFY(( internal::is_same< internal::add_const_on_value_type_t<float* const>, const float* const>::value));
 
   // is_convertible
   STATIC_CHECK(( internal::is_convertible<float,double>::value ));

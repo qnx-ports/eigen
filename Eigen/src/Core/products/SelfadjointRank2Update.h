@@ -65,12 +65,12 @@ EIGEN_DEVICE_FUNC SelfAdjointView<MatrixType,UpLo>& SelfAdjointView<MatrixType,U
   typedef internal::blas_traits<DerivedU> UBlasTraits;
   typedef typename UBlasTraits::DirectLinearAccessType ActualUType;
   typedef internal::remove_all_t<ActualUType> ActualUType_;
-  typename internal::add_const_on_value_type<ActualUType>::type actualU = UBlasTraits::extract(u.derived());
+  internal::add_const_on_value_type_t<ActualUType> actualU = UBlasTraits::extract(u.derived());
 
   typedef internal::blas_traits<DerivedV> VBlasTraits;
   typedef typename VBlasTraits::DirectLinearAccessType ActualVType;
   typedef internal::remove_all_t<ActualVType> ActualVType_;
-  typename internal::add_const_on_value_type<ActualVType>::type actualV = VBlasTraits::extract(v.derived());
+  internal::add_const_on_value_type_t<ActualVType> actualV = VBlasTraits::extract(v.derived());
 
   // If MatrixType is row major, then we use the routine for lower triangular in the upper triangular case and
   // vice versa, and take the complex conjugate of all coefficients and vector entries.

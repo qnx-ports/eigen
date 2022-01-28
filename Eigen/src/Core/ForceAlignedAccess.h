@@ -130,7 +130,7 @@ MatrixBase<Derived>::forceAlignedAccess()
   */
 template<typename Derived>
 template<bool Enable>
-inline typename internal::add_const_on_value_type<std::conditional_t<Enable,ForceAlignedAccess<Derived>,Derived&>>::type
+inline add_const_on_value_type_t<std::conditional_t<Enable,ForceAlignedAccess<Derived>,Derived&>>
 MatrixBase<Derived>::forceAlignedAccessIf() const
 {
   return derived();  // FIXME This should not work but apparently is never used
