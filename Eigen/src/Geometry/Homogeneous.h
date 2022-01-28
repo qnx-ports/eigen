@@ -227,7 +227,7 @@ template<typename Scalar, int Dim, int Mode,int Options>
 struct take_matrix_for_product<Transform<Scalar, Dim, Mode, Options> >
 {
   typedef Transform<Scalar, Dim, Mode, Options> TransformType;
-  typedef typename internal::add_const<typename TransformType::ConstAffinePart>::type type;
+  typedef std::add_const_t<typename TransformType::ConstAffinePart> type;
   EIGEN_DEVICE_FUNC static type run (const TransformType& x) { return x.affine(); }
 };
 

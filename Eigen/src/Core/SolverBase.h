@@ -112,7 +112,7 @@ class SolverBase : public EigenBase<Derived>
     }
 
     /** \internal the return type of transpose() */
-    typedef typename internal::add_const<Transpose<const Derived> >::type ConstTransposeReturnType;
+    typedef std::add_const_t<Transpose<const Derived> > ConstTransposeReturnType;
     /** \returns an expression of the transposed of the factored matrix.
       *
       * A typical usage is to solve for the transposed problem A^T x = b:

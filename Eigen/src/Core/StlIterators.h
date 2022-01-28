@@ -182,10 +182,10 @@ class pointer_based_stl_iterator
 {
   enum { is_lvalue  = internal::is_lvalue<XprType>::value };
   typedef pointer_based_stl_iterator<std::remove_const_t<XprType>> non_const_iterator;
-  typedef pointer_based_stl_iterator<typename internal::add_const<XprType>::type> const_iterator;
+  typedef pointer_based_stl_iterator<std::add_const_t<XprType>> const_iterator;
   typedef std::conditional_t<internal::is_const<XprType>::value,non_const_iterator,const_iterator> other_iterator;
   // NOTE: in C++03 we cannot declare friend classes through typedefs because we need to write friend class:
-  friend class pointer_based_stl_iterator<typename internal::add_const<XprType>::type>;
+  friend class pointer_based_stl_iterator<std::add_const_t<XprType>>;
   friend class pointer_based_stl_iterator<std::remove_const_t<XprType>>;
 public:
   typedef Index difference_type;
@@ -263,7 +263,7 @@ struct indexed_based_stl_iterator_traits<generic_randaccess_stl_iterator<XprType
 {
   typedef XprType_ XprType;
   typedef generic_randaccess_stl_iterator<std::remove_const_t<XprType>> non_const_iterator;
-  typedef generic_randaccess_stl_iterator<typename internal::add_const<XprType>::type> const_iterator;
+  typedef generic_randaccess_stl_iterator<std::add_const_t<XprType>> const_iterator;
 };
 
 template<typename XprType>
@@ -308,7 +308,7 @@ struct indexed_based_stl_iterator_traits<subvector_stl_iterator<XprType_,Directi
 {
   typedef XprType_ XprType;
   typedef subvector_stl_iterator<std::remove_const_t<XprType>, Direction> non_const_iterator;
-  typedef subvector_stl_iterator<typename internal::add_const<XprType>::type, Direction> const_iterator;
+  typedef subvector_stl_iterator<std::add_const_t<XprType>, Direction> const_iterator;
 };
 
 template<typename XprType, DirectionType Direction>
@@ -356,7 +356,7 @@ struct indexed_based_stl_iterator_traits<subvector_stl_reverse_iterator<XprType_
 {
   typedef XprType_ XprType;
   typedef subvector_stl_reverse_iterator<std::remove_const_t<XprType>, Direction> non_const_iterator;
-  typedef subvector_stl_reverse_iterator<typename internal::add_const<XprType>::type, Direction> const_iterator;
+  typedef subvector_stl_reverse_iterator<std::add_const_t<XprType>, Direction> const_iterator;
 };
 
 template<typename XprType, DirectionType Direction>

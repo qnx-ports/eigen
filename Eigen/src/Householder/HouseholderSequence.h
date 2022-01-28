@@ -159,8 +159,8 @@ template<typename VectorsType, typename CoeffsType, int Side> class HouseholderS
     > TransposeReturnType;
 
     typedef HouseholderSequence<
-      typename internal::add_const<VectorsType>::type,
-      typename internal::add_const<CoeffsType>::type,
+      std::add_const_t<VectorsType>,
+      std::add_const_t<CoeffsType>,
       Side
     > ConstHouseholderSequence;
 

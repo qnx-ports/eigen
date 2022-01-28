@@ -200,7 +200,7 @@ template<typename MatrixType_, unsigned int Mode_> class TriangularView
     typedef typename internal::traits<TriangularView>::MatrixTypeNestedNonRef MatrixTypeNestedNonRef;
 
     typedef internal::remove_all_t<typename MatrixType::ConjugateReturnType> MatrixConjugateReturnType;
-    typedef TriangularView<typename internal::add_const<MatrixType>::type, Mode_> ConstTriangularView;
+    typedef TriangularView<std::add_const_t<MatrixType>, Mode_> ConstTriangularView;
 
   public:
 

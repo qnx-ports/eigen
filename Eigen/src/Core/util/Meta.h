@@ -127,9 +127,6 @@ using std::is_integral;
 
 using std::make_unsigned;
 
-template <typename T> struct add_const { typedef const T type; };
-template <typename T> struct add_const<T&> { typedef T& type; };
-
 template <typename T> struct is_const { enum { value = 0 }; };
 template <typename T> struct is_const<T const> { enum { value = 1 }; };
 

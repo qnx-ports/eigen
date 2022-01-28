@@ -300,8 +300,8 @@ template<int Mode> struct trmv_selector<Mode,RowMajor>
     typedef typename RhsBlasTraits::DirectLinearAccessType ActualRhsType;
     typedef internal::remove_all_t<ActualRhsType> ActualRhsTypeCleaned;
 
-    typename add_const<ActualLhsType>::type actualLhs = LhsBlasTraits::extract(lhs);
-    typename add_const<ActualRhsType>::type actualRhs = RhsBlasTraits::extract(rhs);
+    std::add_const_t<ActualLhsType> actualLhs = LhsBlasTraits::extract(lhs);
+    std::add_const_t<ActualRhsType> actualRhs = RhsBlasTraits::extract(rhs);
 
     LhsScalar lhs_alpha = LhsBlasTraits::extractScalarFactor(lhs);
     RhsScalar rhs_alpha = RhsBlasTraits::extractScalarFactor(rhs);
