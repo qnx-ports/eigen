@@ -136,7 +136,7 @@ protected:
 // Dense = Product
 template< typename DstXprType, typename Lhs, typename Rhs, int Options, typename Scalar>
 struct Assignment<DstXprType, Product<Lhs,Rhs,Options>, internal::assign_op<Scalar,Scalar>, Dense2Dense,
-  typename enable_if<(Options==DefaultProduct || Options==AliasFreeProduct)>::type>
+  std::enable_if_t<(Options==DefaultProduct || Options==AliasFreeProduct)>>
 {
   typedef Product<Lhs,Rhs,Options> SrcXprType;
   static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
@@ -154,7 +154,7 @@ struct Assignment<DstXprType, Product<Lhs,Rhs,Options>, internal::assign_op<Scal
 // Dense += Product
 template< typename DstXprType, typename Lhs, typename Rhs, int Options, typename Scalar>
 struct Assignment<DstXprType, Product<Lhs,Rhs,Options>, internal::add_assign_op<Scalar,Scalar>, Dense2Dense,
-  typename enable_if<(Options==DefaultProduct || Options==AliasFreeProduct)>::type>
+  std::enable_if_t<(Options==DefaultProduct || Options==AliasFreeProduct)>>
 {
   typedef Product<Lhs,Rhs,Options> SrcXprType;
   static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
@@ -169,7 +169,7 @@ struct Assignment<DstXprType, Product<Lhs,Rhs,Options>, internal::add_assign_op<
 // Dense -= Product
 template< typename DstXprType, typename Lhs, typename Rhs, int Options, typename Scalar>
 struct Assignment<DstXprType, Product<Lhs,Rhs,Options>, internal::sub_assign_op<Scalar,Scalar>, Dense2Dense,
-  typename enable_if<(Options==DefaultProduct || Options==AliasFreeProduct)>::type>
+  std::enable_if_t<(Options==DefaultProduct || Options==AliasFreeProduct)>>
 {
   typedef Product<Lhs,Rhs,Options> SrcXprType;
   static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE

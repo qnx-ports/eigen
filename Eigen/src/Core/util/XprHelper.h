@@ -687,14 +687,14 @@ struct possibly_same_dense {
 
 template<typename T1, typename T2>
 EIGEN_DEVICE_FUNC
-bool is_same_dense(const T1 &mat1, const T2 &mat2, typename enable_if<possibly_same_dense<T1,T2>::value>::type * = 0)
+bool is_same_dense(const T1 &mat1, const T2 &mat2, std::enable_if_t<possibly_same_dense<T1,T2>::value> * = 0)
 {
   return (mat1.data()==mat2.data()) && (mat1.innerStride()==mat2.innerStride()) && (mat1.outerStride()==mat2.outerStride());
 }
 
 template<typename T1, typename T2>
 EIGEN_DEVICE_FUNC
-bool is_same_dense(const T1 &, const T2 &, typename enable_if<!possibly_same_dense<T1,T2>::value>::type * = 0)
+bool is_same_dense(const T1 &, const T2 &, std::enable_if_t<!possibly_same_dense<T1,T2>::value> * = 0)
 {
   return false;
 }
@@ -807,12 +807,12 @@ struct ScalarBinaryOpTraits<T,T,BinaryOp>
 };
 
 template <typename T, typename BinaryOp>
-struct ScalarBinaryOpTraits<T, typename NumTraits<typename internal::enable_if<NumTraits<T>::IsComplex,T>::type>::Real, BinaryOp>
+struct ScalarBinaryOpTraits<T, typename NumTraits<std::enable_if_t<NumTraits<T>::IsComplex,T>>::Real, BinaryOp>
 {
   typedef T ReturnType;
 };
 template <typename T, typename BinaryOp>
-struct ScalarBinaryOpTraits<typename NumTraits<typename internal::enable_if<NumTraits<T>::IsComplex,T>::type>::Real, T, BinaryOp>
+struct ScalarBinaryOpTraits<typename NumTraits<std::enable_if_t<NumTraits<T>::IsComplex,T>>::Real, T, BinaryOp>
 {
   typedef T ReturnType;
 };

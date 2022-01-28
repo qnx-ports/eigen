@@ -692,7 +692,7 @@ struct ExecExprFunctorKernel {
     compute(itemID);
   }
   template <bool is_vec = Evaluator::PacketAccess>
-  EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE typename std::enable_if<!is_vec>::type
+  EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE std::enable_if_t<!is_vec>
   compute(const cl::sycl::nd_item<1>& itemID) {
     Index gId = static_cast<Index>(itemID.get_global_linear_id());
     Index total_threads = itemID.get_global_range(0);
@@ -702,7 +702,7 @@ struct ExecExprFunctorKernel {
     }
   }
   template <bool is_vec = Evaluator::PacketAccess>
-  EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE typename std::enable_if<is_vec>::type
+  EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE std::enable_if_t<is_vec>
   compute(const cl::sycl::nd_item<1>& itemID) {
     const Index vectorizedRange =
         (range / Evaluator::PacketSize) * Evaluator::PacketSize;

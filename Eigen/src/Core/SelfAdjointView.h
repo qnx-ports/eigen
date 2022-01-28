@@ -220,7 +220,7 @@ template<typename MatrixType_, unsigned int UpLo> class SelfAdjointView
      /** \sa MatrixBase::transpose() */
     template<class Dummy=int>
     EIGEN_DEVICE_FUNC
-    inline TransposeReturnType transpose(typename internal::enable_if<Eigen::internal::is_lvalue<MatrixType>::value, Dummy*>::type = nullptr)
+    inline TransposeReturnType transpose(std::enable_if_t<Eigen::internal::is_lvalue<MatrixType>::value, Dummy*> = nullptr)
     {
       typename MatrixType::TransposeReturnType tmp(m_matrix);
       return TransposeReturnType(tmp);

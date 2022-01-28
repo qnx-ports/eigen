@@ -81,7 +81,7 @@ void stable_norm_impl_inner_step(const VectorType &vec, RealScalar& ssq, RealSca
 
 template<typename VectorType>
 typename VectorType::RealScalar
-stable_norm_impl(const VectorType &vec, typename enable_if<VectorType::IsVectorAtCompileTime>::type* = 0 )
+stable_norm_impl(const VectorType &vec, std::enable_if_t<VectorType::IsVectorAtCompileTime>* = 0 )
 {
   using std::sqrt;
   using std::abs;
@@ -103,7 +103,7 @@ stable_norm_impl(const VectorType &vec, typename enable_if<VectorType::IsVectorA
 
 template<typename MatrixType>
 typename MatrixType::RealScalar
-stable_norm_impl(const MatrixType &mat, typename enable_if<!MatrixType::IsVectorAtCompileTime>::type* = 0 )
+stable_norm_impl(const MatrixType &mat, std::enable_if_t<!MatrixType::IsVectorAtCompileTime>* = 0 )
 {
   using std::sqrt;
 

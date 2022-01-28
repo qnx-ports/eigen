@@ -95,8 +95,8 @@ struct void_helper {
   template<typename Func, typename... Args>
   static EIGEN_ALWAYS_INLINE EIGEN_DEVICE_FUNC
   auto call(Func&& func, Args&&... args) -> 
-      typename std::enable_if<!std::is_same<decltype(func(args...)), void>::value, 
-                              decltype(func(args...))>::type {
+      std::enable_if_t<!std::is_same<decltype(func(args...)), void>::value,
+                       decltype(func(args...))> {
     return func(std::forward<Args>(args)...);
   }
   
@@ -104,8 +104,8 @@ struct void_helper {
   template<typename Func, typename... Args>
   static EIGEN_ALWAYS_INLINE EIGEN_DEVICE_FUNC
   auto call(Func&& func, Args&&... args) -> 
-      typename std::enable_if<std::is_same<decltype(func(args...)), void>::value,
-                              Void>::type {
+    std::enable_if_t<std::is_same<decltype(func(args...)), void>::value,
+                     Void> {
     func(std::forward<Args>(args)...);
     return Void{};
   }
@@ -113,7 +113,7 @@ struct void_helper {
   // Restores the original return type, Void -> void, T otherwise.
   template<typename T>
   static EIGEN_ALWAYS_INLINE EIGEN_DEVICE_FUNC
-  typename std::enable_if<!std::is_same<typename std::decay<T>::type, Void>::value, T>::type
+  std::enable_if_t<!std::is_same<typename std::decay<T>::type, Void>::value, T>
   restore(T&& val) {
     return val;
   }

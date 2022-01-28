@@ -703,7 +703,7 @@ DoublePacket<Packet> padd(const DoublePacket<Packet> &a, const DoublePacket<Pack
 template<typename Packet>
 const DoublePacket<Packet>&
 predux_half_dowto4(const DoublePacket<Packet> &a,
-                   typename enable_if<unpacket_traits<Packet>::size<=8>::type* = 0)
+                   std::enable_if_t<unpacket_traits<Packet>::size<=8>* = 0)
 {
   return a;
 }
@@ -711,7 +711,7 @@ predux_half_dowto4(const DoublePacket<Packet> &a,
 template<typename Packet>
 DoublePacket<typename unpacket_traits<Packet>::half>
 predux_half_dowto4(const DoublePacket<Packet> &a,
-                   typename enable_if<unpacket_traits<Packet>::size==16>::type* = 0)
+                   std::enable_if_t<unpacket_traits<Packet>::size==16>* = 0)
 {
   // yes, that's pretty hackish :(
   DoublePacket<typename unpacket_traits<Packet>::half> res;
@@ -725,7 +725,7 @@ predux_half_dowto4(const DoublePacket<Packet> &a,
 // same here, "quad" actually means "8" in terms of real coefficients
 template<typename Scalar, typename RealPacket>
 void loadQuadToDoublePacket(const Scalar* b, DoublePacket<RealPacket>& dest,
-                            typename enable_if<unpacket_traits<RealPacket>::size<=8>::type* = 0)
+                            std::enable_if_t<unpacket_traits<RealPacket>::size<=8>* = 0)
 {
   dest.first  = pset1<RealPacket>(numext::real(*b));
   dest.second = pset1<RealPacket>(numext::imag(*b));
@@ -733,7 +733,7 @@ void loadQuadToDoublePacket(const Scalar* b, DoublePacket<RealPacket>& dest,
 
 template<typename Scalar, typename RealPacket>
 void loadQuadToDoublePacket(const Scalar* b, DoublePacket<RealPacket>& dest,
-                            typename enable_if<unpacket_traits<RealPacket>::size==16>::type* = 0)
+                            std::enable_if_t<unpacket_traits<RealPacket>::size==16>* = 0)
 {
   // yes, that's pretty hackish too :(
   typedef typename NumTraits<Scalar>::Real RealScalar;
@@ -868,7 +868,7 @@ public:
 
   template<typename LhsPacketType, typename RhsPacketType, typename ResPacketType, typename TmpType, typename LaneIdType>
   EIGEN_STRONG_INLINE
-  typename enable_if<!is_same<RhsPacketType,RhsPacketx4>::value>::type
+  std::enable_if_t<!is_same<RhsPacketType,RhsPacketx4>::value>
   madd(const LhsPacketType& a, const RhsPacketType& b, DoublePacket<ResPacketType>& c, TmpType& /*tmp*/, const LaneIdType&) const
   {
     c.first   = padd(pmul(a,b.first), c.first);

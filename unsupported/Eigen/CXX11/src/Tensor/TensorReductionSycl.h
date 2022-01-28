@@ -144,7 +144,7 @@ class FullReductionKernelFunctor {
   void operator()(cl::sycl::nd_item<1> itemID) { compute_reduction(itemID); }
 
   template <bool Vect = (Evaluator::ReducerTraits::PacketAccess & Evaluator::InputPacketAccess)>
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE typename ::Eigen::internal::enable_if<Vect>::type compute_reduction(
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE std::enable_if_t<Vect> compute_reduction(
       const cl::sycl::nd_item<1> &itemID) {
     auto output_ptr = final_output.get_pointer();
     Index VectorizedRange = (rng / Evaluator::PacketSize) * Evaluator::PacketSize;
@@ -183,7 +183,7 @@ class FullReductionKernelFunctor {
   }
 
   template <bool Vect = (Evaluator::ReducerTraits::PacketAccess & Evaluator::InputPacketAccess)>
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE typename ::Eigen::internal::enable_if<!Vect>::type compute_reduction(
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE std::enable_if_t<!Vect> compute_reduction(
       const cl::sycl::nd_item<1> &itemID) {
     auto output_ptr = final_output.get_pointer();
     Index globalid = itemID.get_global_id(0);

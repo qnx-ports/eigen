@@ -434,9 +434,9 @@ struct cast_impl
 // generating warnings on clang.  Here we explicitly cast the real component.
 template<typename OldType, typename NewType>
 struct cast_impl<OldType, NewType,
-  typename internal::enable_if<
+  typename std::enable_if_t<
     !NumTraits<OldType>::IsComplex && NumTraits<NewType>::IsComplex
-  >::type>
+  >>
 {
   EIGEN_DEVICE_FUNC
   static inline NewType run(const OldType& x)
@@ -962,22 +962,22 @@ inline EIGEN_MATHFUNC_RETVAL(random, Scalar) random()
 
 template<typename T>
 EIGEN_DEVICE_FUNC
-typename internal::enable_if<internal::is_integral<T>::value,bool>::type
+std::enable_if_t<internal::is_integral<T>::value,bool>
 isnan_impl(const T&) { return false; }
 
 template<typename T>
 EIGEN_DEVICE_FUNC
-typename internal::enable_if<internal::is_integral<T>::value,bool>::type
+std::enable_if_t<internal::is_integral<T>::value,bool>
 isinf_impl(const T&) { return false; }
 
 template<typename T>
 EIGEN_DEVICE_FUNC
-typename internal::enable_if<internal::is_integral<T>::value,bool>::type
+std::enable_if_t<internal::is_integral<T>::value,bool>
 isfinite_impl(const T&) { return true; }
 
 template<typename T>
 EIGEN_DEVICE_FUNC
-typename internal::enable_if<(!internal::is_integral<T>::value)&&(!NumTraits<T>::IsComplex),bool>::type
+std::enable_if_t<(!internal::is_integral<T>::value)&&(!NumTraits<T>::IsComplex),bool>
 isfinite_impl(const T& x)
 {
   #if defined(EIGEN_GPU_COMPILE_PHASE)
@@ -992,7 +992,7 @@ isfinite_impl(const T& x)
 
 template<typename T>
 EIGEN_DEVICE_FUNC
-typename internal::enable_if<(!internal::is_integral<T>::value)&&(!NumTraits<T>::IsComplex),bool>::type
+std::enable_if_t<(!internal::is_integral<T>::value)&&(!NumTraits<T>::IsComplex),bool>
 isinf_impl(const T& x)
 {
   #if defined(EIGEN_GPU_COMPILE_PHASE)
@@ -1007,7 +1007,7 @@ isinf_impl(const T& x)
 
 template<typename T>
 EIGEN_DEVICE_FUNC
-typename internal::enable_if<(!internal::is_integral<T>::value)&&(!NumTraits<T>::IsComplex),bool>::type
+std::enable_if_t<(!internal::is_integral<T>::value)&&(!NumTraits<T>::IsComplex),bool>
 isnan_impl(const T& x)
 {
   #if defined(EIGEN_GPU_COMPILE_PHASE)
@@ -1503,7 +1503,7 @@ double log(const double &x) { return ::log(x); }
 
 template<typename T>
 EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
-typename internal::enable_if<NumTraits<T>::IsSigned || NumTraits<T>::IsComplex,typename NumTraits<T>::Real>::type
+std::enable_if_t<NumTraits<T>::IsSigned || NumTraits<T>::IsComplex,typename NumTraits<T>::Real>
 abs(const T &x) {
   EIGEN_USING_STD(abs);
   return abs(x);
@@ -1511,7 +1511,7 @@ abs(const T &x) {
 
 template<typename T>
 EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
-typename internal::enable_if<!(NumTraits<T>::IsSigned || NumTraits<T>::IsComplex),typename NumTraits<T>::Real>::type
+std::enable_if_t<!(NumTraits<T>::IsSigned || NumTraits<T>::IsComplex),typename NumTraits<T>::Real>
 abs(const T &x) {
   return x;
 }

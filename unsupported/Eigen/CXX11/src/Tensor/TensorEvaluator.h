@@ -115,7 +115,7 @@ struct TensorEvaluator
   // float element will be loaded, otherwise 0 will be loaded.
   // Function has been templatized to enable Sfinae.
   template <typename PacketReturnTypeT> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-  typename internal::enable_if<internal::unpacket_traits<PacketReturnTypeT>::masked_load_available, PacketReturnTypeT>::type
+  std::enable_if_t<internal::unpacket_traits<PacketReturnTypeT>::masked_load_available, PacketReturnTypeT>
   partialPacket(Index index, typename internal::unpacket_traits<PacketReturnTypeT>::mask_t umask) const
   {
     return internal::ploadu<PacketReturnTypeT>(m_data + index, umask);
@@ -305,7 +305,7 @@ struct TensorEvaluator<const Derived, Device>
   // float element will be loaded, otherwise 0 will be loaded.
   // Function has been templatized to enable Sfinae.
   template <typename PacketReturnTypeT> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-  typename internal::enable_if<internal::unpacket_traits<PacketReturnTypeT>::masked_load_available, PacketReturnTypeT>::type
+  std::enable_if_t<internal::unpacket_traits<PacketReturnTypeT>::masked_load_available, PacketReturnTypeT>
   partialPacket(Index index, typename internal::unpacket_traits<PacketReturnTypeT>::mask_t umask) const
   {
     return internal::ploadu<PacketReturnTypeT>(m_data + index, umask);

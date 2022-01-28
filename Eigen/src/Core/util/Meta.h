@@ -141,14 +141,6 @@ using add_const_on_value_type_t = typename add_const_on_value_type<T>::type;
 
 using std::is_convertible;
 
-/** \internal Allows to enable/disable an overload
-  * according to a compile time condition.
-  */
-template<bool Condition, typename T=void> struct enable_if;
-
-template<typename T> struct enable_if<true,T>
-{ typedef T type; };
-
 /** \internal
   * A base class do disable default copy ctor and copy assignment operator.
   */
@@ -179,7 +171,7 @@ template<typename T, typename EnableIf = void> struct array_size {
   enum { value = Dynamic };
 };
 
-template<typename T> struct array_size<T,typename internal::enable_if<((T::SizeAtCompileTime&0)==0)>::type> {
+template<typename T> struct array_size<T, std::enable_if_t<((T::SizeAtCompileTime&0)==0)>> {
   enum { value = T::SizeAtCompileTime };
 };
 
@@ -290,7 +282,7 @@ template<typename T> const T* return_ptr();
 template <typename T, typename IndexType=Index>
 struct has_nullary_operator
 {
-  template <typename C> static meta_yes testFunctor(C const *,typename enable_if<(sizeof(return_ptr<C>()->operator()())>0)>::type * = 0);
+  template <typename C> static meta_yes testFunctor(C const *,std::enable_if_t<(sizeof(return_ptr<C>()->operator()())>0)> * = 0);
   static meta_no testFunctor(...);
 
   enum { value = sizeof(testFunctor(static_cast<T*>(0))) == sizeof(meta_yes) };
@@ -299,7 +291,7 @@ struct has_nullary_operator
 template <typename T, typename IndexType=Index>
 struct has_unary_operator
 {
-  template <typename C> static meta_yes testFunctor(C const *,typename enable_if<(sizeof(return_ptr<C>()->operator()(IndexType(0)))>0)>::type * = 0);
+  template <typename C> static meta_yes testFunctor(C const *,std::enable_if_t<(sizeof(return_ptr<C>()->operator()(IndexType(0)))>0)> * = 0);
   static meta_no testFunctor(...);
 
   enum { value = sizeof(testFunctor(static_cast<T*>(0))) == sizeof(meta_yes) };
@@ -308,7 +300,7 @@ struct has_unary_operator
 template <typename T, typename IndexType=Index>
 struct has_binary_operator
 {
-  template <typename C> static meta_yes testFunctor(C const *,typename enable_if<(sizeof(return_ptr<C>()->operator()(IndexType(0),IndexType(0)))>0)>::type * = 0);
+  template <typename C> static meta_yes testFunctor(C const *,std::enable_if_t<(sizeof(return_ptr<C>()->operator()(IndexType(0),IndexType(0)))>0)> * = 0);
   static meta_no testFunctor(...);
 
   enum { value = sizeof(testFunctor(static_cast<T*>(0))) == sizeof(meta_yes) };
