@@ -113,7 +113,7 @@ public:
               || int(Traversal) == SliceVectorizedTraversal
   };
 
-  typedef typename conditional<int(Traversal)==LinearVectorizedTraversal, LinearPacketType, InnerPacketType>::type PacketType;
+  typedef conditional_t<int(Traversal)==LinearVectorizedTraversal, LinearPacketType, InnerPacketType> PacketType;
 
 private:
   enum {
@@ -879,8 +879,8 @@ void call_assignment_no_alias(Dst& dst, const Src& src, const Func& func)
                       ) && int(Dst::SizeAtCompileTime) != 1
   };
 
-  typedef typename internal::conditional<NeedToTranspose, Transpose<Dst>, Dst>::type ActualDstTypeCleaned;
-  typedef typename internal::conditional<NeedToTranspose, Transpose<Dst>, Dst&>::type ActualDstType;
+  typedef conditional_t<NeedToTranspose, Transpose<Dst>, Dst> ActualDstTypeCleaned;
+  typedef conditional_t<NeedToTranspose, Transpose<Dst>, Dst&> ActualDstType;
   ActualDstType actualDst(dst);
 
   // TODO check whether this is the right place to perform these checks:

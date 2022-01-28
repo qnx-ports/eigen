@@ -96,6 +96,9 @@ struct conditional { typedef Then type; };
 template<typename Then, typename Else>
 struct conditional <false, Then, Else> { typedef Else type; };
 
+template<bool Condition, typename Then, typename Else>
+using conditional_t = typename conditional<Condition, Then, Else>::type;
+
 template<typename T> struct remove_reference { typedef T type; };
 template<typename T> struct remove_reference<T&> { typedef T type; };
 
@@ -114,6 +117,9 @@ template<typename T> struct remove_all<T const&>  { typedef typename remove_all<
 template<typename T> struct remove_all<T&>        { typedef typename remove_all<T>::type type; };
 template<typename T> struct remove_all<T const*>  { typedef typename remove_all<T>::type type; };
 template<typename T> struct remove_all<T*>        { typedef typename remove_all<T>::type type; };
+
+template<typename T>
+using remove_all_t = typename remove_all<T>::type;
 
 template<typename T> struct is_arithmetic      { enum { value = false }; };
 template<> struct is_arithmetic<float>         { enum { value = true }; };
@@ -256,24 +262,24 @@ template<typename T> struct result_of;
 template<typename F, typename... ArgTypes>
 struct result_of<F(ArgTypes...)> {
   typedef typename std::invoke_result<F, ArgTypes...>::type type1;
-  typedef typename remove_all<type1>::type type;
+  typedef remove_all_t<type1> type;
 };
 
 template<typename F, typename... ArgTypes>
 struct invoke_result {
   typedef typename std::invoke_result<F, ArgTypes...>::type type1;
-  typedef typename remove_all<type1>::type type;
+  typedef remove_all_t<type1> type;
 };
 #else
 template<typename T> struct result_of {
   typedef typename std::result_of<T>::type type1;
-  typedef typename remove_all<type1>::type type;
+  typedef remove_all_t<type1> type;
 };
 
 template<typename F, typename... ArgTypes>
 struct invoke_result {
     typedef typename result_of<F(ArgTypes...)>::type type1;
-    typedef typename remove_all<type1>::type type;
+    typedef remove_all_t<type1> type;
 };
 #endif
 
@@ -381,7 +387,7 @@ template<typename T, typename U> struct scalar_product_traits
 // FIXME quick workaround around current limitation of result_of
 // template<typename Scalar, typename ArgType0, typename ArgType1>
 // struct result_of<scalar_product_op<Scalar>(ArgType0,ArgType1)> {
-// typedef typename scalar_product_traits<typename remove_all<ArgType0>::type, typename remove_all<ArgType1>::type>::ReturnType type;
+// typedef typename scalar_product_traits<remove_all_t<ArgType0>, remove_all_t<ArgType1>>::ReturnType type;
 // };
 
 /** \internal Obtains a POD type suitable to use as storage for an object of a size

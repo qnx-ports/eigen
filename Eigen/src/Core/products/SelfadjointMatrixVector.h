@@ -169,11 +169,11 @@ struct selfadjoint_product_impl<Lhs,LhsMode,false,Rhs,0,true>
   
   typedef internal::blas_traits<Lhs> LhsBlasTraits;
   typedef typename LhsBlasTraits::DirectLinearAccessType ActualLhsType;
-  typedef typename internal::remove_all<ActualLhsType>::type ActualLhsTypeCleaned;
+  typedef internal::remove_all_t<ActualLhsType> ActualLhsTypeCleaned;
   
   typedef internal::blas_traits<Rhs> RhsBlasTraits;
   typedef typename RhsBlasTraits::DirectLinearAccessType ActualRhsType;
-  typedef typename internal::remove_all<ActualRhsType>::type ActualRhsTypeCleaned;
+  typedef internal::remove_all_t<ActualRhsType> ActualRhsTypeCleaned;
 
   enum { LhsUpLo = LhsMode&(Upper|Lower) };
 

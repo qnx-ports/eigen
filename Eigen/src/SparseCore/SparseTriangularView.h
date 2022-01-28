@@ -47,7 +47,7 @@ template<typename MatrixType, unsigned int Mode> class TriangularViewImpl<Matrix
     
     typedef typename MatrixType::Nested MatrixTypeNested;
     typedef typename internal::remove_reference<MatrixTypeNested>::type MatrixTypeNestedNonRef;
-    typedef typename internal::remove_all<MatrixTypeNested>::type MatrixTypeNestedCleaned;
+    typedef internal::remove_all_t<MatrixTypeNested> MatrixTypeNestedCleaned;
 
     template<typename RhsType, typename DstType>
     EIGEN_DEVICE_FUNC

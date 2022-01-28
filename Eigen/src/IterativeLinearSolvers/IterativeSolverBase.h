@@ -42,7 +42,7 @@ public:
 template<typename MatrixType>
 struct is_ref_compatible
 {
-  enum { value = is_ref_compatible_impl<typename remove_all<MatrixType>::type>::value };
+  enum { value = is_ref_compatible_impl<remove_all_t<MatrixType>>::value };
 };
 
 template<typename MatrixType, bool MatrixFree = !internal::is_ref_compatible<MatrixType>::value>

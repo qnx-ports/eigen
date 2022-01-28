@@ -133,27 +133,27 @@ template<typename VectorsType, typename CoeffsType, int Side> class HouseholderS
     typedef typename internal::traits<HouseholderSequence>::Scalar Scalar;
 
     typedef HouseholderSequence<
-      typename internal::conditional<NumTraits<Scalar>::IsComplex,
-        typename internal::remove_all<typename VectorsType::ConjugateReturnType>::type,
-        VectorsType>::type,
-      typename internal::conditional<NumTraits<Scalar>::IsComplex,
-        typename internal::remove_all<typename CoeffsType::ConjugateReturnType>::type,
-        CoeffsType>::type,
+      internal::conditional_t<NumTraits<Scalar>::IsComplex,
+        internal::remove_all_t<typename VectorsType::ConjugateReturnType>,
+        VectorsType>,
+      internal::conditional_t<NumTraits<Scalar>::IsComplex,
+        internal::remove_all_t<typename CoeffsType::ConjugateReturnType>,
+        CoeffsType>,
       Side
     > ConjugateReturnType;
 
     typedef HouseholderSequence<
       VectorsType,
-      typename internal::conditional<NumTraits<Scalar>::IsComplex,
-        typename internal::remove_all<typename CoeffsType::ConjugateReturnType>::type,
-        CoeffsType>::type,
+      internal::conditional_t<NumTraits<Scalar>::IsComplex,
+        internal::remove_all_t<typename CoeffsType::ConjugateReturnType>,
+        CoeffsType>,
       Side
     > AdjointReturnType;
 
     typedef HouseholderSequence<
-      typename internal::conditional<NumTraits<Scalar>::IsComplex,
-        typename internal::remove_all<typename VectorsType::ConjugateReturnType>::type,
-        VectorsType>::type,
+      internal::conditional_t<NumTraits<Scalar>::IsComplex,
+        internal::remove_all_t<typename VectorsType::ConjugateReturnType>,
+        VectorsType>,
       CoeffsType,
       Side
     > TransposeReturnType;
@@ -257,10 +257,10 @@ template<typename VectorsType, typename CoeffsType, int Side> class HouseholderS
      */
     template<bool Cond>
     EIGEN_DEVICE_FUNC
-    inline typename internal::conditional<Cond,ConjugateReturnType,ConstHouseholderSequence>::type
+    inline internal::conditional_t<Cond,ConjugateReturnType,ConstHouseholderSequence>
     conjugateIf() const
     {
-      typedef typename internal::conditional<Cond,ConjugateReturnType,ConstHouseholderSequence>::type ReturnType;
+      typedef internal::conditional_t<Cond,ConjugateReturnType,ConstHouseholderSequence> ReturnType;
       return ReturnType(m_vectors.template conjugateIf<Cond>(), m_coeffs.template conjugateIf<Cond>());
     }
 
@@ -384,12 +384,12 @@ template<typename VectorsType, typename CoeffsType, int Side> class HouseholderS
           Index bs = end-k;
           Index start = k + m_shift;
 
-          typedef Block<typename internal::remove_all<VectorsType>::type,Dynamic,Dynamic> SubVectorsType;
+          typedef Block<internal::remove_all_t<VectorsType>,Dynamic,Dynamic> SubVectorsType;
           SubVectorsType sub_vecs1(m_vectors.const_cast_derived(), Side==OnTheRight ? k : start,
                                                                    Side==OnTheRight ? start : k,
                                                                    Side==OnTheRight ? bs : m_vectors.rows()-start,
                                                                    Side==OnTheRight ? m_vectors.cols()-start : bs);
-          typename internal::conditional<Side==OnTheRight, Transpose<SubVectorsType>, SubVectorsType&>::type sub_vecs(sub_vecs1);
+          internal::conditional_t<Side==OnTheRight, Transpose<SubVectorsType>, SubVectorsType&> sub_vecs(sub_vecs1);
 
           Index dstStart = dst.rows()-rows()+m_shift+k;
           Index dstRows  = rows()-m_shift-k;

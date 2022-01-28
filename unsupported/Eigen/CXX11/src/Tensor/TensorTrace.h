@@ -71,7 +71,7 @@ class TensorTraceOp : public TensorBase<TensorTraceOp<Dims, XprType> >
     const Dims& dims() const { return m_dims; }
 
     EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-    const typename internal::remove_all<typename XprType::Nested>::type& expression() const { return m_xpr; }
+    const internal::remove_all_t<typename XprType::Nested>& expression() const { return m_xpr; }
 
   protected:
     typename XprType::Nested m_xpr;

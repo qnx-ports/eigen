@@ -243,8 +243,8 @@ template<typename MatrixType,typename Lhs>
 struct traits<homogeneous_left_product_impl<Homogeneous<MatrixType,Vertical>,Lhs> >
 {
   typedef typename take_matrix_for_product<Lhs>::type LhsMatrixType;
-  typedef typename remove_all<MatrixType>::type MatrixTypeCleaned;
-  typedef typename remove_all<LhsMatrixType>::type LhsMatrixTypeCleaned;
+  typedef remove_all_t<MatrixType> MatrixTypeCleaned;
+  typedef remove_all_t<LhsMatrixType> LhsMatrixTypeCleaned;
   typedef typename make_proper_matrix_type<
                  typename traits<MatrixTypeCleaned>::Scalar,
                  LhsMatrixTypeCleaned::RowsAtCompileTime,
@@ -259,8 +259,8 @@ struct homogeneous_left_product_impl<Homogeneous<MatrixType,Vertical>,Lhs>
   : public ReturnByValue<homogeneous_left_product_impl<Homogeneous<MatrixType,Vertical>,Lhs> >
 {
   typedef typename traits<homogeneous_left_product_impl>::LhsMatrixType LhsMatrixType;
-  typedef typename remove_all<LhsMatrixType>::type LhsMatrixTypeCleaned;
-  typedef typename remove_all<typename LhsMatrixTypeCleaned::Nested>::type LhsMatrixTypeNested;
+  typedef remove_all_t<LhsMatrixType> LhsMatrixTypeCleaned;
+  typedef remove_all_t<typename LhsMatrixTypeCleaned::Nested> LhsMatrixTypeNested;
   EIGEN_DEVICE_FUNC homogeneous_left_product_impl(const Lhs& lhs, const MatrixType& rhs)
     : m_lhs(take_matrix_for_product<Lhs>::run(lhs)),
       m_rhs(rhs)
@@ -301,7 +301,7 @@ template<typename MatrixType,typename Rhs>
 struct homogeneous_right_product_impl<Homogeneous<MatrixType,Horizontal>,Rhs>
   : public ReturnByValue<homogeneous_right_product_impl<Homogeneous<MatrixType,Horizontal>,Rhs> >
 {
-  typedef typename remove_all<typename Rhs::Nested>::type RhsNested;
+  typedef remove_all_t<typename Rhs::Nested> RhsNested;
   EIGEN_DEVICE_FUNC homogeneous_right_product_impl(const MatrixType& lhs, const Rhs& rhs)
     : m_lhs(lhs), m_rhs(rhs)
   {}

@@ -46,8 +46,8 @@ class QuaternionBase : public RotationBase<Derived, 3>
   typedef typename NumTraits<Scalar>::Real RealScalar;
   typedef typename internal::traits<Derived>::Coefficients Coefficients;
   typedef typename Coefficients::CoeffReturnType CoeffReturnType;
-  typedef typename internal::conditional<bool(internal::traits<Derived>::Flags&LvalueBit),
-                                        Scalar&, CoeffReturnType>::type NonConstCoeffReturnType;
+  typedef internal::conditional_t<bool(internal::traits<Derived>::Flags&LvalueBit),
+                                  Scalar&, CoeffReturnType> NonConstCoeffReturnType;
 
 
   enum {

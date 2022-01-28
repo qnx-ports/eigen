@@ -71,7 +71,7 @@ class TensorStridingOp : public TensorBase<TensorStridingOp<Strides, XprType> >
     const Strides& strides() const { return m_dims; }
 
     EIGEN_DEVICE_FUNC
-    const typename internal::remove_all<typename XprType::Nested>::type&
+    const internal::remove_all_t<typename XprType::Nested>&
     expression() const { return m_xpr; }
 
     EIGEN_TENSOR_INHERIT_ASSIGNMENT_OPERATORS(TensorStridingOp)

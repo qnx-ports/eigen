@@ -100,7 +100,7 @@ class TensorChippingOp : public TensorBase<TensorChippingOp<DimId, XprType> >
     const Index dim() const { return m_dim.actualDim(); }
 
     EIGEN_DEVICE_FUNC
-    const typename internal::remove_all<typename XprType::Nested>::type&
+    const internal::remove_all_t<typename XprType::Nested>&
     expression() const { return m_xpr; }
 
     EIGEN_TENSOR_INHERIT_ASSIGNMENT_OPERATORS(TensorChippingOp)

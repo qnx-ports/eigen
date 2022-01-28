@@ -201,8 +201,8 @@ template<typename Derived> class DenseBase
       * the return type of eval() is a const reference to a matrix, not a matrix! It is however guaranteed
       * that the return type of eval() is either PlainObject or const PlainObject&.
       */
-    typedef typename internal::conditional<internal::is_same<typename internal::traits<Derived>::XprKind,MatrixXpr >::value,
-                                 PlainMatrix, PlainArray>::type PlainObject;
+    typedef internal::conditional_t<internal::is_same<typename internal::traits<Derived>::XprKind,MatrixXpr >::value,
+                                 PlainMatrix, PlainArray> PlainObject;
 
     /** \returns the outer size.
       *
@@ -429,9 +429,9 @@ template<typename Derived> class DenseBase
     EIGEN_DEVICE_FUNC inline const ForceAlignedAccess<Derived> forceAlignedAccess() const;
     EIGEN_DEVICE_FUNC inline ForceAlignedAccess<Derived> forceAlignedAccess();
     template<bool Enable> EIGEN_DEVICE_FUNC
-    inline const typename internal::conditional<Enable,ForceAlignedAccess<Derived>,Derived&>::type forceAlignedAccessIf() const;
+    inline const internal::conditional_t<Enable,ForceAlignedAccess<Derived>,Derived&> forceAlignedAccessIf() const;
     template<bool Enable> EIGEN_DEVICE_FUNC
-    inline typename internal::conditional<Enable,ForceAlignedAccess<Derived>,Derived&>::type forceAlignedAccessIf();
+    inline internal::conditional_t<Enable,ForceAlignedAccess<Derived>,Derived&> forceAlignedAccessIf();
 
     EIGEN_DEVICE_FUNC Scalar sum() const;
     EIGEN_DEVICE_FUNC Scalar mean() const;
@@ -611,27 +611,21 @@ template<typename Derived> class DenseBase
     /** This is the const version of iterator (aka read-only) */
     typedef random_access_iterator_type const_iterator;
     #else
-    typedef typename internal::conditional< (Flags&DirectAccessBit)==DirectAccessBit,
-                                            internal::pointer_based_stl_iterator<Derived>,
-                                            internal::generic_randaccess_stl_iterator<Derived>
-                                          >::type iterator_type;
+    typedef internal::conditional_t< (Flags&DirectAccessBit)==DirectAccessBit,
+                                     internal::pointer_based_stl_iterator<Derived>,
+                                     internal::generic_randaccess_stl_iterator<Derived>
+                                   > iterator_type;
 
-    typedef typename internal::conditional< (Flags&DirectAccessBit)==DirectAccessBit,
-                                            internal::pointer_based_stl_iterator<const Derived>,
-                                            internal::generic_randaccess_stl_iterator<const Derived>
-                                          >::type const_iterator_type;
+    typedef internal::conditional_t< (Flags&DirectAccessBit)==DirectAccessBit,
+                                     internal::pointer_based_stl_iterator<const Derived>,
+                                     internal::generic_randaccess_stl_iterator<const Derived>
+                                   > const_iterator_type;
 
     // Stl-style iterators are supported only for vectors.
 
-    typedef typename internal::conditional< IsVectorAtCompileTime,
-                                            iterator_type,
-                                            void
-                                          >::type iterator;
+    typedef internal::conditional_t<IsVectorAtCompileTime, iterator_type, void> iterator;
 
-    typedef typename internal::conditional< IsVectorAtCompileTime,
-                                            const_iterator_type,
-                                            void
-                                          >::type const_iterator;
+    typedef internal::conditional_t<IsVectorAtCompileTime, const_iterator_type, void> const_iterator;
     #endif
 
     inline iterator begin();

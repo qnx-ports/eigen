@@ -77,16 +77,16 @@ class TensorAssignOp : public TensorBase<TensorAssignOp<LhsXprType, RhsXprType> 
 
     /** \returns the nested expressions */
     EIGEN_DEVICE_FUNC
-    typename internal::remove_all<typename LhsXprType::Nested>::type&
-    lhsExpression() const { return *((typename internal::remove_all<typename LhsXprType::Nested>::type*)&m_lhs_xpr); }
+    internal::remove_all_t<typename LhsXprType::Nested>&
+    lhsExpression() const { return *((internal::remove_all_t<typename LhsXprType::Nested>*)&m_lhs_xpr); }
 
     EIGEN_DEVICE_FUNC
-    const typename internal::remove_all<typename RhsXprType::Nested>::type&
+    const internal::remove_all_t<typename RhsXprType::Nested>&
     rhsExpression() const { return m_rhs_xpr; }
 
   protected:
-    typename internal::remove_all<typename LhsXprType::Nested>::type& m_lhs_xpr;
-    const typename internal::remove_all<typename RhsXprType::Nested>::type& m_rhs_xpr;
+    internal::remove_all_t<typename LhsXprType::Nested>& m_lhs_xpr;
+    const internal::remove_all_t<typename RhsXprType::Nested>& m_rhs_xpr;
 };
 
 

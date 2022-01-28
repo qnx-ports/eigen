@@ -173,7 +173,7 @@ struct traits<TriangularView<MatrixType, Mode_> > : traits<MatrixType>
 {
   typedef typename ref_selector<MatrixType>::non_const_type MatrixTypeNested;
   typedef typename remove_reference<MatrixTypeNested>::type MatrixTypeNestedNonRef;
-  typedef typename remove_all<MatrixTypeNested>::type MatrixTypeNestedCleaned;
+  typedef remove_all_t<MatrixTypeNested> MatrixTypeNestedCleaned;
   typedef typename MatrixType::PlainObject FullMatrixType;
   typedef MatrixType ExpressionType;
   enum {
@@ -199,7 +199,7 @@ template<typename MatrixType_, unsigned int Mode_> class TriangularView
     typedef typename internal::traits<TriangularView>::MatrixTypeNested MatrixTypeNested;
     typedef typename internal::traits<TriangularView>::MatrixTypeNestedNonRef MatrixTypeNestedNonRef;
 
-    typedef typename internal::remove_all<typename MatrixType::ConjugateReturnType>::type MatrixConjugateReturnType;
+    typedef internal::remove_all_t<typename MatrixType::ConjugateReturnType> MatrixConjugateReturnType;
     typedef TriangularView<typename internal::add_const<MatrixType>::type, Mode_> ConstTriangularView;
 
   public:
@@ -249,10 +249,10 @@ template<typename MatrixType_, unsigned int Mode_> class TriangularView
      */
     template<bool Cond>
     EIGEN_DEVICE_FUNC
-    inline typename internal::conditional<Cond,ConjugateReturnType,ConstTriangularView>::type
+    inline internal::conditional_t<Cond,ConjugateReturnType,ConstTriangularView>
     conjugateIf() const
     {
-      typedef typename internal::conditional<Cond,ConjugateReturnType,ConstTriangularView>::type ReturnType;
+      typedef internal::conditional_t<Cond,ConjugateReturnType,ConstTriangularView> ReturnType;
       return ReturnType(m_matrix.template conjugateIf<Cond>());
     }
 
@@ -731,10 +731,10 @@ struct evaluator_traits<TriangularView<MatrixType,Mode> >
 
 template<typename MatrixType, unsigned int Mode>
 struct unary_evaluator<TriangularView<MatrixType,Mode>, IndexBased>
- : evaluator<typename internal::remove_all<MatrixType>::type>
+ : evaluator<internal::remove_all_t<MatrixType>>
 {
   typedef TriangularView<MatrixType,Mode> XprType;
-  typedef evaluator<typename internal::remove_all<MatrixType>::type> Base;
+  typedef evaluator<internal::remove_all_t<MatrixType>> Base;
   EIGEN_DEVICE_FUNC
   unary_evaluator(const XprType &xpr) : Base(xpr.nestedExpression()) {}
 };

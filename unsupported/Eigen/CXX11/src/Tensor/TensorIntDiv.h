@@ -79,7 +79,7 @@ namespace internal {
 
   template <typename T>
   struct UnsignedTraits {
-    typedef typename conditional<sizeof(T) == 8, uint64_t, uint32_t>::type type;
+    typedef conditional_t<sizeof(T) == 8, uint64_t, uint32_t> type;
   };
 
   template <typename T>

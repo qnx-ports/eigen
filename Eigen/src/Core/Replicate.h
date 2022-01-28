@@ -69,7 +69,7 @@ template<typename MatrixType,int RowFactor,int ColFactor> class Replicate
 
     typedef typename internal::dense_xpr_base<Replicate>::type Base;
     EIGEN_DENSE_PUBLIC_INTERFACE(Replicate)
-    typedef typename internal::remove_all<MatrixType>::type NestedExpression;
+    typedef internal::remove_all_t<MatrixType> NestedExpression;
 
     template<typename OriginalMatrixType>
     EIGEN_DEVICE_FUNC

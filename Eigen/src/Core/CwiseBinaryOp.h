@@ -21,7 +21,7 @@ struct traits<CwiseBinaryOp<BinaryOp, Lhs, Rhs> >
 {
   // we must not inherit from traits<Lhs> since it has
   // the potential to cause problems with MSVC
-  typedef typename remove_all<Lhs>::type Ancestor;
+  typedef remove_all_t<Lhs> Ancestor;
   typedef typename traits<Ancestor>::XprKind XprKind;
   enum {
     RowsAtCompileTime = traits<Ancestor>::RowsAtCompileTime,
@@ -86,9 +86,9 @@ class CwiseBinaryOp :
 {
   public:
 
-    typedef typename internal::remove_all<BinaryOp>::type Functor;
-    typedef typename internal::remove_all<LhsType>::type Lhs;
-    typedef typename internal::remove_all<RhsType>::type Rhs;
+    typedef internal::remove_all_t<BinaryOp> Functor;
+    typedef internal::remove_all_t<LhsType> Lhs;
+    typedef internal::remove_all_t<RhsType> Rhs;
 
     typedef typename CwiseBinaryOpImpl<
         BinaryOp, LhsType, RhsType,
@@ -121,12 +121,12 @@ class CwiseBinaryOp :
     EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE EIGEN_CONSTEXPR
     Index rows() const EIGEN_NOEXCEPT {
       // return the fixed size type if available to enable compile time optimizations
-      return internal::traits<typename internal::remove_all<LhsNested>::type>::RowsAtCompileTime==Dynamic ? m_rhs.rows() : m_lhs.rows();
+      return internal::traits<internal::remove_all_t<LhsNested>>::RowsAtCompileTime==Dynamic ? m_rhs.rows() : m_lhs.rows();
     }
     EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE EIGEN_CONSTEXPR
     Index cols() const EIGEN_NOEXCEPT {
       // return the fixed size type if available to enable compile time optimizations
-      return internal::traits<typename internal::remove_all<LhsNested>::type>::ColsAtCompileTime==Dynamic ? m_rhs.cols() : m_lhs.cols();
+      return internal::traits<internal::remove_all_t<LhsNested>>::ColsAtCompileTime==Dynamic ? m_rhs.cols() : m_lhs.cols();
     }
 
     /** \returns the left hand side nested expression */

@@ -84,7 +84,7 @@ class TensorEvalToOp : public TensorBase<TensorEvalToOp<XprType, MakePointer_>, 
       : m_xpr(expr), m_buffer(buffer) {}
 
     EIGEN_DEVICE_FUNC
-    const typename internal::remove_all<typename XprType::Nested>::type&
+    const internal::remove_all_t<typename XprType::Nested>&
     expression() const { return m_xpr; }
 
     EIGEN_DEVICE_FUNC PointerType buffer() const { return m_buffer; }

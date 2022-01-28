@@ -70,7 +70,7 @@ class TensorPatchOp : public TensorBase<TensorPatchOp<PatchDim, XprType>, ReadOn
     const PatchDim& patch_dims() const { return m_patch_dims; }
 
     EIGEN_DEVICE_FUNC
-    const typename internal::remove_all<typename XprType::Nested>::type&
+    const internal::remove_all_t<typename XprType::Nested>&
     expression() const { return m_xpr; }
 
   protected:

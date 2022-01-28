@@ -85,7 +85,7 @@ class TensorBroadcastingOp : public TensorBase<TensorBroadcastingOp<Broadcast, X
     const Broadcast& broadcast() const { return m_broadcast; }
 
     EIGEN_DEVICE_FUNC
-    const typename internal::remove_all<typename XprType::Nested>::type&
+    const internal::remove_all_t<typename XprType::Nested>&
     expression() const { return m_xpr; }
 
   protected:
@@ -231,7 +231,7 @@ struct TensorEvaluator<const TensorBroadcastingOp<Broadcast, ArgType>, Device>
 
   EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE CoeffReturnType coeff(Index index) const
   {
-    if (internal::is_input_scalar<typename internal::remove_all<InputDimensions>::type>::value) {
+    if (internal::is_input_scalar<internal::remove_all_t<InputDimensions>>::value) {
       return m_impl.coeff(0);
     }
 
@@ -324,7 +324,7 @@ struct TensorEvaluator<const TensorBroadcastingOp<Broadcast, ArgType>, Device>
   template<int LoadMode>
   EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE PacketReturnType packet(Index index) const
   {
-    if (internal::is_input_scalar<typename internal::remove_all<InputDimensions>::type>::value) {
+    if (internal::is_input_scalar<internal::remove_all_t<InputDimensions>>::value) {
       return internal::pset1<PacketReturnType>(m_impl.coeff(0));
     }
 

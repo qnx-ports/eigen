@@ -414,10 +414,10 @@ struct triangular_product_impl<Mode,LhsIsTriangular,Lhs,false,Rhs,false>
     
     typedef internal::blas_traits<Lhs> LhsBlasTraits;
     typedef typename LhsBlasTraits::DirectLinearAccessType ActualLhsType;
-    typedef typename internal::remove_all<ActualLhsType>::type ActualLhsTypeCleaned;
+    typedef internal::remove_all_t<ActualLhsType> ActualLhsTypeCleaned;
     typedef internal::blas_traits<Rhs> RhsBlasTraits;
     typedef typename RhsBlasTraits::DirectLinearAccessType ActualRhsType;
-    typedef typename internal::remove_all<ActualRhsType>::type ActualRhsTypeCleaned;
+    typedef internal::remove_all_t<ActualRhsType> ActualRhsTypeCleaned;
     
     typename internal::add_const_on_value_type<ActualLhsType>::type lhs = LhsBlasTraits::extract(a_lhs);
     typename internal::add_const_on_value_type<ActualRhsType>::type rhs = RhsBlasTraits::extract(a_rhs);

@@ -39,8 +39,8 @@ struct traits<TensorConcatenationOp<Axis, LhsXprType, RhsXprType> >
   static const int NumDimensions = traits<LhsXprType>::NumDimensions;
   static const int Layout = traits<LhsXprType>::Layout;
   enum { Flags = 0 };
-  typedef typename conditional<Pointer_type_promotion<typename LhsXprType::Scalar, Scalar>::val,
-                               typename traits<LhsXprType>::PointerType, typename traits<RhsXprType>::PointerType>::type PointerType;
+  typedef conditional_t<Pointer_type_promotion<typename LhsXprType::Scalar, Scalar>::val,
+                        typename traits<LhsXprType>::PointerType, typename traits<RhsXprType>::PointerType> PointerType;
 };
 
 template<typename Axis, typename LhsXprType, typename RhsXprType>
@@ -75,11 +75,11 @@ class TensorConcatenationOp : public TensorBase<TensorConcatenationOp<Axis, LhsX
         : m_lhs_xpr(lhs), m_rhs_xpr(rhs), m_axis(axis) {}
 
     EIGEN_DEVICE_FUNC
-    const typename internal::remove_all<typename LhsXprType::Nested>::type&
+    const internal::remove_all_t<typename LhsXprType::Nested>&
     lhsExpression() const { return m_lhs_xpr; }
 
     EIGEN_DEVICE_FUNC
-    const typename internal::remove_all<typename RhsXprType::Nested>::type&
+    const internal::remove_all_t<typename RhsXprType::Nested>&
     rhsExpression() const { return m_rhs_xpr; }
 
     EIGEN_DEVICE_FUNC const Axis& axis() const { return m_axis; }

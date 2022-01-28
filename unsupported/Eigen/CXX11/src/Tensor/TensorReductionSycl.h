@@ -128,8 +128,8 @@ class FullReductionKernelFunctor {
   typedef typename Evaluator::EvaluatorPointerType EvaluatorPointerType;
   typedef typename Evaluator::PacketReturnType PacketReturnType;
   typedef
-      typename ::Eigen::internal::conditional<(Evaluator::ReducerTraits::PacketAccess & Evaluator::InputPacketAccess),
-                                              PacketReturnType, CoeffReturnType>::type OutType;
+      ::Eigen::internal::conditional_t<(Evaluator::ReducerTraits::PacketAccess & Evaluator::InputPacketAccess),
+                                              PacketReturnType, CoeffReturnType> OutType;
   typedef cl::sycl::accessor<OutType, 1, cl::sycl::access::mode::read_write, cl::sycl::access::target::local>
       LocalAccessor;
   LocalAccessor scratch;
@@ -483,7 +483,7 @@ struct FullReducer<Self, Op, Eigen::SyclDevice, Vectorizable> {
   static EIGEN_CONSTEXPR bool HasOptimizedImplementation = true;
   static EIGEN_CONSTEXPR int PacketSize = Self::PacketAccess ? Self::PacketSize : 1;
   static void run(const Self &self, Op &reducer, const Eigen::SyclDevice &dev, EvaluatorPointerType data) {
-    typedef typename conditional<Self::PacketAccess, typename Self::PacketReturnType, CoeffReturnType>::type OutType;
+    typedef conditional_t<Self::PacketAccess, typename Self::PacketReturnType, CoeffReturnType> OutType;
     static_assert(!((EIGEN_SYCL_LOCAL_THREAD_DIM0 * EIGEN_SYCL_LOCAL_THREAD_DIM1) &
                     (EIGEN_SYCL_LOCAL_THREAD_DIM0 * EIGEN_SYCL_LOCAL_THREAD_DIM1 - 1)),
                   "The Local thread size must be a power of 2 for the reduction "

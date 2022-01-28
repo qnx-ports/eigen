@@ -35,13 +35,13 @@ EIGEN_DECLARE_TEST(meta)
   VERIFY((!internal::is_same<float,float&>::value));
   VERIFY((!internal::is_same<float,const float&>::value));
 
-  VERIFY(( internal::is_same<float,internal::remove_all<const float&>::type >::value));
-  VERIFY(( internal::is_same<float,internal::remove_all<const float*>::type >::value));
-  VERIFY(( internal::is_same<float,internal::remove_all<const float*&>::type >::value));
-  VERIFY(( internal::is_same<float,internal::remove_all<float**>::type >::value));
-  VERIFY(( internal::is_same<float,internal::remove_all<float**&>::type >::value));
-  VERIFY(( internal::is_same<float,internal::remove_all<float* const *&>::type >::value));
-  VERIFY(( internal::is_same<float,internal::remove_all<float* const>::type >::value));
+  VERIFY(( internal::is_same<float,internal::remove_all_t<const float&> >::value));
+  VERIFY(( internal::is_same<float,internal::remove_all_t<const float*> >::value));
+  VERIFY(( internal::is_same<float,internal::remove_all_t<const float*&> >::value));
+  VERIFY(( internal::is_same<float,internal::remove_all_t<float**> >::value));
+  VERIFY(( internal::is_same<float,internal::remove_all_t<float**&> >::value));
+  VERIFY(( internal::is_same<float,internal::remove_all_t<float* const *&> >::value));
+  VERIFY(( internal::is_same<float,internal::remove_all_t<float* const> >::value));
 
   // test add_const
   VERIFY(( internal::is_same< internal::add_const<float>::type, const float >::value));

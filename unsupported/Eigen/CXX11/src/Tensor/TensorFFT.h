@@ -62,7 +62,7 @@ struct traits<TensorFFTOp<FFT, XprType, FFTResultType, FFTDir> > : public traits
   typedef typename NumTraits<typename XprTraits::Scalar>::Real RealScalar;
   typedef typename std::complex<RealScalar> ComplexScalar;
   typedef typename XprTraits::Scalar InputScalar;
-  typedef typename conditional<FFTResultType == RealPart || FFTResultType == ImagPart, RealScalar, ComplexScalar>::type OutputScalar;
+  typedef conditional_t<FFTResultType == RealPart || FFTResultType == ImagPart, RealScalar, ComplexScalar> OutputScalar;
   typedef typename XprTraits::StorageKind StorageKind;
   typedef typename XprTraits::Index Index;
   typedef typename XprType::Nested Nested;
@@ -90,7 +90,7 @@ class TensorFFTOp : public TensorBase<TensorFFTOp<FFT, XprType, FFTResultType, F
   typedef typename Eigen::internal::traits<TensorFFTOp>::Scalar Scalar;
   typedef typename Eigen::NumTraits<Scalar>::Real RealScalar;
   typedef typename std::complex<RealScalar> ComplexScalar;
-  typedef typename internal::conditional<FFTResultType == RealPart || FFTResultType == ImagPart, RealScalar, ComplexScalar>::type OutputScalar;
+  typedef internal::conditional_t<FFTResultType == RealPart || FFTResultType == ImagPart, RealScalar, ComplexScalar> OutputScalar;
   typedef OutputScalar CoeffReturnType;
   typedef typename Eigen::internal::nested<TensorFFTOp>::type Nested;
   typedef typename Eigen::internal::traits<TensorFFTOp>::StorageKind StorageKind;
@@ -103,7 +103,7 @@ class TensorFFTOp : public TensorBase<TensorFFTOp<FFT, XprType, FFTResultType, F
   const FFT& fft() const { return m_fft; }
 
   EIGEN_DEVICE_FUNC
-  const typename internal::remove_all<typename XprType::Nested>::type& expression() const {
+  const internal::remove_all_t<typename XprType::Nested>& expression() const {
     return m_xpr;
   }
 
@@ -125,7 +125,7 @@ struct TensorEvaluator<const TensorFFTOp<FFT, ArgType, FFTResultType, FFTDir>, D
   typedef typename TensorEvaluator<ArgType, Device>::Dimensions InputDimensions;
   typedef internal::traits<XprType> XprTraits;
   typedef typename XprTraits::Scalar InputScalar;
-  typedef typename internal::conditional<FFTResultType == RealPart || FFTResultType == ImagPart, RealScalar, ComplexScalar>::type OutputScalar;
+  typedef internal::conditional_t<FFTResultType == RealPart || FFTResultType == ImagPart, RealScalar, ComplexScalar> OutputScalar;
   typedef OutputScalar CoeffReturnType;
   typedef typename PacketType<OutputScalar, Device>::type PacketReturnType;
   static const int PacketSize = internal::unpacket_traits<PacketReturnType>::size;

@@ -53,11 +53,11 @@ template<typename Derived> class MapBase<Derived, ReadOnlyAccessors>
     typedef typename internal::traits<Derived>::Scalar Scalar;
     typedef typename internal::packet_traits<Scalar>::type PacketScalar;
     typedef typename NumTraits<Scalar>::Real RealScalar;
-    typedef typename internal::conditional<
-                         bool(internal::is_lvalue<Derived>::value),
-                         Scalar *,
-                         const Scalar *>::type
-                     PointerType;
+    typedef internal::conditional_t<
+                bool(internal::is_lvalue<Derived>::value),
+                Scalar *,
+                const Scalar *>
+            PointerType;
 
     using Base::derived;
 //    using Base::RowsAtCompileTime;
@@ -247,11 +247,11 @@ template<typename Derived> class MapBase<Derived, WriteAccessors>
     using Base::rowStride;
     using Base::colStride;
 
-    typedef typename internal::conditional<
+    typedef internal::conditional_t<
                     internal::is_lvalue<Derived>::value,
                     Scalar,
                     const Scalar
-                  >::type ScalarWithConstIfNotLvalue;
+                  > ScalarWithConstIfNotLvalue;
 
     EIGEN_DEVICE_FUNC
     inline const Scalar* data() const { return this->m_data; }

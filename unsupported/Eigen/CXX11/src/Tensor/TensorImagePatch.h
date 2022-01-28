@@ -189,7 +189,7 @@ class TensorImagePatchOp : public TensorBase<TensorImagePatchOp<Rows, Cols, XprT
     Scalar padding_value() const { return m_padding_value; }
 
     EIGEN_DEVICE_FUNC
-    const typename internal::remove_all<typename XprType::Nested>::type&
+    const internal::remove_all_t<typename XprType::Nested>&
     expression() const { return m_xpr; }
 
   protected:

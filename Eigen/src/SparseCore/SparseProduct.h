@@ -53,8 +53,8 @@ struct generic_product_impl<Lhs, Rhs, SparseShape, SparseShape, ProductType>
     typedef typename nested_eval<Rhs,Dynamic>::type RhsNested;
     LhsNested lhsNested(lhs);
     RhsNested rhsNested(rhs);
-    internal::sparse_sparse_to_dense_product_selector<typename remove_all<LhsNested>::type,
-                                                      typename remove_all<RhsNested>::type, Dest>::run(lhsNested,rhsNested,dst);
+    internal::sparse_sparse_to_dense_product_selector<remove_all_t<LhsNested>,
+                                                      remove_all_t<RhsNested>, Dest>::run(lhsNested,rhsNested,dst);
   }
 
   // dense -= sparse * sparse
@@ -74,8 +74,8 @@ protected:
     typedef typename nested_eval<Rhs,Dynamic>::type RhsNested;
     LhsNested lhsNested(lhs);
     RhsNested rhsNested(rhs);
-    internal::conservative_sparse_sparse_product_selector<typename remove_all<LhsNested>::type,
-                                                          typename remove_all<RhsNested>::type, Dest>::run(lhsNested,rhsNested,dst);
+    internal::conservative_sparse_sparse_product_selector<remove_all_t<LhsNested>,
+                                                          remove_all_t<RhsNested>, Dest>::run(lhsNested,rhsNested,dst);
   }
 
   // dense = sparse * sparse
@@ -155,8 +155,8 @@ struct unary_evaluator<SparseView<Product<Lhs, Rhs, Options> >, IteratorBased>
     LhsNested lhsNested(xpr.nestedExpression().lhs());
     RhsNested rhsNested(xpr.nestedExpression().rhs());
 
-    internal::sparse_sparse_product_with_pruning_selector<typename remove_all<LhsNested>::type,
-                                                          typename remove_all<RhsNested>::type, PlainObject>::run(lhsNested,rhsNested,m_result,
+    internal::sparse_sparse_product_with_pruning_selector<remove_all_t<LhsNested>,
+                                                          remove_all_t<RhsNested>, PlainObject>::run(lhsNested,rhsNested,m_result,
                                                                                                                   abs(xpr.reference())*xpr.epsilon());
   }
 

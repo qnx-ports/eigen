@@ -48,7 +48,7 @@ struct traits<Ref<PlainObjectType_, Options_, StrideType_> >
       ScalarTypeMatch = internal::is_same<typename PlainObjectType::Scalar, typename Derived::Scalar>::value,
       MatchAtCompileTime = HasDirectAccess && StorageOrderMatch && InnerStrideMatch && OuterStrideMatch && AlignmentMatch && ScalarTypeMatch
     };
-    typedef typename internal::conditional<MatchAtCompileTime,internal::true_type,internal::false_type>::type type;
+    typedef conditional_t<MatchAtCompileTime,internal::true_type,internal::false_type> type;
   };
 
 };

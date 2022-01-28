@@ -554,7 +554,7 @@ struct TensorReductionEvaluatorBase<const TensorReductionOp<Op, Dims, ArgType, M
   static const int NumInputDims = internal::array_size<InputDimensions>::value;
   static const int NumReducedDims = internal::array_size<Dims>::value;
   static const int NumOutputDims = NumInputDims - NumReducedDims;
-  typedef typename internal::conditional<NumOutputDims==0, Sizes<>, DSizes<Index, NumOutputDims> >::type Dimensions;
+  typedef internal::conditional_t<NumOutputDims==0, Sizes<>, DSizes<Index, NumOutputDims> > Dimensions;
   typedef typename XprType::Scalar Scalar;
   typedef TensorReductionEvaluatorBase<const TensorReductionOp<Op, Dims, ArgType, MakePointer_>, Device> Self;
   static const bool InputPacketAccess = TensorEvaluator<ArgType, Device>::PacketAccess;
@@ -575,7 +575,7 @@ struct TensorReductionEvaluatorBase<const TensorReductionOp<Op, Dims, ArgType, M
   static constexpr bool RunningOnGPU = internal::is_same<Device, Eigen::GpuDevice>::value;
   static constexpr bool RunningOnSycl = false;
 #elif defined(EIGEN_USE_SYCL)
-static const bool RunningOnSycl = internal::is_same<typename internal::remove_all<Device>::type, Eigen::SyclDevice>::value;
+static const bool RunningOnSycl = internal::is_same<internal::remove_all_t<Device>, Eigen::SyclDevice>::value;
 static const bool RunningOnGPU = false;
 #else
   static constexpr bool RunningOnGPU = false;

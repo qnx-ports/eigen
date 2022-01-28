@@ -51,20 +51,20 @@ template<typename PlainObjectType, int Options_, template <class> class MakePoin
     // example in TensorMap<Tensor<const Scalar, ...>> expression. This type of
     // expression should be illegal, but adding this restriction is not possible
     // in practice (see https://bitbucket.org/eigen/eigen/pull-requests/488).
-    typedef typename internal::conditional<
+    typedef internal::conditional_t<
         bool(internal::is_lvalue<PlainObjectType>::value),
         PointerType,      // use simple pointer in lvalue expressions
         PointerConstType  // use const pointer in rvalue expressions
-        >::type StoragePointerType;
+        > StoragePointerType;
 
     // If TensorMap was constructed over rvalue expression (e.g. const Tensor),
     // we should return a reference to const from operator() (and others), even
     // if TensorMap itself is not const.
-    typedef typename internal::conditional<
+    typedef internal::conditional_t<
         bool(internal::is_lvalue<PlainObjectType>::value),
         Scalar&,
         const Scalar&
-        >::type StorageRefType;
+        > StorageRefType;
 
     static const int Options = Options_;
 

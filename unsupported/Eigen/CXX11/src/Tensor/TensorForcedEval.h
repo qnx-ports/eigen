@@ -72,7 +72,7 @@ class TensorForcedEvalOp : public TensorBase<TensorForcedEvalOp<XprType>, ReadOn
       : m_xpr(expr) {}
 
     EIGEN_DEVICE_FUNC
-    const typename internal::remove_all<typename XprType::Nested>::type&
+    const internal::remove_all_t<typename XprType::Nested>&
     expression() const { return m_xpr; }
 
   protected:
@@ -105,7 +105,7 @@ EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void operator()(Index, StorageType) {
 template<typename ArgType_, typename Device>
 struct TensorEvaluator<const TensorForcedEvalOp<ArgType_>, Device>
 {
-  typedef const typename internal::remove_all<ArgType_>::type ArgType;
+  typedef const internal::remove_all_t<ArgType_> ArgType;
   typedef TensorForcedEvalOp<ArgType> XprType;
   typedef typename ArgType::Scalar Scalar;
   typedef typename TensorEvaluator<ArgType, Device>::Dimensions Dimensions;

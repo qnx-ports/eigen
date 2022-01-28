@@ -66,7 +66,7 @@ class TensorIndexPairOp : public TensorBase<TensorIndexPairOp<XprType>, ReadOnly
       : m_xpr(expr) {}
 
   EIGEN_DEVICE_FUNC
-  const typename internal::remove_all<typename XprType::Nested>::type&
+  const internal::remove_all_t<typename XprType::Nested>&
   expression() const { return m_xpr; }
 
   protected:
@@ -192,7 +192,7 @@ class TensorPairReducerOp : public TensorBase<TensorPairReducerOp<ReduceOp, Dims
       : m_xpr(expr), m_reduce_op(reduce_op), m_return_dim(return_dim), m_reduce_dims(reduce_dims) {}
 
   EIGEN_DEVICE_FUNC
-  const typename internal::remove_all<typename XprType::Nested>::type&
+  const internal::remove_all_t<typename XprType::Nested>&
   expression() const { return m_xpr; }
 
   EIGEN_DEVICE_FUNC

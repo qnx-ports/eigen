@@ -233,8 +233,8 @@ struct traits<TensorConvolutionOp<Dimensions, InputXprType, KernelXprType> >
   typedef typename remove_reference<RhsNested>::type RhsNested_;
   static const int NumDimensions = traits<InputXprType>::NumDimensions;
   static const int Layout = traits<InputXprType>::Layout;
-  typedef typename conditional<Pointer_type_promotion<typename InputXprType::Scalar, Scalar>::val,
-  typename traits<InputXprType>::PointerType, typename traits<KernelXprType>::PointerType>::type PointerType;
+  typedef conditional_t<Pointer_type_promotion<typename InputXprType::Scalar, Scalar>::val,
+  typename traits<InputXprType>::PointerType, typename traits<KernelXprType>::PointerType> PointerType;
 
   enum {
     Flags = 0
@@ -277,11 +277,11 @@ class TensorConvolutionOp : public TensorBase<TensorConvolutionOp<Indices, Input
 
     /** \returns the nested expressions */
     EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-    const typename internal::remove_all<typename InputXprType::Nested>::type&
+    const internal::remove_all_t<typename InputXprType::Nested>&
     inputExpression() const { return m_input_xpr; }
 
     EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-    const typename internal::remove_all<typename KernelXprType::Nested>::type&
+    const internal::remove_all_t<typename KernelXprType::Nested>&
     kernelExpression() const { return m_kernel_xpr; }
 
   protected:

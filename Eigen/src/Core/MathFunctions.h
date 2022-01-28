@@ -891,7 +891,7 @@ struct random_default_impl<Scalar, false, true>
     // ScalarX is the widest of ScalarU and unsigned int.
     // We'll deal only with ScalarX and unsigned int below thus avoiding signed
     // types and arithmetic and signed overflows (which are undefined behavior).
-    typedef typename conditional<(ScalarU(-1) > unsigned(-1)), ScalarU, unsigned>::type ScalarX;
+    typedef conditional_t<(ScalarU(-1) > unsigned(-1)), ScalarU, unsigned> ScalarX;
     // The following difference doesn't overflow, provided our integer types are two's
     // complement and have the same number of padding bits in signed and unsigned variants.
     // This is the case in most modern implementations of C++.

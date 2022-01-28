@@ -69,7 +69,7 @@ class TensorCustomUnaryOp : public TensorBase<TensorCustomUnaryOp<CustomUnaryFun
   const CustomUnaryFunc& func() const { return m_func; }
 
   EIGEN_DEVICE_FUNC
-  const typename internal::remove_all<typename XprType::Nested>::type&
+  const internal::remove_all_t<typename XprType::Nested>&
   expression() const { return m_expr; }
 
   protected:
@@ -197,8 +197,8 @@ struct traits<TensorCustomBinaryOp<CustomBinaryFunc, LhsXprType, RhsXprType> >
   typedef typename remove_reference<RhsNested>::type RhsNested_;
   static const int NumDimensions = traits<LhsXprType>::NumDimensions;
   static const int Layout = traits<LhsXprType>::Layout;
-  typedef typename conditional<Pointer_type_promotion<typename LhsXprType::Scalar, Scalar>::val,
-                                typename traits<LhsXprType>::PointerType, typename traits<RhsXprType>::PointerType>::type PointerType;
+  typedef conditional_t<Pointer_type_promotion<typename LhsXprType::Scalar, Scalar>::val,
+                        typename traits<LhsXprType>::PointerType, typename traits<RhsXprType>::PointerType> PointerType;
 };
 
 template<typename CustomBinaryFunc, typename LhsXprType, typename RhsXprType>
@@ -236,11 +236,11 @@ class TensorCustomBinaryOp : public TensorBase<TensorCustomBinaryOp<CustomBinary
   const CustomBinaryFunc& func() const { return m_func; }
 
   EIGEN_DEVICE_FUNC
-  const typename internal::remove_all<typename LhsXprType::Nested>::type&
+  const internal::remove_all_t<typename LhsXprType::Nested>&
   lhsExpression() const { return m_lhs_xpr; }
 
   EIGEN_DEVICE_FUNC
-  const typename internal::remove_all<typename RhsXprType::Nested>::type&
+  const internal::remove_all_t<typename RhsXprType::Nested>&
   rhsExpression() const { return m_rhs_xpr; }
 
   protected:

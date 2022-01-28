@@ -189,7 +189,7 @@ class TensorConversionOp : public TensorBase<TensorConversionOp<TargetType, XprT
         : m_xpr(xpr) {}
 
     EIGEN_DEVICE_FUNC
-    const typename internal::remove_all<typename XprType::Nested>::type&
+    const internal::remove_all_t<typename XprType::Nested>&
     expression() const { return m_xpr; }
 
   protected:
@@ -314,7 +314,7 @@ struct TensorEvaluator<const TensorConversionOp<TargetType, ArgType>, Device>
   typedef typename TensorEvaluator<ArgType, Device>::Dimensions Dimensions;
   typedef TargetType Scalar;
   typedef TargetType CoeffReturnType;
-  typedef typename internal::remove_all<typename internal::traits<ArgType>::Scalar>::type SrcType;
+  typedef internal::remove_all_t<typename internal::traits<ArgType>::Scalar> SrcType;
   typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
   typedef typename PacketType<SrcType, Device>::type PacketSourceType;
   static const int PacketSize = PacketType<CoeffReturnType, Device>::size;

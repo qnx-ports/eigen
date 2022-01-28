@@ -40,10 +40,10 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
   // inputs are RowMajor, we will "cheat" by swapping the LHS and RHS:
   // If we want to compute A * B = C, where A is LHS and B is RHS, the code
   // will pretend B is LHS and A is RHS.
-  typedef typename internal::conditional<
-    static_cast<int>(Layout) == static_cast<int>(ColMajor), LeftArgType, RightArgType>::type EvalLeftArgType;
-  typedef typename internal::conditional<
-    static_cast<int>(Layout) == static_cast<int>(ColMajor), RightArgType, LeftArgType>::type EvalRightArgType;
+  typedef internal::conditional_t<
+    static_cast<int>(Layout) == static_cast<int>(ColMajor), LeftArgType, RightArgType> EvalLeftArgType;
+  typedef internal::conditional_t<
+    static_cast<int>(Layout) == static_cast<int>(ColMajor), RightArgType, LeftArgType> EvalRightArgType;
 
   static const int LDims =
       internal::array_size<typename TensorEvaluator<EvalLeftArgType, Device>::Dimensions>::value;
