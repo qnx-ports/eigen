@@ -133,7 +133,6 @@ template<typename Derived>
 std::ostream & print_matrix(std::ostream & s, const Derived& _m, const IOFormat& fmt)
 {
   using internal::is_same;
-  using internal::conditional_t;
 
   if(_m.size() == 0)
   {
@@ -143,13 +142,13 @@ std::ostream & print_matrix(std::ostream & s, const Derived& _m, const IOFormat&
   
   typename Derived::Nested m = _m;
   typedef typename Derived::Scalar Scalar;
-  typedef conditional_t<
+  typedef std::conditional_t<
           is_same<Scalar, char>::value ||
             is_same<Scalar, unsigned char>::value ||
             is_same<Scalar, numext::int8_t>::value ||
             is_same<Scalar, numext::uint8_t>::value,
           int,
-          conditional_t<
+          std::conditional_t<
               is_same<Scalar, std::complex<char> >::value ||
                 is_same<Scalar, std::complex<unsigned char> >::value ||
                 is_same<Scalar, std::complex<numext::int8_t> >::value ||

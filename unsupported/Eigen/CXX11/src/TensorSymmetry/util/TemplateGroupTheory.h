@@ -128,7 +128,7 @@ template<
 >
 struct strip_identities<Equality, id, type_list<t, ts...>>
 {
-  typedef conditional_t<
+  typedef std::conditional_t<
     Equality<id, t>::value,
     typename strip_identities<Equality, id, type_list<ts...>>::type,
     typename concat<type_list<t>, typename strip_identities<Equality, id, type_list<ts...>>::type>::type

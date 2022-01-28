@@ -845,7 +845,7 @@ pfirst(const Packet& a)
   * For packet-size smaller or equal to 4, this boils down to a noop.
   */
 template<typename Packet>
-EIGEN_DEVICE_FUNC inline conditional_t<(unpacket_traits<Packet>::size%8)==0,typename unpacket_traits<Packet>::half,Packet>
+EIGEN_DEVICE_FUNC inline std::conditional_t<(unpacket_traits<Packet>::size%8)==0,typename unpacket_traits<Packet>::half,Packet>
 predux_half_dowto4(const Packet& a)
 { return a; }
 

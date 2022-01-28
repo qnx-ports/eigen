@@ -42,7 +42,7 @@ struct traits<TensorContractionOp<Dimensions, LhsXprType, RhsXprType, OutputKern
   // From NumDims below.
   static const int NumDimensions = traits<LhsXprType>::NumDimensions + traits<RhsXprType>::NumDimensions - 2 * array_size<Dimensions>::value;
   static const int Layout = traits<LhsXprType>::Layout;
-  typedef conditional_t<Pointer_type_promotion<typename LhsXprType::Scalar, Scalar>::val,
+  typedef std::conditional_t<Pointer_type_promotion<typename LhsXprType::Scalar, Scalar>::val,
                         typename traits<LhsXprType>::PointerType,
                         typename traits<RhsXprType>::PointerType>
       PointerType;
@@ -398,9 +398,9 @@ struct TensorContractionEvaluatorBase : internal::no_assignment_operator
   // inputs are RowMajor, we will "cheat" by swapping the LHS and RHS:
   // If we want to compute A * B = C, where A is LHS and B is RHS, the code
   // will pretend B is LHS and A is RHS.
-  typedef internal::conditional_t<
+  typedef std::conditional_t<
     static_cast<int>(Layout) == static_cast<int>(ColMajor), LeftArgType, RightArgType> EvalLeftArgType;
-  typedef internal::conditional_t<
+  typedef std::conditional_t<
     static_cast<int>(Layout) == static_cast<int>(ColMajor), RightArgType, LeftArgType> EvalRightArgType;
 
   typedef TensorEvaluator<EvalLeftArgType, Device> LeftEvaluatorType;
@@ -991,9 +991,9 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
   // inputs are RowMajor, we will "cheat" by swapping the LHS and RHS:
   // If we want to compute A * B = C, where A is LHS and B is RHS, the code
   // will pretend B is LHS and A is RHS.
-  typedef internal::conditional_t<
+  typedef std::conditional_t<
     static_cast<int>(Layout) == static_cast<int>(ColMajor), LeftArgType, RightArgType> EvalLeftArgType;
-  typedef internal::conditional_t<
+  typedef std::conditional_t<
     static_cast<int>(Layout) == static_cast<int>(ColMajor), RightArgType, LeftArgType> EvalRightArgType;
 
   static const int LDims =

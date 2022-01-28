@@ -68,7 +68,7 @@ void stable_norm_impl_inner_step(const VectorType &vec, RealScalar& ssq, RealSca
                ) && (blockSize*sizeof(Scalar)*2<EIGEN_STACK_ALLOCATION_LIMIT)
                  && (EIGEN_MAX_STATIC_ALIGN_BYTES>0) // if we cannot allocate on the stack, then let's not bother about this optimization
   };
-  typedef internal::conditional_t<CanAlign, Ref<const Matrix<Scalar,Dynamic,1,0,blockSize,1>, internal::evaluator<VectorTypeCopyClean>::Alignment>,
+  typedef std::conditional_t<CanAlign, Ref<const Matrix<Scalar,Dynamic,1,0,blockSize,1>, internal::evaluator<VectorTypeCopyClean>::Alignment>,
                                                    typename VectorTypeCopyClean::ConstSegmentReturnType> SegmentWrapper;
   Index n = vec.size();
   

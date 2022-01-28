@@ -436,7 +436,7 @@ struct unary_evaluator<Block<ArgType,BlockRows,BlockCols,InnerPanel>, IteratorBa
       Flags = XprType::Flags
     };
 
-    typedef internal::conditional_t<OuterVector,OuterVectorInnerIterator,InnerVectorInnerIterator> InnerIterator;
+    typedef std::conditional_t<OuterVector,OuterVectorInnerIterator,InnerVectorInnerIterator> InnerIterator;
 
     explicit unary_evaluator(const XprType& op)
       : m_argImpl(op.nestedExpression()), m_block(op)

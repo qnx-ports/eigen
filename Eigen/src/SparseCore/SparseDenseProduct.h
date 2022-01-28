@@ -236,15 +236,15 @@ template<typename LhsT, typename RhsT, bool NeedToTranspose>
 struct sparse_dense_outer_product_evaluator
 {
 protected:
-  typedef conditional_t<NeedToTranspose,RhsT,LhsT> Lhs1;
-  typedef conditional_t<NeedToTranspose,LhsT,RhsT> ActualRhs;
+  typedef std::conditional_t<NeedToTranspose,RhsT,LhsT> Lhs1;
+  typedef std::conditional_t<NeedToTranspose,LhsT,RhsT> ActualRhs;
   typedef Product<LhsT,RhsT,DefaultProduct> ProdXprType;
   
   // if the actual left-hand side is a dense vector,
   // then build a sparse-view so that we can seamlessly iterate over it.
-  typedef conditional_t<is_same<typename internal::traits<Lhs1>::StorageKind,Sparse>::value,
+  typedef std::conditional_t<is_same<typename internal::traits<Lhs1>::StorageKind,Sparse>::value,
             Lhs1, SparseView<Lhs1> > ActualLhs;
-  typedef conditional_t<is_same<typename internal::traits<Lhs1>::StorageKind,Sparse>::value,
+  typedef std::conditional_t<is_same<typename internal::traits<Lhs1>::StorageKind,Sparse>::value,
             Lhs1 const&, SparseView<Lhs1> > LhsArg;
             
   typedef evaluator<ActualLhs> LhsEval;

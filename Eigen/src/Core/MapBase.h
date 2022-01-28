@@ -53,7 +53,7 @@ template<typename Derived> class MapBase<Derived, ReadOnlyAccessors>
     typedef typename internal::traits<Derived>::Scalar Scalar;
     typedef typename internal::packet_traits<Scalar>::type PacketScalar;
     typedef typename NumTraits<Scalar>::Real RealScalar;
-    typedef internal::conditional_t<
+    typedef std::conditional_t<
                 bool(internal::is_lvalue<Derived>::value),
                 Scalar *,
                 const Scalar *>
@@ -247,7 +247,7 @@ template<typename Derived> class MapBase<Derived, WriteAccessors>
     using Base::rowStride;
     using Base::colStride;
 
-    typedef internal::conditional_t<
+    typedef std::conditional_t<
                     internal::is_lvalue<Derived>::value,
                     Scalar,
                     const Scalar

@@ -54,7 +54,7 @@ struct internal::traits<SkylineProduct<LhsNested, RhsNested, ProductMode> > {
         CoeffReadCost = HugeCost
     };
 
-    typedef internal::conditional_t<ResultIsSkyline,
+    typedef std::conditional_t<ResultIsSkyline,
             SkylineMatrixBase<SkylineProduct<LhsNested, RhsNested, ProductMode> >,
             MatrixBase<SkylineProduct<LhsNested, RhsNested, ProductMode> > > Base;
 };

@@ -200,7 +200,7 @@ namespace internal {
 // Convert a symbolic span into a usable one (i.e., remove last/end "keywords")
 template<typename T>
 struct make_size_type {
-  typedef conditional_t<symbolic::is_symbolic<T>::value, Index, T> type;
+  typedef std::conditional_t<symbolic::is_symbolic<T>::value, Index, T> type;
 };
 
 template<typename FirstType,typename SizeType,typename IncrType,int XprSize>

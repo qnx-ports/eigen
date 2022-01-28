@@ -39,7 +39,7 @@ struct traits<TensorConcatenationOp<Axis, LhsXprType, RhsXprType> >
   static const int NumDimensions = traits<LhsXprType>::NumDimensions;
   static const int Layout = traits<LhsXprType>::Layout;
   enum { Flags = 0 };
-  typedef conditional_t<Pointer_type_promotion<typename LhsXprType::Scalar, Scalar>::val,
+  typedef std::conditional_t<Pointer_type_promotion<typename LhsXprType::Scalar, Scalar>::val,
                         typename traits<LhsXprType>::PointerType, typename traits<RhsXprType>::PointerType> PointerType;
 };
 

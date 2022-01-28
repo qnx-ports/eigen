@@ -356,7 +356,7 @@ struct RhsPanelHelper {
  private:
   static const int remaining_registers = EIGEN_ARCH_DEFAULT_NUMBER_OF_REGISTERS - registers_taken;
  public:
-  typedef conditional_t<remaining_registers>=4, RhsPacketx4, RhsPacket> type;
+  typedef std::conditional_t<remaining_registers>=4, RhsPacketx4, RhsPacket> type;
 };
 
 template <typename Packet>
@@ -459,9 +459,9 @@ public:
   };
 
 
-  typedef conditional_t<Vectorizable,LhsPacket_,LhsScalar> LhsPacket;
-  typedef conditional_t<Vectorizable,RhsPacket_,RhsScalar> RhsPacket;
-  typedef conditional_t<Vectorizable,ResPacket_,ResScalar> ResPacket;
+  typedef std::conditional_t<Vectorizable,LhsPacket_,LhsScalar> LhsPacket;
+  typedef std::conditional_t<Vectorizable,RhsPacket_,RhsScalar> RhsPacket;
+  typedef std::conditional_t<Vectorizable,ResPacket_,ResScalar> ResPacket;
   typedef LhsPacket LhsPacket4Packing;
 
   typedef QuadPacket<RhsPacket> RhsPacketx4;
@@ -578,9 +578,9 @@ public:
     RhsProgress = 1
   };
 
-  typedef conditional_t<Vectorizable,LhsPacket_,LhsScalar> LhsPacket;
-  typedef conditional_t<Vectorizable,RhsPacket_,RhsScalar> RhsPacket;
-  typedef conditional_t<Vectorizable,ResPacket_,ResScalar> ResPacket;
+  typedef std::conditional_t<Vectorizable,LhsPacket_,LhsScalar> LhsPacket;
+  typedef std::conditional_t<Vectorizable,RhsPacket_,RhsScalar> RhsPacket;
+  typedef std::conditional_t<Vectorizable,ResPacket_,ResScalar> ResPacket;
   typedef LhsPacket LhsPacket4Packing;
 
   typedef QuadPacket<RhsPacket> RhsPacketx4;
@@ -614,7 +614,7 @@ public:
   
   EIGEN_STRONG_INLINE void loadRhsQuad(const RhsScalar* b, RhsPacket& dest) const
   {
-    loadRhsQuad_impl(b,dest, conditional_t<RhsPacketSize==16,true_type,false_type>());
+    loadRhsQuad_impl(b,dest, std::conditional_t<RhsPacketSize==16,true_type,false_type>());
   }
 
   EIGEN_STRONG_INLINE void loadRhsQuad_impl(const RhsScalar* b, RhsPacket& dest, const true_type&) const
@@ -645,7 +645,7 @@ public:
   template <typename LhsPacketType, typename RhsPacketType, typename AccPacketType, typename LaneIdType>
   EIGEN_STRONG_INLINE void madd(const LhsPacketType& a, const RhsPacketType& b, AccPacketType& c, RhsPacketType& tmp, const LaneIdType&) const
   {
-    madd_impl(a, b, c, tmp, conditional_t<Vectorizable,true_type,false_type>());
+    madd_impl(a, b, c, tmp, std::conditional_t<Vectorizable,true_type,false_type>());
   }
 
   template <typename LhsPacketType, typename RhsPacketType, typename AccPacketType>
@@ -791,11 +791,11 @@ public:
   
   typedef DoublePacket<RealPacket>                 DoublePacketType;
 
-  typedef conditional_t<Vectorizable,ScalarPacket,Scalar> LhsPacket4Packing;
-  typedef conditional_t<Vectorizable,RealPacket,  Scalar> LhsPacket;
-  typedef conditional_t<Vectorizable,DoublePacketType,Scalar> RhsPacket;
-  typedef conditional_t<Vectorizable,ScalarPacket,Scalar> ResPacket;
-  typedef conditional_t<Vectorizable,DoublePacketType,Scalar> AccPacket;
+  typedef std::conditional_t<Vectorizable,ScalarPacket,Scalar> LhsPacket4Packing;
+  typedef std::conditional_t<Vectorizable,RealPacket,  Scalar> LhsPacket;
+  typedef std::conditional_t<Vectorizable,DoublePacketType,Scalar> RhsPacket;
+  typedef std::conditional_t<Vectorizable,ScalarPacket,Scalar> ResPacket;
+  typedef std::conditional_t<Vectorizable,DoublePacketType,Scalar> AccPacket;
 
   // this actually holds 8 packets!
   typedef QuadPacket<RhsPacket> RhsPacketx4;
@@ -960,9 +960,9 @@ public:
     RhsProgress = 1
   };
 
-  typedef conditional_t<Vectorizable,LhsPacket_,LhsScalar> LhsPacket;
-  typedef conditional_t<Vectorizable,RhsPacket_,RhsScalar> RhsPacket;
-  typedef conditional_t<Vectorizable,ResPacket_,ResScalar> ResPacket;
+  typedef std::conditional_t<Vectorizable,LhsPacket_,LhsScalar> LhsPacket;
+  typedef std::conditional_t<Vectorizable,RhsPacket_,RhsScalar> RhsPacket;
+  typedef std::conditional_t<Vectorizable,ResPacket_,ResScalar> ResPacket;
   typedef LhsPacket LhsPacket4Packing;
   typedef QuadPacket<RhsPacket> RhsPacketx4;
   typedef ResPacket AccPacket;
@@ -1011,7 +1011,7 @@ public:
   template <typename LhsPacketType, typename RhsPacketType, typename AccPacketType, typename LaneIdType>
   EIGEN_STRONG_INLINE void madd(const LhsPacketType& a, const RhsPacketType& b, AccPacketType& c, RhsPacketType& tmp, const LaneIdType&) const
   {
-    madd_impl(a, b, c, tmp, conditional_t<Vectorizable,true_type,false_type>());
+    madd_impl(a, b, c, tmp, std::conditional_t<Vectorizable,true_type,false_type>());
   }
 
   template <typename LhsPacketType, typename RhsPacketType, typename AccPacketType>
@@ -1976,10 +1976,10 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,DataMapper,mr,nr,ConjugateLhs,Conjuga
             if(SwappedTraits::LhsProgress==8)
             {
               // Special case where we have to first reduce the accumulation register C0
-              typedef conditional_t<SwappedTraits::LhsProgress>=8,typename unpacket_traits<SResPacket>::half,SResPacket> SResPacketHalf;
-              typedef conditional_t<SwappedTraits::LhsProgress>=8,typename unpacket_traits<SLhsPacket>::half,SLhsPacket> SLhsPacketHalf;
-              typedef conditional_t<SwappedTraits::LhsProgress>=8,typename unpacket_traits<SRhsPacket>::half,SRhsPacket> SRhsPacketHalf;
-              typedef conditional_t<SwappedTraits::LhsProgress>=8,typename unpacket_traits<SAccPacket>::half,SAccPacket> SAccPacketHalf;
+              typedef std::conditional_t<SwappedTraits::LhsProgress>=8,typename unpacket_traits<SResPacket>::half,SResPacket> SResPacketHalf;
+              typedef std::conditional_t<SwappedTraits::LhsProgress>=8,typename unpacket_traits<SLhsPacket>::half,SLhsPacket> SLhsPacketHalf;
+              typedef std::conditional_t<SwappedTraits::LhsProgress>=8,typename unpacket_traits<SRhsPacket>::half,SRhsPacket> SRhsPacketHalf;
+              typedef std::conditional_t<SwappedTraits::LhsProgress>=8,typename unpacket_traits<SAccPacket>::half,SAccPacket> SAccPacketHalf;
 
               SResPacketHalf R = res.template gatherPacket<SResPacketHalf>(i, j2);
               SResPacketHalf alphav = pset1<SResPacketHalf>(alpha);

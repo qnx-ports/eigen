@@ -90,15 +90,6 @@ struct bool_constant<true> : true_type {};
 template<>
 struct bool_constant<false> : false_type {};
 
-template<bool Condition, typename Then, typename Else>
-struct conditional { typedef Then type; };
-
-template<typename Then, typename Else>
-struct conditional <false, Then, Else> { typedef Else type; };
-
-template<bool Condition, typename Then, typename Else>
-using conditional_t = typename conditional<Condition, Then, Else>::type;
-
 template<typename T> struct remove_reference { typedef T type; };
 template<typename T> struct remove_reference<T&> { typedef T type; };
 

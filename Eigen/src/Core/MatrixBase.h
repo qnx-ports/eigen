@@ -109,7 +109,7 @@ template<typename Derived> class MatrixBase
     /** \internal Represents a matrix with all coefficients equal to one another*/
     typedef CwiseNullaryOp<internal::scalar_constant_op<Scalar>,PlainObject> ConstantReturnType;
     /** \internal the return type of MatrixBase::adjoint() */
-    typedef internal::conditional_t<NumTraits<Scalar>::IsComplex,
+    typedef std::conditional_t<NumTraits<Scalar>::IsComplex,
                CwiseUnaryOp<internal::scalar_conjugate_op<Scalar>, ConstTransposeReturnType>,
                ConstTransposeReturnType
             > AdjointReturnType;

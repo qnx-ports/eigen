@@ -29,7 +29,7 @@ struct band_solve_triangular_selector<Index,Mode,LhsScalar,ConjLhs,RhsScalar,Row
   {
     const LhsMap lhs(_lhs,size,k+1,OuterStride<>(lhsStride));
     RhsMap other(_other,size,1);
-    conditional_t<ConjLhs,
+    std::conditional_t<ConjLhs,
                   const CwiseUnaryOp<typename internal::scalar_conjugate_op<LhsScalar>,LhsMap>,
                   const LhsMap&> cjLhs(lhs);
                         
@@ -63,7 +63,7 @@ struct band_solve_triangular_selector<Index,Mode,LhsScalar,ConjLhs,RhsScalar,Col
   {
     const LhsMap lhs(_lhs,k+1,size,OuterStride<>(lhsStride));
     RhsMap other(_other,size,1);
-    conditional_t<ConjLhs,
+    std::conditional_t<ConjLhs,
                   const CwiseUnaryOp<typename internal::scalar_conjugate_op<LhsScalar>,LhsMap>,
                   const LhsMap&> cjLhs(lhs);
                         

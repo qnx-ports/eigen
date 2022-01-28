@@ -233,7 +233,7 @@ template<> struct gemv_dense_selector<OnTheRight,ColMajor,true>
     ResScalar actualAlpha = combine_scalar_factors(alpha, lhs, rhs);
 
     // make sure Dest is a compile-time vector type (bug 1166)
-    typedef conditional_t<Dest::IsVectorAtCompileTime, Dest, typename Dest::ColXpr> ActualDest;
+    typedef std::conditional_t<Dest::IsVectorAtCompileTime, Dest, typename Dest::ColXpr> ActualDest;
 
     enum {
       // FIXME find a way to allow an inner stride on the result if packet_traits<Scalar>::size==1

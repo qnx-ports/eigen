@@ -554,7 +554,7 @@ struct TensorReductionEvaluatorBase<const TensorReductionOp<Op, Dims, ArgType, M
   static const int NumInputDims = internal::array_size<InputDimensions>::value;
   static const int NumReducedDims = internal::array_size<Dims>::value;
   static const int NumOutputDims = NumInputDims - NumReducedDims;
-  typedef internal::conditional_t<NumOutputDims==0, Sizes<>, DSizes<Index, NumOutputDims> > Dimensions;
+  typedef std::conditional_t<NumOutputDims==0, Sizes<>, DSizes<Index, NumOutputDims> > Dimensions;
   typedef typename XprType::Scalar Scalar;
   typedef TensorReductionEvaluatorBase<const TensorReductionOp<Op, Dims, ArgType, MakePointer_>, Device> Self;
   static const bool InputPacketAccess = TensorEvaluator<ArgType, Device>::PacketAccess;

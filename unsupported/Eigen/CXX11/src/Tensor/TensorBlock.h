@@ -839,7 +839,7 @@ class TensorCwiseUnaryBlock {
       internal::is_void<typename ArgTensorBlock::XprType>::value;
 
  public:
-  typedef conditional_t<
+  typedef std::conditional_t<
       NoArgBlockAccess, void,
       TensorCwiseUnaryOp<UnaryOp, const typename ArgTensorBlock::XprType> >
       XprType;
@@ -871,7 +871,7 @@ class TensorCwiseBinaryBlock {
       internal::is_void<typename RhsTensorBlock::XprType>::value;
 
  public:
-  typedef conditional_t<
+  typedef std::conditional_t<
       NoArgBlockAccess, void,
       TensorCwiseBinaryOp<BinaryOp, const typename LhsTensorBlock::XprType,
                           const typename RhsTensorBlock::XprType> >
@@ -916,7 +916,7 @@ class TensorUnaryExprBlock {
   static const bool NoArgBlockAccess = internal::is_void<ArgXprType>::value;
 
  public:
-  typedef conditional_t<
+  typedef std::conditional_t<
       NoArgBlockAccess, void,
       typename BlockFactory::template XprType<ArgXprType>::type> XprType;
 
@@ -952,7 +952,7 @@ class TensorTernaryExprBlock {
                                        internal::is_void<Arg3XprType>::value;
 
  public:
-  typedef conditional_t<
+  typedef std::conditional_t<
       NoArgBlockAccess, void,
       typename BlockFactory::template XprType<Arg1XprType, Arg2XprType,
                                               Arg3XprType>::type> XprType;

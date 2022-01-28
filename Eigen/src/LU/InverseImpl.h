@@ -387,7 +387,7 @@ inline void MatrixBase<Derived>::computeInverseAndDetWithCheck(
   eigen_assert(rows() == cols());
   // for 2x2, it's worth giving a chance to avoid evaluating.
   // for larger sizes, evaluating has negligible cost and limits code size.
-  typedef internal::conditional_t<
+  typedef std::conditional_t<
     RowsAtCompileTime == 2,
     internal::remove_all_t<typename internal::nested_eval<Derived, 2>::type>,
     PlainObject

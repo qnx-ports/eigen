@@ -98,11 +98,11 @@ class TensorLazyEvaluatorWritable : public TensorLazyEvaluatorReadOnly<Dimension
 };
 
 template <typename Dimensions, typename Expr, typename Device>
-class TensorLazyEvaluator : public internal::conditional_t<bool(internal::is_lvalue<Expr>::value),
+class TensorLazyEvaluator : public std::conditional_t<bool(internal::is_lvalue<Expr>::value),
                             TensorLazyEvaluatorWritable<Dimensions, Expr, Device>,
                             TensorLazyEvaluatorReadOnly<Dimensions, const Expr, Device> > {
  public:
-  typedef internal::conditional_t<bool(internal::is_lvalue<Expr>::value),
+  typedef std::conditional_t<bool(internal::is_lvalue<Expr>::value),
                                   TensorLazyEvaluatorWritable<Dimensions, Expr, Device>,
                                   TensorLazyEvaluatorReadOnly<Dimensions, const Expr, Device> > Base;
   typedef typename Base::Scalar Scalar;

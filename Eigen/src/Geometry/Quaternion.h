@@ -46,7 +46,7 @@ class QuaternionBase : public RotationBase<Derived, 3>
   typedef typename NumTraits<Scalar>::Real RealScalar;
   typedef typename internal::traits<Derived>::Coefficients Coefficients;
   typedef typename Coefficients::CoeffReturnType CoeffReturnType;
-  typedef internal::conditional_t<bool(internal::traits<Derived>::Flags&LvalueBit),
+  typedef std::conditional_t<bool(internal::traits<Derived>::Flags&LvalueBit),
                                   Scalar&, CoeffReturnType> NonConstCoeffReturnType;
 
 

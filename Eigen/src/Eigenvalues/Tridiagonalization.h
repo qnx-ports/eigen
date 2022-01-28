@@ -88,12 +88,12 @@ template<typename MatrixType_> class Tridiagonalization
     typedef internal::remove_all_t<typename MatrixType::RealReturnType> MatrixTypeRealView;
     typedef internal::TridiagonalizationMatrixTReturnType<MatrixTypeRealView> MatrixTReturnType;
 
-    typedef internal::conditional_t<NumTraits<Scalar>::IsComplex,
+    typedef std::conditional_t<NumTraits<Scalar>::IsComplex,
               typename internal::add_const_on_value_type<typename Diagonal<const MatrixType>::RealReturnType>::type,
               const Diagonal<const MatrixType>
             > DiagonalReturnType;
 
-    typedef internal::conditional_t<NumTraits<Scalar>::IsComplex,
+    typedef std::conditional_t<NumTraits<Scalar>::IsComplex,
               typename internal::add_const_on_value_type<typename Diagonal<const MatrixType, -1>::RealReturnType>::type,
               const Diagonal<const MatrixType, -1>
             > SubDiagonalReturnType;

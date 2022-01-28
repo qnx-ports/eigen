@@ -229,11 +229,11 @@ public:
   /** type of read reference to the linear part of the transformation */
   typedef const Block<ConstMatrixType,Dim,Dim,int(Mode)==(AffineCompact) && (int(Options)&RowMajor)==0> ConstLinearPart;
   /** type of read/write reference to the affine part of the transformation */
-  typedef internal::conditional_t<int(Mode)==int(AffineCompact),
+  typedef std::conditional_t<int(Mode)==int(AffineCompact),
                               MatrixType&,
                               Block<MatrixType,Dim,HDim> > AffinePart;
   /** type of read reference to the affine part of the transformation */
-  typedef internal::conditional_t<int(Mode)==int(AffineCompact),
+  typedef std::conditional_t<int(Mode)==int(AffineCompact),
                               const MatrixType&,
                               const Block<const MatrixType,Dim,HDim> > ConstAffinePart;
   /** type of a vector */
@@ -600,7 +600,7 @@ public:
   template<typename Derived>
   EIGEN_DEVICE_FUNC inline Transform operator*(const RotationBase<Derived,Dim>& r) const;
 
-  typedef internal::conditional_t<int(Mode)==Isometry,ConstLinearPart,const LinearMatrixType> RotationReturnType;
+  typedef std::conditional_t<int(Mode)==Isometry,ConstLinearPart,const LinearMatrixType> RotationReturnType;
   EIGEN_DEVICE_FUNC RotationReturnType rotation() const;
 
   template<typename RotationMatrixType, typename ScalingMatrixType>

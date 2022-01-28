@@ -13,17 +13,17 @@
 #ifndef EIGEN_PARSED_BY_DOXYGEN
 
 /** \internal the return type of conjugate() */
-typedef internal::conditional_t<NumTraits<Scalar>::IsComplex,
+typedef std::conditional_t<NumTraits<Scalar>::IsComplex,
             const CwiseUnaryOp<internal::scalar_conjugate_op<Scalar>, const Derived>,
             const Derived&
           > ConjugateReturnType;
 /** \internal the return type of real() const */
-typedef internal::conditional_t<NumTraits<Scalar>::IsComplex,
+typedef std::conditional_t<NumTraits<Scalar>::IsComplex,
             const CwiseUnaryOp<internal::scalar_real_op<Scalar>, const Derived>,
             const Derived&
           > RealReturnType;
 /** \internal the return type of real() */
-typedef internal::conditional_t<NumTraits<Scalar>::IsComplex,
+typedef std::conditional_t<NumTraits<Scalar>::IsComplex,
             CwiseUnaryView<internal::scalar_real_ref_op<Scalar>, Derived>,
             Derived&
           > NonConstRealReturnType;
@@ -83,10 +83,10 @@ EIGEN_DOC_UNARY_ADDONS(conjugate,complex conjugate)
 /// \sa conjugate()
 template<bool Cond>
 EIGEN_DEVICE_FUNC
-inline internal::conditional_t<Cond,ConjugateReturnType,const Derived&>
+inline std::conditional_t<Cond,ConjugateReturnType,const Derived&>
 conjugateIf() const
 {
-  typedef internal::conditional_t<Cond,ConjugateReturnType,const Derived&> ReturnType;
+  typedef std::conditional_t<Cond,ConjugateReturnType,const Derived&> ReturnType;
   return ReturnType(derived());
 }
 

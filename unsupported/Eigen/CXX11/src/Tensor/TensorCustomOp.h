@@ -197,7 +197,7 @@ struct traits<TensorCustomBinaryOp<CustomBinaryFunc, LhsXprType, RhsXprType> >
   typedef typename remove_reference<RhsNested>::type RhsNested_;
   static const int NumDimensions = traits<LhsXprType>::NumDimensions;
   static const int Layout = traits<LhsXprType>::Layout;
-  typedef conditional_t<Pointer_type_promotion<typename LhsXprType::Scalar, Scalar>::val,
+  typedef std::conditional_t<Pointer_type_promotion<typename LhsXprType::Scalar, Scalar>::val,
                         typename traits<LhsXprType>::PointerType, typename traits<RhsXprType>::PointerType> PointerType;
 };
 

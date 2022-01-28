@@ -321,7 +321,7 @@ struct BlockProperties {
   static EIGEN_CONSTEXPR bool packet_load = packet_load_;
   typedef typename Eigen::internal::unpacket_traits<PacketType>::type OutScalar;
   static EIGEN_CONSTEXPR bool is_rhs = is_rhs_;
-  typedef Eigen::internal::conditional_t<packet_load, PacketType, OutScalar> OutType;
+  typedef Eigen::std::conditional_t<packet_load, PacketType, OutScalar> OutType;
   static EIGEN_CONSTEXPR int elements_per_access = Eigen::internal::unpacket_traits<OutType>::size;
   static EIGEN_CONSTEXPR bool is_coalesced_layout = !(is_transposed ^ is_rhs);
   static EIGEN_CONSTEXPR int nc_stride = (is_coalesced_layout ? elements_per_access : 1);
@@ -477,8 +477,7 @@ class TensorContractionKernel {
   typedef cl::sycl::accessor<OutScalar, 1, cl::sycl::access::mode::read_write, cl::sycl::access::target::local> Scratch;
   typedef cl::sycl::multi_ptr<OutScalar, cl::sycl::access::address_space::local_space> local_ptr;
   typedef OutScalar * /*cl::sycl::multi_ptr<OutScalar, cl::sycl::access::address_space::private_space>*/ private_ptr;
-  typedef
-      ::Eigen::internal::conditional_t<contraction_tp == contraction_type::local, local_ptr, private_ptr>
+  typedef std::conditional_t<contraction_tp == contraction_type::local, local_ptr, private_ptr>
           tile_ptr;
   static EIGEN_CONSTEXPR StorageIndex LSDL = contraction_tp == contraction_type::local
                                                  ? Properties::TileSizeDimM + Properties::BC

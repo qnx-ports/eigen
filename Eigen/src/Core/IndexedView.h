@@ -42,7 +42,7 @@ struct traits<IndexedView<XprType, RowIndices, ColIndices> >
 
     InnerSize = XprTypeIsRowMajor ? ColsAtCompileTime : RowsAtCompileTime,
     IsBlockAlike = InnerIncr==1 && OuterIncr==1,
-    IsInnerPannel = HasSameStorageOrderAsXprType && is_same<AllRange<InnerSize>,conditional_t<XprTypeIsRowMajor,ColIndices,RowIndices>>::value,
+    IsInnerPannel = HasSameStorageOrderAsXprType && is_same<AllRange<InnerSize>,std::conditional_t<XprTypeIsRowMajor,ColIndices,RowIndices>>::value,
 
     InnerStrideAtCompileTime = InnerIncr<0 || InnerIncr==DynamicIndex || XprInnerStride==Dynamic || InnerIncr==UndefinedIncr ? Dynamic : XprInnerStride * InnerIncr,
     OuterStrideAtCompileTime = OuterIncr<0 || OuterIncr==DynamicIndex || XprOuterstride==Dynamic || OuterIncr==UndefinedIncr ? Dynamic : XprOuterstride * OuterIncr,

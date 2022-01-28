@@ -203,10 +203,10 @@ struct TensorPrinter {
     }
 
     assert(layout == RowMajor);
-    typedef conditional_t<is_same<Scalar, char>::value || is_same<Scalar, unsigned char>::value ||
+    typedef std::conditional_t<is_same<Scalar, char>::value || is_same<Scalar, unsigned char>::value ||
                              is_same<Scalar, numext::int8_t>::value || is_same<Scalar, numext::uint8_t>::value,
                           int,
-                          conditional_t<is_same<Scalar, std::complex<char> >::value ||
+                          std::conditional_t<is_same<Scalar, std::complex<char> >::value ||
                                                 is_same<Scalar, std::complex<unsigned char> >::value ||
                                                 is_same<Scalar, std::complex<numext::int8_t> >::value ||
                                                 is_same<Scalar, std::complex<numext::uint8_t> >::value,

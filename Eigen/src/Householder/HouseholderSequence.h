@@ -133,10 +133,10 @@ template<typename VectorsType, typename CoeffsType, int Side> class HouseholderS
     typedef typename internal::traits<HouseholderSequence>::Scalar Scalar;
 
     typedef HouseholderSequence<
-      internal::conditional_t<NumTraits<Scalar>::IsComplex,
+      std::conditional_t<NumTraits<Scalar>::IsComplex,
         internal::remove_all_t<typename VectorsType::ConjugateReturnType>,
         VectorsType>,
-      internal::conditional_t<NumTraits<Scalar>::IsComplex,
+      std::conditional_t<NumTraits<Scalar>::IsComplex,
         internal::remove_all_t<typename CoeffsType::ConjugateReturnType>,
         CoeffsType>,
       Side
@@ -144,14 +144,14 @@ template<typename VectorsType, typename CoeffsType, int Side> class HouseholderS
 
     typedef HouseholderSequence<
       VectorsType,
-      internal::conditional_t<NumTraits<Scalar>::IsComplex,
+      std::conditional_t<NumTraits<Scalar>::IsComplex,
         internal::remove_all_t<typename CoeffsType::ConjugateReturnType>,
         CoeffsType>,
       Side
     > AdjointReturnType;
 
     typedef HouseholderSequence<
-      internal::conditional_t<NumTraits<Scalar>::IsComplex,
+      std::conditional_t<NumTraits<Scalar>::IsComplex,
         internal::remove_all_t<typename VectorsType::ConjugateReturnType>,
         VectorsType>,
       CoeffsType,
@@ -257,10 +257,10 @@ template<typename VectorsType, typename CoeffsType, int Side> class HouseholderS
      */
     template<bool Cond>
     EIGEN_DEVICE_FUNC
-    inline internal::conditional_t<Cond,ConjugateReturnType,ConstHouseholderSequence>
+    inline std::conditional_t<Cond,ConjugateReturnType,ConstHouseholderSequence>
     conjugateIf() const
     {
-      typedef internal::conditional_t<Cond,ConjugateReturnType,ConstHouseholderSequence> ReturnType;
+      typedef std::conditional_t<Cond,ConjugateReturnType,ConstHouseholderSequence> ReturnType;
       return ReturnType(m_vectors.template conjugateIf<Cond>(), m_coeffs.template conjugateIf<Cond>());
     }
 
@@ -389,7 +389,7 @@ template<typename VectorsType, typename CoeffsType, int Side> class HouseholderS
                                                                    Side==OnTheRight ? start : k,
                                                                    Side==OnTheRight ? bs : m_vectors.rows()-start,
                                                                    Side==OnTheRight ? m_vectors.cols()-start : bs);
-          internal::conditional_t<Side==OnTheRight, Transpose<SubVectorsType>, SubVectorsType&> sub_vecs(sub_vecs1);
+          std::conditional_t<Side==OnTheRight, Transpose<SubVectorsType>, SubVectorsType&> sub_vecs(sub_vecs1);
 
           Index dstStart = dst.rows()-rows()+m_shift+k;
           Index dstRows  = rows()-m_shift-k;

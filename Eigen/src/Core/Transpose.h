@@ -132,7 +132,7 @@ template<typename MatrixType> class TransposeImpl<MatrixType,Dense>
     EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
     Index outerStride() const { return derived().nestedExpression().outerStride(); }
 
-    typedef internal::conditional_t<
+    typedef std::conditional_t<
               internal::is_lvalue<MatrixType>::value,
               Scalar,
               const Scalar

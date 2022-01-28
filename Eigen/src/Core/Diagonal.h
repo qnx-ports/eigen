@@ -97,7 +97,7 @@ template<typename MatrixType, int DiagIndex_> class Diagonal
     EIGEN_DEVICE_FUNC EIGEN_CONSTEXPR
     inline Index outerStride() const EIGEN_NOEXCEPT { return 0; }
 
-    typedef internal::conditional_t<
+    typedef std::conditional_t<
               internal::is_lvalue<MatrixType>::value,
               Scalar,
               const Scalar

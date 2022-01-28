@@ -180,14 +180,14 @@ template<typename MatrixType_, unsigned int UpLo> class SelfAdjointView
       */
     template<unsigned int TriMode>
     EIGEN_DEVICE_FUNC
-    internal::conditional_t<(TriMode&(Upper|Lower))==(UpLo&(Upper|Lower)),
+    std::conditional_t<(TriMode&(Upper|Lower))==(UpLo&(Upper|Lower)),
                             TriangularView<MatrixType,TriMode>,
                             TriangularView<typename MatrixType::AdjointReturnType,TriMode> >
     triangularView() const
     {
-      internal::conditional_t<(TriMode&(Upper|Lower))==(UpLo&(Upper|Lower)), MatrixType&, typename MatrixType::ConstTransposeReturnType> tmp1(m_matrix);
-      internal::conditional_t<(TriMode&(Upper|Lower))==(UpLo&(Upper|Lower)), MatrixType&, typename MatrixType::AdjointReturnType> tmp2(tmp1);
-      return internal::conditional_t<(TriMode&(Upper|Lower))==(UpLo&(Upper|Lower)),
+      std::conditional_t<(TriMode&(Upper|Lower))==(UpLo&(Upper|Lower)), MatrixType&, typename MatrixType::ConstTransposeReturnType> tmp1(m_matrix);
+      std::conditional_t<(TriMode&(Upper|Lower))==(UpLo&(Upper|Lower)), MatrixType&, typename MatrixType::AdjointReturnType> tmp2(tmp1);
+      return std::conditional_t<(TriMode&(Upper|Lower))==(UpLo&(Upper|Lower)),
                           TriangularView<MatrixType,TriMode>,
                           TriangularView<typename MatrixType::AdjointReturnType,TriMode> >(tmp2);
     }
@@ -203,10 +203,10 @@ template<typename MatrixType_, unsigned int UpLo> class SelfAdjointView
      */
     template<bool Cond>
     EIGEN_DEVICE_FUNC
-    inline internal::conditional_t<Cond,ConjugateReturnType,ConstSelfAdjointView>
+    inline std::conditional_t<Cond,ConjugateReturnType,ConstSelfAdjointView>
     conjugateIf() const
     {
-      typedef internal::conditional_t<Cond,ConjugateReturnType,ConstSelfAdjointView> ReturnType;
+      typedef std::conditional_t<Cond,ConjugateReturnType,ConstSelfAdjointView> ReturnType;
       return ReturnType(m_matrix.template conjugateIf<Cond>());
     }
 

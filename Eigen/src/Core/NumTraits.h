@@ -164,7 +164,7 @@ template<typename T> struct GenericNumTraits
   };
 
   typedef T Real;
-  typedef internal::conditional_t<IsInteger, internal::conditional_t<sizeof(T)<=2, float, double>, T> NonInteger;
+  typedef std::conditional_t<IsInteger, std::conditional_t<sizeof(T)<=2, float, double>, T> NonInteger;
   typedef T Nested;
   typedef T Literal;
 

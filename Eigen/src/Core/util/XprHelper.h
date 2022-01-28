@@ -113,7 +113,7 @@ class no_assignment_operator
 template<typename I1, typename I2>
 struct promote_index_type
 {
-  typedef conditional_t<(sizeof(I1)<sizeof(I2)), I2, I1> type;
+  typedef std::conditional_t<(sizeof(I1)<sizeof(I2)), I2, I1> type;
 };
 
 /** \internal If the template parameter Value is Dynamic, this class is just a wrapper around a T variable that
@@ -409,13 +409,13 @@ template<typename T> struct plain_matrix_type_row_major
 template <typename T>
 struct ref_selector
 {
-  typedef conditional_t<
+  typedef std::conditional_t<
     bool(traits<T>::Flags & NestByRefBit),
     T const&,
     const T
   > type;
 
-  typedef conditional_t<
+  typedef std::conditional_t<
     bool(traits<T>::Flags & NestByRefBit),
     T &,
     T
@@ -426,7 +426,7 @@ struct ref_selector
 template<typename T1, typename T2>
 struct transfer_constness
 {
-  typedef conditional_t<
+  typedef std::conditional_t<
     bool(internal::is_const<T1>::value),
     typename internal::add_const_on_value_type<T2>::type,
     T2
@@ -463,7 +463,7 @@ template<typename T, int n, typename PlainObject = typename plain_object_eval<T>
     Evaluate = (int(evaluator<T>::Flags) & EvalBeforeNestingBit) || (int(CostEval) < int(CostNoEval))
   };
 
-  typedef conditional_t<Evaluate, PlainObject, typename ref_selector<T>::type> type;
+  typedef std::conditional_t<Evaluate, PlainObject, typename ref_selector<T>::type> type;
 };
 
 template<typename T>
@@ -505,7 +505,7 @@ template<typename XprType, typename CastType> struct cast_return_type
   typedef typename XprType::Scalar CurrentScalarType;
   typedef remove_all_t<CastType> CastType_;
   typedef typename CastType_::Scalar NewScalarType;
-  typedef conditional_t<is_same<CurrentScalarType,NewScalarType>::value,
+  typedef std::conditional_t<is_same<CurrentScalarType,NewScalarType>::value,
                               const XprType&,CastType> type;
 };
 
@@ -597,7 +597,7 @@ struct plain_row_type
   typedef Array<Scalar, 1, ExpressionType::ColsAtCompileTime,
                  int(ExpressionType::PlainObject::Options) | int(RowMajor), 1, ExpressionType::MaxColsAtCompileTime> ArrayRowType;
 
-  typedef conditional_t<
+  typedef std::conditional_t<
     is_same< typename traits<ExpressionType>::XprKind, MatrixXpr >::value,
     MatrixRowType,
     ArrayRowType
@@ -612,7 +612,7 @@ struct plain_col_type
   typedef Array<Scalar, ExpressionType::RowsAtCompileTime, 1,
                  ExpressionType::PlainObject::Options & ~RowMajor, ExpressionType::MaxRowsAtCompileTime, 1> ArrayColType;
 
-  typedef conditional_t<
+  typedef std::conditional_t<
     is_same< typename traits<ExpressionType>::XprKind, MatrixXpr >::value,
     MatrixColType,
     ArrayColType
@@ -629,7 +629,7 @@ struct plain_diag_type
   typedef Matrix<Scalar, diag_size, 1, ExpressionType::PlainObject::Options & ~RowMajor, max_diag_size, 1> MatrixDiagType;
   typedef Array<Scalar, diag_size, 1, ExpressionType::PlainObject::Options & ~RowMajor, max_diag_size, 1> ArrayDiagType;
 
-  typedef conditional_t<
+  typedef std::conditional_t<
     is_same< typename traits<ExpressionType>::XprKind, MatrixXpr >::value,
     MatrixDiagType,
     ArrayDiagType
@@ -647,7 +647,7 @@ struct plain_constant_type
   typedef Matrix<Scalar,  traits<Expr>::RowsAtCompileTime,   traits<Expr>::ColsAtCompileTime,
                  Options, traits<Expr>::MaxRowsAtCompileTime,traits<Expr>::MaxColsAtCompileTime> matrix_type;
 
-  typedef CwiseNullaryOp<scalar_constant_op<Scalar>, const conditional_t<is_same< typename traits<Expr>::XprKind, MatrixXpr >::value, matrix_type, array_type> > type;
+  typedef CwiseNullaryOp<scalar_constant_op<Scalar>, const std::conditional_t<is_same< typename traits<Expr>::XprKind, MatrixXpr >::value, matrix_type, array_type> > type;
 };
 
 template<typename ExpressionType>
@@ -716,9 +716,9 @@ struct scalar_div_cost<std::complex<T>, Vectorized> {
 
 
 template<bool Vectorized>
-struct scalar_div_cost<signed long,Vectorized, conditional_t<sizeof(long)==8,void,false_type>> { enum { value = 24 }; };
+struct scalar_div_cost<signed long,Vectorized, std::conditional_t<sizeof(long)==8,void,false_type>> { enum { value = 24 }; };
 template<bool Vectorized>
-struct scalar_div_cost<unsigned long,Vectorized, conditional_t<sizeof(long)==8,void,false_type>> { enum { value = 21 }; };
+struct scalar_div_cost<unsigned long,Vectorized, std::conditional_t<sizeof(long)==8,void,false_type>> { enum { value = 21 }; };
 
 
 #ifdef EIGEN_DEBUG_ASSIGN

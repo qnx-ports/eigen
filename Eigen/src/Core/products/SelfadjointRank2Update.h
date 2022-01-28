@@ -52,9 +52,8 @@ struct selfadjoint_rank2_update_selector<Scalar,Index,UType,VType,Upper>
   }
 };
 
-template<bool Cond, typename T> struct conj_expr_if
-  : conditional<!Cond, const T&,
-      CwiseUnaryOp<scalar_conjugate_op<typename traits<T>::Scalar>,T> > {};
+template<bool Cond, typename T>
+using conj_expr_if = std::conditional<!Cond, const T&, CwiseUnaryOp<scalar_conjugate_op<typename traits<T>::Scalar>,T>>;
 
 } // end namespace internal
 

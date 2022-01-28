@@ -32,7 +32,7 @@ struct permutation_matrix_product<ExpressionType, Side, Transposed, SparseShape>
       MoveOuter = SrcStorageOrder==RowMajor ? Side==OnTheLeft : Side==OnTheRight
     };
     
-    typedef internal::conditional_t<MoveOuter,
+    typedef std::conditional_t<MoveOuter,
         SparseMatrix<Scalar,SrcStorageOrder,StorageIndex>,
         SparseMatrix<Scalar,int(SrcStorageOrder)==RowMajor?ColMajor:RowMajor,StorageIndex> > ReturnType;
 

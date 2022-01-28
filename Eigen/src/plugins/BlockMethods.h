@@ -1418,19 +1418,19 @@ innerVectors(Index outerStart, Index outerSize) const
   */
 template<DirectionType Direction>
 EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-internal::conditional_t<Direction==Vertical,ColXpr,RowXpr>
+std::conditional_t<Direction==Vertical,ColXpr,RowXpr>
 subVector(Index i)
 {
-  return internal::conditional_t<Direction==Vertical,ColXpr,RowXpr>(derived(),i);
+  return std::conditional_t<Direction==Vertical,ColXpr,RowXpr>(derived(),i);
 }
 
 /** This is the const version of subVector(Index) */
 template<DirectionType Direction>
 EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-internal::conditional_t<Direction==Vertical,ConstColXpr,ConstRowXpr>
+std::conditional_t<Direction==Vertical,ConstColXpr,ConstRowXpr>
 subVector(Index i) const
 {
-  return internal::conditional_t<Direction==Vertical,ConstColXpr,ConstRowXpr>(derived(),i);
+  return std::conditional_t<Direction==Vertical,ConstColXpr,ConstRowXpr>(derived(),i);
 }
 
 /** \returns the number of subvectors (rows or columns) in the direction \c Direction

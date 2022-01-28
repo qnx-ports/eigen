@@ -428,7 +428,7 @@ template<typename XprType> struct blas_traits
                              ) ?  1 : 0,
     HasScalarFactor = false
   };
-  typedef conditional_t<bool(HasUsableDirectAccess),
+  typedef std::conditional_t<bool(HasUsableDirectAccess),
     ExtractType,
     typename ExtractType_::PlainObject
     > DirectLinearAccessType;
@@ -514,7 +514,7 @@ struct blas_traits<Transpose<NestedXpr> >
   typedef Transpose<NestedXpr> XprType;
   typedef Transpose<const typename Base::ExtractType_>  ExtractType; // const to get rid of a compile error; anyway blas traits are only used on the RHS
   typedef Transpose<const typename Base::ExtractType_> ExtractType_;
-  typedef conditional_t<bool(Base::HasUsableDirectAccess),
+  typedef std::conditional_t<bool(Base::HasUsableDirectAccess),
     ExtractType,
     typename ExtractType::PlainObject
     > DirectLinearAccessType;

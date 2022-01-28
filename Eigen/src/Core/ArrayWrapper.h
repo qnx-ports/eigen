@@ -49,7 +49,7 @@ class ArrayWrapper : public ArrayBase<ArrayWrapper<ExpressionType> >
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(ArrayWrapper)
     typedef internal::remove_all_t<ExpressionType> NestedExpression;
 
-    typedef internal::conditional_t<
+    typedef std::conditional_t<
                        internal::is_lvalue<ExpressionType>::value,
                        Scalar,
                        const Scalar
@@ -147,7 +147,7 @@ class MatrixWrapper : public MatrixBase<MatrixWrapper<ExpressionType> >
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(MatrixWrapper)
     typedef internal::remove_all_t<ExpressionType> NestedExpression;
 
-    typedef internal::conditional_t<
+    typedef std::conditional_t<
               internal::is_lvalue<ExpressionType>::value,
               Scalar,
               const Scalar

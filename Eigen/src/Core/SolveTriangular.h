@@ -176,7 +176,7 @@ EIGEN_DEVICE_FUNC void TriangularViewImpl<MatrixType,Mode,Dense>::solveInPlace(c
     return;
 
   enum { copy = (internal::traits<OtherDerived>::Flags & RowMajorBit)  && OtherDerived::IsVectorAtCompileTime && OtherDerived::SizeAtCompileTime!=1};
-  typedef internal::conditional_t<copy,
+  typedef std::conditional_t<copy,
     typename internal::plain_matrix_type_column_major<OtherDerived>::type, OtherDerived&> OtherCopy;
   OtherCopy otherCopy(other);
 

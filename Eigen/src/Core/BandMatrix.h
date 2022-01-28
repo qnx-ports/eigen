@@ -102,7 +102,7 @@ class BandMatrixBase : public EigenBase<Derived>
                      : min_size_prefer_dynamic(RowsAtCompileTime, ColsAtCompileTime - ActualIndex))
       };
       typedef Block<CoefficientsType,1, DiagonalSize> BuildType;
-      typedef conditional_t<Conjugate,
+      typedef std::conditional_t<Conjugate,
                  CwiseUnaryOp<internal::scalar_conjugate_op<Scalar>,BuildType >,
                  BuildType> Type;
     };

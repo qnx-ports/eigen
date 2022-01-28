@@ -249,10 +249,10 @@ template<typename MatrixType_, unsigned int Mode_> class TriangularView
      */
     template<bool Cond>
     EIGEN_DEVICE_FUNC
-    inline internal::conditional_t<Cond,ConjugateReturnType,ConstTriangularView>
+    inline std::conditional_t<Cond,ConjugateReturnType,ConstTriangularView>
     conjugateIf() const
     {
-      typedef internal::conditional_t<Cond,ConjugateReturnType,ConstTriangularView> ReturnType;
+      typedef std::conditional_t<Cond,ConjugateReturnType,ConstTriangularView> ReturnType;
       return ReturnType(m_matrix.template conjugateIf<Cond>());
     }
 

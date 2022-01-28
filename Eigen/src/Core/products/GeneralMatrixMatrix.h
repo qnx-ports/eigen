@@ -277,16 +277,16 @@ class level3_blocking
 template<int StorageOrder, typename LhsScalar_, typename RhsScalar_, int MaxRows, int MaxCols, int MaxDepth, int KcFactor>
 class gemm_blocking_space<StorageOrder,LhsScalar_,RhsScalar_,MaxRows, MaxCols, MaxDepth, KcFactor, true /* == FiniteAtCompileTime */>
   : public level3_blocking<
-      conditional_t<StorageOrder==RowMajor,RhsScalar_,LhsScalar_>,
-      conditional_t<StorageOrder==RowMajor,LhsScalar_,RhsScalar_>>
+      std::conditional_t<StorageOrder==RowMajor,RhsScalar_,LhsScalar_>,
+      std::conditional_t<StorageOrder==RowMajor,LhsScalar_,RhsScalar_>>
 {
     enum {
       Transpose = StorageOrder==RowMajor,
       ActualRows = Transpose ? MaxCols : MaxRows,
       ActualCols = Transpose ? MaxRows : MaxCols
     };
-    typedef conditional_t<Transpose,RhsScalar_,LhsScalar_> LhsScalar;
-    typedef conditional_t<Transpose,LhsScalar_,RhsScalar_> RhsScalar;
+    typedef std::conditional_t<Transpose,RhsScalar_,LhsScalar_> LhsScalar;
+    typedef std::conditional_t<Transpose,LhsScalar_,RhsScalar_> RhsScalar;
     typedef gebp_traits<LhsScalar,RhsScalar> Traits;
     enum {
       SizeA = ActualRows * MaxDepth,
@@ -328,14 +328,14 @@ class gemm_blocking_space<StorageOrder,LhsScalar_,RhsScalar_,MaxRows, MaxCols, M
 template<int StorageOrder, typename LhsScalar_, typename RhsScalar_, int MaxRows, int MaxCols, int MaxDepth, int KcFactor>
 class gemm_blocking_space<StorageOrder,LhsScalar_,RhsScalar_,MaxRows, MaxCols, MaxDepth, KcFactor, false>
   : public level3_blocking<
-      conditional_t<StorageOrder==RowMajor,RhsScalar_,LhsScalar_>,
-      conditional_t<StorageOrder==RowMajor,LhsScalar_,RhsScalar_>>
+      std::conditional_t<StorageOrder==RowMajor,RhsScalar_,LhsScalar_>,
+      std::conditional_t<StorageOrder==RowMajor,LhsScalar_,RhsScalar_>>
 {
     enum {
       Transpose = StorageOrder==RowMajor
     };
-    typedef conditional_t<Transpose,RhsScalar_,LhsScalar_> LhsScalar;
-    typedef conditional_t<Transpose,LhsScalar_,RhsScalar_> RhsScalar;
+    typedef std::conditional_t<Transpose,RhsScalar_,LhsScalar_> LhsScalar;
+    typedef std::conditional_t<Transpose,LhsScalar_,RhsScalar_> RhsScalar;
     typedef gebp_traits<LhsScalar,RhsScalar> Traits;
 
     Index m_sizeA;

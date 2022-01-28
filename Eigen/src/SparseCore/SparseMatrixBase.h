@@ -110,7 +110,7 @@ template<typename Derived> class SparseMatrixBase
     };
 
     /** \internal the return type of MatrixBase::adjoint() */
-    typedef internal::conditional_t<NumTraits<Scalar>::IsComplex,
+    typedef std::conditional_t<NumTraits<Scalar>::IsComplex,
                         CwiseUnaryOp<internal::scalar_conjugate_op<Scalar>, Eigen::Transpose<const Derived> >,
                         Transpose<const Derived>
                      > AdjointReturnType;
@@ -131,7 +131,7 @@ template<typename Derived> class SparseMatrixBase
 
     /** \internal the return type of coeff()
       */
-    typedef internal::conditional_t<HasDirectAccess_, const Scalar&, Scalar> CoeffReturnType;
+    typedef std::conditional_t<HasDirectAccess_, const Scalar&, Scalar> CoeffReturnType;
 
     /** \internal Represents a matrix with all coefficients equal to one another*/
     typedef CwiseNullaryOp<internal::scalar_constant_op<Scalar>,Matrix<Scalar,Dynamic,Dynamic> > ConstantReturnType;

@@ -43,7 +43,7 @@ struct triangular_solve_vector<LhsScalar, RhsScalar, Index, OnTheLeft, Mode, Con
     typedef const_blas_data_mapper<LhsScalar,Index,RowMajor> LhsMapper;
     typedef const_blas_data_mapper<RhsScalar,Index,ColMajor> RhsMapper;
 
-    internal::conditional_t<
+    std::conditional_t<
                   Conjugate,
                   const CwiseUnaryOp<typename internal::scalar_conjugate_op<LhsScalar>,LhsMap>,
                   const LhsMap&> cjLhs(lhs);
@@ -98,7 +98,7 @@ struct triangular_solve_vector<LhsScalar, RhsScalar, Index, OnTheLeft, Mode, Con
     const LhsMap lhs(_lhs,size,size,OuterStride<>(lhsStride));
     typedef const_blas_data_mapper<LhsScalar,Index,ColMajor> LhsMapper;
     typedef const_blas_data_mapper<RhsScalar,Index,ColMajor> RhsMapper;
-    internal::conditional_t<Conjugate,
+    std::conditional_t<Conjugate,
                             const CwiseUnaryOp<typename internal::scalar_conjugate_op<LhsScalar>,LhsMap>,
                             const LhsMap&
                            > cjLhs(lhs);

@@ -168,7 +168,7 @@ struct traits<TensorCwiseBinaryOp<BinaryOp, LhsXprType, RhsXprType> >
   static const int NumDimensions = XprTraits::NumDimensions;
   static const int Layout = XprTraits::Layout;
   typedef typename TypeConversion<Scalar,
-                                  conditional_t<Pointer_type_promotion<typename LhsXprType::Scalar, Scalar>::val,
+                                  std::conditional_t<Pointer_type_promotion<typename LhsXprType::Scalar, Scalar>::val,
                                                       typename traits<LhsXprType>::PointerType,
                                                       typename traits<RhsXprType>::PointerType>
                                   >::type 
@@ -250,7 +250,7 @@ struct traits<TensorCwiseTernaryOp<TernaryOp, Arg1XprType, Arg2XprType, Arg3XprT
   static const int NumDimensions = XprTraits::NumDimensions;
   static const int Layout = XprTraits::Layout;
   typedef typename TypeConversion<Scalar,
-                                  conditional_t<Pointer_type_promotion<typename Arg2XprType::Scalar, Scalar>::val,
+                                  std::conditional_t<Pointer_type_promotion<typename Arg2XprType::Scalar, Scalar>::val,
                                                       typename traits<Arg2XprType>::PointerType,
                                                       typename traits<Arg3XprType>::PointerType>
                                   >::type 
@@ -330,7 +330,7 @@ struct traits<TensorSelectOp<IfXprType, ThenXprType, ElseXprType> >
   typedef typename ElseXprType::Nested ElseNested;
   static const int NumDimensions = XprTraits::NumDimensions;
   static const int Layout = XprTraits::Layout;
-  typedef conditional_t<Pointer_type_promotion<typename ThenXprType::Scalar, Scalar>::val,
+  typedef std::conditional_t<Pointer_type_promotion<typename ThenXprType::Scalar, Scalar>::val,
                                typename traits<ThenXprType>::PointerType,
                                typename traits<ElseXprType>::PointerType> PointerType;
 };

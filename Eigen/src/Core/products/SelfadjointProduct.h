@@ -28,7 +28,7 @@ struct selfadjoint_rank1_update<Scalar,Index,ColMajor,UpLo,ConjLhs,ConjRhs>
   {
     internal::conj_if<ConjRhs> cj;
     typedef Map<const Matrix<Scalar,Dynamic,1> > OtherMap;
-    typedef internal::conditional_t<ConjLhs,typename OtherMap::ConjugateReturnType,const OtherMap&> ConjLhsType;
+    typedef std::conditional_t<ConjLhs,typename OtherMap::ConjugateReturnType,const OtherMap&> ConjLhsType;
     for (Index i=0; i<size; ++i)
     {
       Map<Matrix<Scalar,Dynamic,1> >(mat+stride*i+(UpLo==Lower ? i : 0), (UpLo==Lower ? size-i : (i+1)))

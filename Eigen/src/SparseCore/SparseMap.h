@@ -60,10 +60,10 @@ class SparseMapBase<Derived,ReadOnlyAccessors>
     using Base::operator=;
   protected:
     
-    typedef internal::conditional_t<
+    typedef std::conditional_t<
                  bool(internal::is_lvalue<Derived>::value),
                  Scalar *, const Scalar *> ScalarPointer;
-    typedef internal::conditional_t<
+    typedef std::conditional_t<
                  bool(internal::is_lvalue<Derived>::value),
                  StorageIndex *, const StorageIndex *> IndexPointer;
 
