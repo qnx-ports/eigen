@@ -180,7 +180,7 @@ EIGEN_DEVICE_FUNC void TriangularViewImpl<MatrixType,Mode,Dense>::solveInPlace(c
     typename internal::plain_matrix_type_column_major<OtherDerived>::type, OtherDerived&> OtherCopy;
   OtherCopy otherCopy(other);
 
-  internal::triangular_solver_selector<MatrixType, typename internal::remove_reference<OtherCopy>::type,
+  internal::triangular_solver_selector<MatrixType, std::remove_reference_t<OtherCopy>,
     Side, Mode>::run(derived().nestedExpression(), otherCopy);
 
   if (copy)

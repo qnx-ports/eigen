@@ -40,7 +40,7 @@ struct traits<Diagonal<MatrixType,DiagIndex> >
  : traits<MatrixType>
 {
   typedef typename ref_selector<MatrixType>::type MatrixTypeNested;
-  typedef typename remove_reference<MatrixTypeNested>::type MatrixTypeNested_;
+  typedef std::remove_reference_t<MatrixTypeNested> MatrixTypeNested_;
   typedef typename MatrixType::StorageKind StorageKind;
   enum {
     RowsAtCompileTime = (int(DiagIndex) == DynamicIndex || int(MatrixType::SizeAtCompileTime) == Dynamic) ? Dynamic

@@ -23,7 +23,7 @@ struct traits<Replicate<MatrixType,RowFactor,ColFactor> >
   typedef typename traits<MatrixType>::StorageKind StorageKind;
   typedef typename traits<MatrixType>::XprKind XprKind;
   typedef typename ref_selector<MatrixType>::type MatrixTypeNested;
-  typedef typename remove_reference<MatrixTypeNested>::type MatrixTypeNested_;
+  typedef std::remove_reference_t<MatrixTypeNested> MatrixTypeNested_;
   enum {
     RowsAtCompileTime = RowFactor==Dynamic || int(MatrixType::RowsAtCompileTime)==Dynamic
                       ? Dynamic

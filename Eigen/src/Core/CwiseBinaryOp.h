@@ -45,8 +45,8 @@ struct traits<CwiseBinaryOp<BinaryOp, Lhs, Rhs> >
                                       typename traits<Rhs>::StorageIndex>::type StorageIndex;
   typedef typename Lhs::Nested LhsNested;
   typedef typename Rhs::Nested RhsNested;
-  typedef typename remove_reference<LhsNested>::type LhsNested_;
-  typedef typename remove_reference<RhsNested>::type RhsNested_;
+  typedef std::remove_reference_t<LhsNested> LhsNested_;
+  typedef std::remove_reference_t<RhsNested> RhsNested_;
   enum {
     Flags = cwise_promote_storage_order<typename traits<Lhs>::StorageKind,typename traits<Rhs>::StorageKind,LhsNested_::Flags & RowMajorBit,RhsNested_::Flags & RowMajorBit>::value
   };
@@ -102,8 +102,8 @@ class CwiseBinaryOp :
 
     typedef typename internal::ref_selector<LhsType>::type LhsNested;
     typedef typename internal::ref_selector<RhsType>::type RhsNested;
-    typedef typename internal::remove_reference<LhsNested>::type LhsNested_;
-    typedef typename internal::remove_reference<RhsNested>::type RhsNested_;
+    typedef std::remove_reference_t<LhsNested> LhsNested_;
+    typedef std::remove_reference_t<RhsNested> RhsNested_;
 
 #if EIGEN_COMP_MSVC
     //Required for Visual Studio or the Copy constructor will probably not get inlined!

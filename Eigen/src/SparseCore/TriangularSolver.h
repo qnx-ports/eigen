@@ -188,7 +188,7 @@ void TriangularViewImpl<ExpressionType,Mode,Sparse>::solveInPlace(MatrixBase<Oth
     typename internal::plain_matrix_type_column_major<OtherDerived>::type, OtherDerived&> OtherCopy;
   OtherCopy otherCopy(other.derived());
 
-  internal::sparse_solve_triangular_selector<ExpressionType, typename internal::remove_reference<OtherCopy>::type, Mode>::run(derived().nestedExpression(), otherCopy);
+  internal::sparse_solve_triangular_selector<ExpressionType, std::remove_reference_t<OtherCopy>, Mode>::run(derived().nestedExpression(), otherCopy);
 
   if (copy)
     other = otherCopy;

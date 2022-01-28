@@ -46,7 +46,7 @@ template<typename MatrixType, unsigned int Mode> class TriangularViewImpl<Matrix
     EIGEN_SPARSE_PUBLIC_INTERFACE(TriangularViewType)
     
     typedef typename MatrixType::Nested MatrixTypeNested;
-    typedef typename internal::remove_reference<MatrixTypeNested>::type MatrixTypeNestedNonRef;
+    typedef std::remove_reference_t<MatrixTypeNested> MatrixTypeNestedNonRef;
     typedef internal::remove_all_t<MatrixTypeNested> MatrixTypeNestedCleaned;
 
     template<typename RhsType, typename DstType>

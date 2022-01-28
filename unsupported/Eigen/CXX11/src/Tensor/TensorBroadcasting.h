@@ -30,7 +30,7 @@ struct traits<TensorBroadcastingOp<Broadcast, XprType> > : public traits<XprType
   typedef typename XprTraits::StorageKind StorageKind;
   typedef typename XprTraits::Index Index;
   typedef typename XprType::Nested Nested;
-  typedef typename remove_reference<Nested>::type Nested_;
+  typedef std::remove_reference_t<Nested> Nested_;
   static const int NumDimensions = XprTraits::NumDimensions;
   static const int Layout = XprTraits::Layout;
   typedef typename XprTraits::PointerType PointerType;
@@ -1074,7 +1074,7 @@ struct TensorEvaluator<const TensorBroadcastingOp<Broadcast, ArgType>, Device>
 
 protected:
   const Device EIGEN_DEVICE_REF m_device;
-  const typename internal::remove_reference<Broadcast>::type m_broadcast;
+  const std::remove_reference_t<Broadcast> m_broadcast;
   Dimensions m_dimensions;
   array<Index, NumDims> m_outputStrides;
   array<Index, NumDims> m_inputStrides;

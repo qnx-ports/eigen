@@ -66,7 +66,7 @@ struct extract_output_indices_helper<N, Idx, std::index_sequence<OutputIndices..
       typename std::conditional<
         // If is a non-const l-value reference, append index.
         std::is_lvalue_reference<T1>::value 
-          && !std::is_const<typename std::remove_reference<T1>::type>::value,
+          && !std::is_const<std::remove_reference_t<T1>>::value,
         std::index_sequence<OutputIndices..., Idx>,
         std::index_sequence<OutputIndices...> >::type,
       Ts...>::type;

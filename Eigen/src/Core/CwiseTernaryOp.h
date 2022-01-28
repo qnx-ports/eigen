@@ -43,9 +43,9 @@ struct traits<CwiseTernaryOp<TernaryOp, Arg1, Arg2, Arg3> > {
   typedef typename Arg1::Nested Arg1Nested;
   typedef typename Arg2::Nested Arg2Nested;
   typedef typename Arg3::Nested Arg3Nested;
-  typedef typename remove_reference<Arg1Nested>::type Arg1Nested_;
-  typedef typename remove_reference<Arg2Nested>::type Arg2Nested_;
-  typedef typename remove_reference<Arg3Nested>::type Arg3Nested_;
+  typedef std::remove_reference_t<Arg1Nested> Arg1Nested_;
+  typedef std::remove_reference_t<Arg2Nested> Arg2Nested_;
+  typedef std::remove_reference_t<Arg3Nested> Arg3Nested_;
   enum { Flags = Arg1Nested_::Flags & RowMajorBit };
 };
 }  // end namespace internal
@@ -115,9 +115,9 @@ class CwiseTernaryOp : public CwiseTernaryOpImpl<
   typedef typename internal::ref_selector<Arg1Type>::type Arg1Nested;
   typedef typename internal::ref_selector<Arg2Type>::type Arg2Nested;
   typedef typename internal::ref_selector<Arg3Type>::type Arg3Nested;
-  typedef typename internal::remove_reference<Arg1Nested>::type Arg1Nested_;
-  typedef typename internal::remove_reference<Arg2Nested>::type Arg2Nested_;
-  typedef typename internal::remove_reference<Arg3Nested>::type Arg3Nested_;
+  typedef std::remove_reference_t<Arg1Nested> Arg1Nested_;
+  typedef std::remove_reference_t<Arg2Nested> Arg2Nested_;
+  typedef std::remove_reference_t<Arg3Nested> Arg3Nested_;
 
   EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE CwiseTernaryOp(const Arg1& a1, const Arg2& a2,

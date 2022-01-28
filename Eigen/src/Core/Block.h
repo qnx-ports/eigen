@@ -23,7 +23,7 @@ struct traits<Block<XprType, BlockRows, BlockCols, InnerPanel> > : traits<XprTyp
   typedef typename traits<XprType>::StorageKind StorageKind;
   typedef typename traits<XprType>::XprKind XprKind;
   typedef typename ref_selector<XprType>::type XprTypeNested;
-  typedef typename remove_reference<XprTypeNested>::type XprTypeNested_;
+  typedef std::remove_reference_t<XprTypeNested> XprTypeNested_;
   enum{
     MatrixRows = traits<XprType>::RowsAtCompileTime,
     MatrixCols = traits<XprType>::ColsAtCompileTime,

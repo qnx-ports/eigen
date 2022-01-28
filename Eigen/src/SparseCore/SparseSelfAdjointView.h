@@ -71,7 +71,7 @@ template<typename MatrixType, unsigned int Mode_> class SparseSelfAdjointView
 
     /** \internal \returns a reference to the nested matrix */
     const MatrixTypeNested_& matrix() const { return m_matrix; }
-    typename internal::remove_reference<MatrixTypeNested>::type& matrix() { return m_matrix; }
+    std::remove_reference_t<MatrixTypeNested>& matrix() { return m_matrix; }
 
     /** \returns an expression of the matrix product between a sparse self-adjoint matrix \c *this and a sparse matrix \a rhs.
       *

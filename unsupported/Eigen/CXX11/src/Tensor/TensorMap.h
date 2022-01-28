@@ -34,7 +34,7 @@ template<typename PlainObjectType, int Options_, template <class> class MakePoin
     typedef TensorMap<PlainObjectType, Options_, MakePointer_> Self;
     typedef TensorBase<TensorMap<PlainObjectType, Options_, MakePointer_> > Base;
   #ifdef EIGEN_USE_SYCL
-    typedef  typename Eigen::internal::remove_reference<typename Eigen::internal::nested<Self>::type>::type Nested;
+    typedef  std::remove_reference_t<typename Eigen::internal::nested<Self>::type> Nested;
   #else
      typedef typename Eigen::internal::nested<Self>::type Nested;
   #endif

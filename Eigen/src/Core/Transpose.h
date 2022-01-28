@@ -20,7 +20,7 @@ template<typename MatrixType>
 struct traits<Transpose<MatrixType> > : public traits<MatrixType>
 {
   typedef typename ref_selector<MatrixType>::type MatrixTypeNested;
-  typedef typename remove_reference<MatrixTypeNested>::type MatrixTypeNestedPlain;
+  typedef std::remove_reference_t<MatrixTypeNested> MatrixTypeNestedPlain;
   enum {
     RowsAtCompileTime = MatrixType::ColsAtCompileTime,
     ColsAtCompileTime = MatrixType::RowsAtCompileTime,
@@ -79,7 +79,7 @@ template<typename MatrixType> class Transpose
 
     /** \returns the nested expression */
     EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-    typename internal::remove_reference<MatrixTypeNested>::type&
+    std::remove_reference_t<MatrixTypeNested>&
     nestedExpression() { return m_matrix; }
 
     /** \internal */

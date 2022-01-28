@@ -172,7 +172,7 @@ template<typename MatrixType, unsigned int Mode_>
 struct traits<TriangularView<MatrixType, Mode_> > : traits<MatrixType>
 {
   typedef typename ref_selector<MatrixType>::non_const_type MatrixTypeNested;
-  typedef typename remove_reference<MatrixTypeNested>::type MatrixTypeNestedNonRef;
+  typedef std::remove_reference_t<MatrixTypeNested> MatrixTypeNestedNonRef;
   typedef remove_all_t<MatrixTypeNested> MatrixTypeNestedCleaned;
   typedef typename MatrixType::PlainObject FullMatrixType;
   typedef MatrixType ExpressionType;

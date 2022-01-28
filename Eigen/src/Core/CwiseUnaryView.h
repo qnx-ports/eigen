@@ -89,7 +89,7 @@ class CwiseUnaryView : public CwiseUnaryViewImpl<ViewOp, MatrixType, StrideType,
     nestedExpression() const { return m_matrix; }
 
     /** \returns the nested expression */
-    EIGEN_DEVICE_FUNC typename internal::remove_reference<MatrixTypeNested>::type&
+    EIGEN_DEVICE_FUNC std::remove_reference_t<MatrixTypeNested>&
     nestedExpression() { return m_matrix; }
 
   protected:

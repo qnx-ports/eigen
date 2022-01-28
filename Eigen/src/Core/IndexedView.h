@@ -134,7 +134,7 @@ public:
   nestedExpression() const { return m_xpr; }
 
   /** \returns the nested expression */
-  typename internal::remove_reference<XprType>::type&
+  std::remove_reference_t<XprType>&
   nestedExpression() { return m_xpr; }
 
   /** \returns a const reference to the object storing/generating the row indices */

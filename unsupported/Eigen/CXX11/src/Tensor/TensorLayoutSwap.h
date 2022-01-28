@@ -45,7 +45,7 @@ struct traits<TensorLayoutSwapOp<XprType> > : public traits<XprType>
   typedef typename XprTraits::StorageKind StorageKind;
   typedef typename XprTraits::Index Index;
   typedef typename XprType::Nested Nested;
-  typedef typename remove_reference<Nested>::type Nested_;
+  typedef std::remove_reference_t<Nested> Nested_;
   static const int NumDimensions = traits<XprType>::NumDimensions;
   static const int Layout = (traits<XprType>::Layout == ColMajor) ? RowMajor : ColMajor;
   typedef typename XprTraits::PointerType PointerType;
