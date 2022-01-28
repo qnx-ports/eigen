@@ -186,7 +186,7 @@ namespace internal {
 template <typename Tensor, std::size_t rank>
 struct TensorPrinter {
   static void run(std::ostream& s, const Tensor& _t, const TensorIOFormat& fmt) {
-    typedef typename internal::remove_const<typename Tensor::Scalar>::type Scalar;
+    typedef std::remove_const_t<typename Tensor::Scalar> Scalar;
     typedef typename Tensor::Index IndexType;
     static const int layout = Tensor::Layout;
     // backwards compatibility case: print tensor after reshaping to matrix of size dim(0) x

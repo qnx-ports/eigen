@@ -27,8 +27,8 @@ template<typename Dimensions, typename LhsXprType, typename RhsXprType, typename
 struct traits<TensorContractionOp<Dimensions, LhsXprType, RhsXprType, OutputKernelType> >
 {
   // Type promotion to handle the case where the types of the lhs and the rhs are different.
-  typedef typename gebp_traits<typename remove_const<typename LhsXprType::Scalar>::type,
-                               typename remove_const<typename RhsXprType::Scalar>::type>::ResScalar Scalar;
+  typedef typename gebp_traits<std::remove_const_t<typename LhsXprType::Scalar>,
+                               std::remove_const_t<typename RhsXprType::Scalar>>::ResScalar Scalar;
 
   typedef typename promote_storage_type<typename traits<LhsXprType>::StorageKind,
                                         typename traits<RhsXprType>::StorageKind>::ret StorageKind;
@@ -373,7 +373,7 @@ struct TensorContractionEvaluatorBase : internal::no_assignment_operator
   typedef typename internal::traits<Derived>::Device Device;
 
   typedef TensorContractionOp<Indices, LeftArgType, RightArgType, OutputKernelType> XprType;
-  typedef typename internal::remove_const<typename XprType::Scalar>::type Scalar;
+  typedef std::remove_const_t<typename XprType::Scalar> Scalar;
   typedef typename XprType::Index Index;
   typedef typename XprType::CoeffReturnType CoeffReturnType;
   typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
@@ -735,8 +735,8 @@ struct TensorContractionEvaluatorBase : internal::no_assignment_operator
     const Index rows = m_i_size;
     const Index cols = m_k_size;
 
-    typedef typename internal::remove_const<typename EvalLeftArgType::Scalar>::type LhsScalar;
-    typedef typename internal::remove_const<typename EvalRightArgType::Scalar>::type RhsScalar;
+    typedef std::remove_const_t<typename EvalLeftArgType::Scalar> LhsScalar;
+    typedef std::remove_const_t<typename EvalRightArgType::Scalar> RhsScalar;
     typedef TensorEvaluator<EvalLeftArgType, Device> LeftEvaluator;
     typedef TensorEvaluator<EvalRightArgType, Device> RightEvaluator;
     const Index lhs_packet_size = internal::unpacket_traits<typename LeftEvaluator::PacketReturnType>::size;
@@ -812,8 +812,8 @@ struct TensorContractionEvaluatorBase : internal::no_assignment_operator
     const Index n = this->m_j_size;
 
     // define data mappers for Lhs and Rhs
-    typedef typename internal::remove_const<typename EvalLeftArgType::Scalar>::type LhsScalar;
-    typedef typename internal::remove_const<typename EvalRightArgType::Scalar>::type RhsScalar;
+    typedef std::remove_const_t<typename EvalLeftArgType::Scalar> LhsScalar;
+    typedef std::remove_const_t<typename EvalRightArgType::Scalar> RhsScalar;
 
     typedef TensorEvaluator<EvalLeftArgType, Device> LeftEvaluator;
     typedef TensorEvaluator<EvalRightArgType, Device> RightEvaluator;
@@ -978,7 +978,7 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
   typedef TensorContractionEvaluatorBase<Self> Base;
 
   typedef TensorContractionOp<Indices, LeftArgType, RightArgType, OutputKernelType> XprType;
-  typedef typename internal::remove_const<typename XprType::Scalar>::type Scalar;
+  typedef std::remove_const_t<typename XprType::Scalar> Scalar;
   typedef typename XprType::Index Index;
   typedef typename XprType::CoeffReturnType CoeffReturnType;
   typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;

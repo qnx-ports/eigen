@@ -74,7 +74,7 @@ class TensorLayoutSwapOp : public TensorBase<TensorLayoutSwapOp<XprType>, WriteA
     typedef TensorBase<TensorLayoutSwapOp<XprType>, WriteAccessors> Base;
     typedef typename Eigen::internal::traits<TensorLayoutSwapOp>::Scalar Scalar;
     typedef typename Eigen::NumTraits<Scalar>::Real RealScalar;
-    typedef typename internal::remove_const<typename XprType::CoeffReturnType>::type CoeffReturnType;
+    typedef std::remove_const_t<typename XprType::CoeffReturnType> CoeffReturnType;
     typedef typename Eigen::internal::nested<TensorLayoutSwapOp>::type Nested;
     typedef typename Eigen::internal::traits<TensorLayoutSwapOp>::StorageKind StorageKind;
     typedef typename Eigen::internal::traits<TensorLayoutSwapOp>::Index Index;

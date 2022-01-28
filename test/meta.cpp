@@ -48,11 +48,6 @@ EIGEN_DECLARE_TEST(meta)
   VERIFY(( internal::is_same< internal::add_const<float const*>::type, float const* const>::value));
   VERIFY(( internal::is_same< internal::add_const<float&>::type, float& >::value));
 
-  // test remove_const
-  VERIFY(( internal::is_same< internal::remove_const<float const* const>::type, float const* >::value));
-  VERIFY(( internal::is_same< internal::remove_const<float const*>::type, float const* >::value));
-  VERIFY(( internal::is_same< internal::remove_const<float* const>::type, float* >::value));
-
   // test add_const_on_value_type
   VERIFY(( internal::is_same< internal::add_const_on_value_type<float&>::type, float const& >::value));
   VERIFY(( internal::is_same< internal::add_const_on_value_type<float*>::type, float const* >::value));

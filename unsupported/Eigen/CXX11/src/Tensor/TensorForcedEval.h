@@ -63,7 +63,7 @@ class TensorForcedEvalOp : public TensorBase<TensorForcedEvalOp<XprType>, ReadOn
   public:
   typedef typename Eigen::internal::traits<TensorForcedEvalOp>::Scalar Scalar;
   typedef typename Eigen::NumTraits<Scalar>::Real RealScalar;
-  typedef typename internal::remove_const<typename XprType::CoeffReturnType>::type CoeffReturnType;
+  typedef std::remove_const_t<typename XprType::CoeffReturnType> CoeffReturnType;
   typedef typename Eigen::internal::nested<TensorForcedEvalOp>::type Nested;
   typedef typename Eigen::internal::traits<TensorForcedEvalOp>::StorageKind StorageKind;
   typedef typename Eigen::internal::traits<TensorForcedEvalOp>::Index Index;
@@ -150,11 +150,11 @@ struct TensorEvaluator<const TensorForcedEvalOp<ArgType_>, Device>
 
    internal::non_integral_type_placement_new<Device, CoeffReturnType>()(numValues, m_buffer);
 
-    typedef TensorEvalToOp< const typename internal::remove_const<ArgType>::type > EvalTo;
+    typedef TensorEvalToOp< const std::remove_const_t<ArgType> > EvalTo;
     EvalTo evalToTmp(m_device.get(m_buffer), m_op);
 
     internal::TensorExecutor<
-        const EvalTo, typename internal::remove_const<Device>::type,
+        const EvalTo, std::remove_const_t<Device>,
         /*Vectorizable=*/internal::IsVectorizable<Device, const ArgType>::value,
         /*Tiling=*/internal::IsTileable<Device, const ArgType>::value>::
         run(evalToTmp, m_device);
@@ -169,14 +169,14 @@ struct TensorEvaluator<const TensorForcedEvalOp<ArgType_>, Device>
     const Index numValues = internal::array_prod(m_impl.dimensions());
     m_buffer = m_device.get((CoeffReturnType*)m_device.allocate_temp(
         numValues * sizeof(CoeffReturnType)));
-    typedef TensorEvalToOp<const typename internal::remove_const<ArgType>::type>
+    typedef TensorEvalToOp<const std::remove_const_t<ArgType>>
         EvalTo;
     EvalTo evalToTmp(m_device.get(m_buffer), m_op);
 
     auto on_done = std::bind([](EvalSubExprsCallback done_) { done_(true); },
                              std::move(done));
     internal::TensorAsyncExecutor<
-        const EvalTo, typename internal::remove_const<Device>::type,
+        const EvalTo, std::remove_const_t<Device>,
         decltype(on_done),
         /*Vectorizable=*/internal::IsVectorizable<Device, const ArgType>::value,
         /*Tiling=*/internal::IsTileable<Device, const ArgType>::value>::

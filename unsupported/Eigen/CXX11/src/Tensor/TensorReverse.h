@@ -219,7 +219,7 @@ struct TensorEvaluator<const TensorReverseOp<ReverseDimensions, ArgType>, Device
 
     // TODO(ndjaitly): write a better packing routine that uses
     // local structure.
-    EIGEN_ALIGN_MAX typename internal::remove_const<CoeffReturnType>::type
+    EIGEN_ALIGN_MAX std::remove_const_t<CoeffReturnType>
                                                             values[PacketSize];
     EIGEN_UNROLL_LOOP
     for (int i = 0; i < PacketSize; ++i) {

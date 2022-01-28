@@ -90,11 +90,6 @@ struct bool_constant<true> : true_type {};
 template<>
 struct bool_constant<false> : false_type {};
 
-template <class T> struct remove_const { typedef T type; };
-template <class T> struct remove_const<const T> { typedef T type; };
-template <class T> struct remove_const<const T[]> { typedef T type[]; };
-template <class T, unsigned int Size> struct remove_const<const T[Size]> { typedef T type[Size]; };
-
 template<typename T> struct remove_all { typedef T type; };
 template<typename T> struct remove_all<const T>   { typedef typename remove_all<T>::type type; };
 template<typename T> struct remove_all<T const&>  { typedef typename remove_all<T>::type type; };
@@ -124,7 +119,7 @@ template<typename T, typename U> struct is_same { enum { value = 0 }; };
 template<typename T> struct is_same<T,T> { enum { value = 1 }; };
 
 template< class T >
-struct is_void : is_same<void, typename remove_const<T>::type> {};
+struct is_void : is_same<void, std::remove_const_t<T>> {};
 
 template<> struct is_arithmetic<signed long long>   { enum { value = true }; };
 template<> struct is_arithmetic<unsigned long long> { enum { value = true }; };

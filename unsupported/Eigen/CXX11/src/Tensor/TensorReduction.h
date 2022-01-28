@@ -499,9 +499,9 @@ __global__ EIGEN_HIP_LAUNCH_BOUNDS_1024 void OuterReductionKernel(R, const S, I_
 template <typename Op, typename CoeffReturnType>
 struct ReductionReturnType {
 #if defined(EIGEN_USE_SYCL)
-  typedef typename remove_const<decltype(std::declval<Op>().initialize())>::type type;
+  typedef std::remove_const_t<decltype(std::declval<Op>().initialize())> type;
 #else
-  typedef typename remove_const<CoeffReturnType>::type type;
+  typedef std::remove_const_t<CoeffReturnType> type;
 #endif
 };
 
@@ -513,7 +513,7 @@ class TensorReductionOp : public TensorBase<TensorReductionOp<Op, Dims, XprType,
   public:
     typedef typename Eigen::internal::traits<TensorReductionOp>::Scalar Scalar;
     typedef typename Eigen::NumTraits<Scalar>::Real RealScalar;
-    typedef typename internal::remove_const<typename XprType::CoeffReturnType>::type CoeffReturnType;
+    typedef std::remove_const_t<typename XprType::CoeffReturnType> CoeffReturnType;
     typedef typename Eigen::internal::nested<TensorReductionOp>::type Nested;
     typedef typename Eigen::internal::traits<TensorReductionOp>::StorageKind StorageKind;
     typedef typename Eigen::internal::traits<TensorReductionOp>::Index Index;
@@ -592,7 +592,7 @@ static const bool RunningOnGPU = false;
     RawAccess = false
   };
 
-  typedef typename internal::remove_const<Scalar>::type ScalarNoConst;
+  typedef std::remove_const_t<Scalar> ScalarNoConst;
 
   //===- Tensor block evaluation strategy (see TensorBlock.h) -------------===//
   typedef internal::TensorBlockNotImplemented TensorBlock;
@@ -843,7 +843,7 @@ static const bool RunningOnGPU = false;
       return internal::pload<PacketReturnType>(m_result + index);
     }
 
-    EIGEN_ALIGN_MAX typename internal::remove_const<CoeffReturnType>::type values[PacketSize];
+    EIGEN_ALIGN_MAX std::remove_const_t<CoeffReturnType> values[PacketSize];
     if (ReducingInnerMostDims) {
       const Index num_values_to_reduce =
         (static_cast<int>(Layout) == static_cast<int>(ColMajor)) ? m_preservedStrides[0] : m_preservedStrides[NumPreservedStrides - 1];

@@ -404,7 +404,7 @@ struct homogeneous_right_product_refactoring_helper
     Rows = Lhs::RowsAtCompileTime
   };
   typedef typename Rhs::template ConstNRowsBlockXpr<Dim>::Type          LinearBlockConst;
-  typedef typename remove_const<LinearBlockConst>::type                 LinearBlock;
+  typedef std::remove_const_t<LinearBlockConst>                 LinearBlock;
   typedef typename Rhs::ConstRowXpr                                     ConstantColumn;
   typedef Replicate<const ConstantColumn,Rows,1>                        ConstantBlock;
   typedef Product<Lhs,LinearBlock,LazyProduct>                          LinearProduct;
@@ -457,7 +457,7 @@ struct homogeneous_left_product_refactoring_helper
     Cols = Rhs::ColsAtCompileTime
   };
   typedef typename Lhs::template ConstNColsBlockXpr<Dim>::Type          LinearBlockConst;
-  typedef typename remove_const<LinearBlockConst>::type                 LinearBlock;
+  typedef std::remove_const_t<LinearBlockConst>                 LinearBlock;
   typedef typename Lhs::ConstColXpr                                     ConstantColumn;
   typedef Replicate<const ConstantColumn,1,Cols>                        ConstantBlock;
   typedef Product<LinearBlock,Rhs,LazyProduct>                          LinearProduct;

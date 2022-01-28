@@ -34,7 +34,7 @@ class TensorBase<Derived, ReadOnlyAccessors>
     typedef internal::traits<Derived> DerivedTraits;
     typedef typename DerivedTraits::Scalar Scalar;
     typedef typename DerivedTraits::Index Index;
-    typedef typename internal::remove_const<Scalar>::type CoeffReturnType;
+    typedef std::remove_const_t<Scalar> CoeffReturnType;
     static const int NumDimensions = DerivedTraits::NumDimensions;
 
     // Generic nullary operation support.

@@ -195,7 +195,7 @@ struct TensorEvaluator<const TensorStridingOp<Strides, ArgType>, Device>
       return rslt;
     }
     else {
-      EIGEN_ALIGN_MAX typename internal::remove_const<CoeffReturnType>::type values[PacketSize];
+      EIGEN_ALIGN_MAX std::remove_const_t<CoeffReturnType> values[PacketSize];
       values[0] = m_impl.coeff(inputIndices[0]);
       values[PacketSize-1] = m_impl.coeff(inputIndices[1]);
       EIGEN_UNROLL_LOOP
