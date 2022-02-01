@@ -503,9 +503,18 @@ void svd_check_constructor_options(const MatrixType& m, unsigned int computation
     return;
   }
 
+  Index diagSize = (std::min)(m.rows(), m.cols());
+
   SvdType svd(m, computationOptions);
-  if (svd.computeU()) VERIFY(svd.matrixU().isUnitary());
-  if (svd.computeV()) VERIFY(svd.matrixV().isUnitary());
+  if (svd.computeU()) {
+    VERIFY(svd.matrixU().isUnitary());
+    if (computationOptions & ComputeThinU) VERIFY(svd.matrixU().cols() == diagSize);
+  }
+
+  if (svd.computeV()) {
+    VERIFY(svd.matrixV().isUnitary());
+    if (computationOptions & ComputeThinV) VERIFY(svd.matrixV().cols() == diagSize);
+  }
   if (svd.computeU() && svd.computeV()) {
     svd_test_solvers(m, svd);
     svd.matrixU().isUnitary();

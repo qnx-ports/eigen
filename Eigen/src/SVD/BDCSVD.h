@@ -249,10 +249,8 @@ protected:
 
   using Base::m_singularValues;
   using Base::m_diagSize;
-  using Base::ShouldComputeFullU;
-  using Base::ShouldComputeFullV;
-  using Base::ShouldComputeThinU;
-  using Base::ShouldComputeThinV;
+  using Base::m_computeThinU;
+  using Base::m_computeThinV;
   using Base::m_matrixU;
   using Base::m_matrixV;
   using Base::m_info;
@@ -383,14 +381,14 @@ void BDCSVD<MatrixType, Options>::copyUV(const HouseholderU &householderU, const
   // Note exchange of U and V: m_matrixU is set from m_naiveV and vice versa
   if (computeU())
   {
-    Index Ucols = ShouldComputeThinU ? m_diagSize : householderU.cols();
+    Index Ucols = m_computeThinU ? m_diagSize : householderU.cols();
     m_matrixU = MatrixX::Identity(householderU.cols(), Ucols);
     m_matrixU.topLeftCorner(m_diagSize, m_diagSize) = naiveV.template cast<Scalar>().topLeftCorner(m_diagSize, m_diagSize);
     householderU.applyThisOnTheLeft(m_matrixU); // FIXME this line involves a temporary buffer
   }
   if (computeV())
   {
-    Index Vcols = ShouldComputeThinV ? m_diagSize : householderV.cols();
+    Index Vcols = m_computeThinV ? m_diagSize : householderV.cols();
     m_matrixV = MatrixX::Identity(householderV.cols(), Vcols);
     m_matrixV.topLeftCorner(m_diagSize, m_diagSize) = naiveU.template cast<Scalar>().topLeftCorner(m_diagSize, m_diagSize);
     householderV.applyThisOnTheLeft(m_matrixV); // FIXME this line involves a temporary buffer
