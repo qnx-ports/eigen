@@ -671,8 +671,8 @@ template<typename MatrixType_, int Options> class JacobiSVD
     using Base::ShouldComputeThinU;
     using Base::ShouldComputeThinV;
 
-    EIGEN_STATIC_ASSERT(internal::check_implication(ShouldComputeThinU || ShouldComputeThinV,
-                                                    QRPreconditioner != FullPivHouseholderQRPreconditioner),
+    EIGEN_STATIC_ASSERT(!(ShouldComputeThinU && int(QRPreconditioner) == int(FullPivHouseholderQRPreconditioner)) &&
+                        !(ShouldComputeThinU && int(QRPreconditioner) == int(FullPivHouseholderQRPreconditioner)),
                         "JacobiSVD: can't compute thin U or thin V with the FullPivHouseholderQR preconditioner. "
                         "Use the ColPivHouseholderQR preconditioner instead.")
 
@@ -693,8 +693,8 @@ void JacobiSVD<MatrixType, Options>::allocate(Eigen::Index rows, Eigen::Index co
   if (Base::allocate(rows, cols, computationOptions))
     return;
 
-  eigen_assert(internal::check_implication(m_computeThinU || m_computeThinV, 
-                                           QRPreconditioner != FullPivHouseholderQRPreconditioner) &&
+  eigen_assert(!(ShouldComputeThinU && int(QRPreconditioner) == int(FullPivHouseholderQRPreconditioner)) &&
+               !(ShouldComputeThinU && int(QRPreconditioner) == int(FullPivHouseholderQRPreconditioner)) &&
                "JacobiSVD: can't compute thin U or thin V with the FullPivHouseholderQR preconditioner. "
                "Use the ColPivHouseholderQR preconditioner instead.");
 
