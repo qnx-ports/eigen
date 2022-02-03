@@ -152,7 +152,7 @@ class NNLS {
   /** \returns Success if the iterations converged, and an error values otherwise. */
   ComputationInfo info() const { return info_; }
 
- protected:
+ private:
   /** \internal Searches for the index in Z with the largest value of @c v (\f$argmax v^P\f$) . */
   Index argmax_Z_(const SolutionVectorType &v) {
     const IndicesType &idxs = set_permutation.indices();
@@ -204,7 +204,7 @@ class NNLS {
   /** \internal Solves the LS problem \f$\left\Vert y-A^Px\right\Vert_2^2\f$. */
   void solveLS_P_(const RhsVectorType &b);
 
- protected:
+ private:
   typedef Matrix<Scalar, ColsAtCompileTime, ColsAtCompileTime> MatrixAtAType;
 
   /** \internal Holds the maximum number of iterations for the NNLS algorithm.
