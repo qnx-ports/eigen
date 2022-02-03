@@ -50,7 +50,7 @@ namespace Eigen {
  * squares</a> for more background information.
  *
  * \note Please note that it is possible to construct an NNLS problem for which the algorithm does
- *       not converge. In "nature" these cases are extremely rare.
+ *       not converge. In practice these cases are extremely rare.
  */
 template <class MatrixType_>
 class NNLS {
