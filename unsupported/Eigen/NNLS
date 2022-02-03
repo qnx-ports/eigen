@@ -78,9 +78,9 @@ class NNLS {
   typedef typename MatrixType::Index Index;
 
   /** Type of a row vector of the system matrix \f$A\f$. */
-  typedef Matrix<Scalar, ColsAtCompileTime, 1> RowVectorType;
+  typedef Matrix<Scalar, ColsAtCompileTime, 1> SolutionVectorType;
   /** Type of a column vector of the system matrix \f$A\f$. */
-  typedef Matrix<Scalar, RowsAtCompileTime, 1> ColVectorType;
+  typedef Matrix<Scalar, RowsAtCompileTime, 1> RhsVectorType;
   typedef PermutationMatrix<ColsAtCompileTime, ColsAtCompileTime, Index> PermutationType;
   typedef typename PermutationType::IndicesType IndicesType;
 
@@ -111,11 +111,11 @@ class NNLS {
    * \returns The approximate solution vector \f$ x \f$. Use info() to determine if the solve was a success or not.
    * \sa info()
    */
-  const RowVectorType &solve(const ColVectorType &b);
+  const SolutionVectorType &solve(const RhsVectorType &b);
 
   /** \brief Returns the solution if a problem was solved.
    * If not, an uninitialized vector may be returned. */
-  const RowVectorType &x() const { return x_; }
+  const SolutionVectorType &x() const { return x_; }
 
   /** \returns the tolerance threshold used by the stopping criteria.
    * \sa setTolerance()
@@ -154,7 +154,7 @@ class NNLS {
 
  protected:
   /** \internal Searches for the index in Z with the largest value of @c v (\f$argmax v^P\f$) . */
-  Index argmax_Z_(const RowVectorType &v) {
+  Index argmax_Z_(const SolutionVectorType &v) {
     const IndicesType &idxs = P_.indices();
     Index m_idx = Np_;
     Scalar m = v(idxs(m_idx));
@@ -169,7 +169,7 @@ class NNLS {
   }
 
   /** \internal Searches for the largest value in \f$v^Z\f$. */
-  Scalar max_Z_(const RowVectorType &v) {
+  Scalar max_Z_(const SolutionVectorType &v) {
     const IndicesType &idxs = P_.indices();
     Scalar m = v(idxs(Np_));
     for (Index i = (Np_ + 1); i < A_.cols(); i++) {
@@ -182,7 +182,7 @@ class NNLS {
   }
 
   /** \internal Searches for the smallest value in \f$v^P\f$. */
-  Scalar min_P_(const RowVectorType &v) {
+  Scalar min_P_(const SolutionVectorType &v) {
     eigen_assert(Np_ > 0);
     const IndicesType &idxs = P_.indices();
     Scalar m = v(idxs(0));
@@ -202,7 +202,7 @@ class NNLS {
   void removeFromP_(Index idx);
 
   /** \internal Solves the LS problem \f$\left\Vert y-A^Px\right\Vert_2^2\f$. */
-  void solveLS_P_(const ColVectorType &b);
+  void solveLS_P_(const RhsVectorType &b);
 
  protected:
   typedef Matrix<Scalar, ColsAtCompileTime, ColsAtCompileTime> MatrixAtAType;
@@ -223,23 +223,23 @@ class NNLS {
   /** \internal Precomputed product \f$A^TA\f$. */
   MatrixAtAType AtA_;
   /** \internal Will hold the solution. */
-  RowVectorType x_;
+  SolutionVectorType x_;
   /** \internal Will hold the current gradient. */
-  RowVectorType w_;
+  SolutionVectorType w_;
   /** \internal Will hold the partial solution. */
-  RowVectorType y_;
+  SolutionVectorType y_;
   /** \internal Precomputed product \f$A^Tb\f$. */
-  RowVectorType Atb_;
+  SolutionVectorType Atb_;
   /** \internal Holds the current permutation matrix,
    * the first @c Np_ columns form the set P and the rest the set Z. */
   PermutationType P_;
   /** \internal QR decomposition to solve the (passive) sub system (together with @c qrCoeffs_). */
   MatrixType QR_;
   /** \internal QR decomposition to solve the (passive) sub system (together with @c QR_). */
-  RowVectorType qrCoeffs_;
+  SolutionVectorType qrCoeffs_;
   /** \internal Some workspace for QR decomposition. */
-  RowVectorType tempRowVector_;
-  ColVectorType tempColVector_;
+  SolutionVectorType tempRowVector_;
+  RhsVectorType tempColVector_;
 };
 
 /* ********************************************************************************************
@@ -332,7 +332,7 @@ NNLS<MatrixType> &NNLS<MatrixType>::compute(const EigenBase<MatrixDerived> &A) {
 }
 
 template <typename MatrixType>
-const typename NNLS<MatrixType>::RowVectorType &NNLS<MatrixType>::solve(const ColVectorType &b) {
+const typename NNLS<MatrixType>::SolutionVectorType &NNLS<MatrixType>::solve(const RhsVectorType &b) {
   // Initialize solver
   iterations_ = 0;
   info_ = ComputationInfo::NumericalIssue;
@@ -440,7 +440,7 @@ void NNLS<MatrixType>::removeFromP_(Index idx) {
 }
 
 template <typename MatrixType>
-void NNLS<MatrixType>::solveLS_P_(const ColVectorType &b) {
+void NNLS<MatrixType>::solveLS_P_(const RhsVectorType &b) {
   eigen_assert(Np_ > 0);
 
   tempColVector_ = b;
