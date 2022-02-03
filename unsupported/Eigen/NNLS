@@ -15,10 +15,15 @@
  *
  * \f[ \min \left\Vert Ax-b\right\Vert_2^2\quad s.t.\, x\ge 0\,.\f]
  *
- * The algorithm solves the constrained least quares (LS) problem above by subsequently solving a
- * subset of the problem called passive set, i.e. \f$\left\Vert A^Px^P-b\right\Vert_2^2\f$,
- * where \f$A^P\f$ is a matrix formed by selecting all columns of A which are in the passive set
- * \f$P\f$. */
+ * The algorithm solves the constrained least-squares problem above by
+ * iteratively improving an estimate of which constraints are active (elements of \f$x\f$ equal to zero)
+ * and which constraints are passive (elements of \f$x\f$ greater than zero).
+ * Each iteration, an unconstrained least-squares problem solves for the components of \f$x\f$
+ * in the (estimated) passive set and the sets are updated.
+ * The unconstrained LS problem minimizes \f$\left\Vert A^Px^P-b\right\Vert_2^2\f$,
+ * where \f$A^P\f$ is a matrix formed by selecting all columns of A which are in the passive set \f$P\f$.
+ *
+ */
 
 #ifndef EIGEN_NNLS_H
 #define EIGEN_NNLS_H
