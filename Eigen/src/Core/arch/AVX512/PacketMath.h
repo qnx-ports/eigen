@@ -16,10 +16,6 @@ namespace Eigen {
 
 namespace internal {
 
-#if EIGEN_GNUC_AT_LEAST(5, 3) || EIGEN_COMP_CLANG || EIGEN_COMP_MSVC >= 1923 || EIGEN_COMP_ICC >= 1900
-#define EIGEN_HAS_AVX512_MATH 1
-#endif
-
 #ifndef EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD
 #define EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD 8
 #endif
@@ -32,6 +28,13 @@ namespace internal {
 #ifndef EIGEN_HAS_SINGLE_INSTRUCTION_MADD
 #define EIGEN_HAS_SINGLE_INSTRUCTION_MADD
 #endif
+#endif
+
+// Disable the code for older versions of gcc that don't support many of the required avx512 math instrinsics.
+#if EIGEN_GNUC_AT_LEAST(5, 3) || EIGEN_COMP_CLANG || EIGEN_COMP_MSVC >= 1923 || EIGEN_COMP_ICC >= 1900
+#define EIGEN_HAS_AVX512_MATH 1
+#else
+#define EIGEN_HAS_AVX512_MATH 0
 #endif
 
 typedef __m512 Packet16f;

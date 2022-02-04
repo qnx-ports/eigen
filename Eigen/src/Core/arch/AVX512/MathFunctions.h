@@ -16,9 +16,7 @@ namespace Eigen {
 
 namespace internal {
 
-// Disable the code for older versions of gcc that don't support many of the required avx512 instrinsics.
 #if EIGEN_HAS_AVX512_MATH
-
 
 #define EIGEN_DECLARE_CONST_Packet16f(NAME, X) \
   const Packet16f p16f_##NAME = pset1<Packet16f>(X)
