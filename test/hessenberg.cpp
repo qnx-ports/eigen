@@ -11,6 +11,11 @@
 #include "main.h"
 #include <Eigen/Eigenvalues>
 
+void test(const Eigen::Product<Eigen::Matrix<std::complex<double>, 1, 1, 0, 1, 1>, Eigen::Matrix<std::complex<double>, 1, 1, 0, 1, 1>, 0>& p) {
+  std::complex<double> dbl(p);
+}
+
+
 template<typename Scalar,int Size> void hessenberg(int size = Size)
 {
   typedef Matrix<Scalar,Size,Size> MatrixType;
