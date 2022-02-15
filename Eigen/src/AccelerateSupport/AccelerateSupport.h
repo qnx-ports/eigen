@@ -174,6 +174,8 @@ class AccelerateImpl : public SparseSolverBase<AccelerateImpl<MatrixType_, UpLo_
         m_sparseKind = SparseOrdinary;
         m_triType    = (UpLo_ & Lower) ? SparseLowerTriangle : SparseUpperTriangle;
       }
+
+      m_order = SparseOrderDefault;
     }
 
     explicit AccelerateImpl(const MatrixType& matrix)
@@ -203,6 +205,11 @@ class AccelerateImpl : public SparseSolverBase<AccelerateImpl<MatrixType_, UpLo_
 
     template<typename Rhs,typename Dest>
     void _solve_impl(const MatrixBase<Rhs> &b, MatrixBase<Dest> &dest) const;
+
+    void setOrder(SparseOrder_t order)
+    {
+      m_order = order;
+    }
 
   private:
     template<typename T>
@@ -237,8 +244,17 @@ class AccelerateImpl : public SparseSolverBase<AccelerateImpl<MatrixType_, UpLo_
     {
       m_numericFactorization.reset(nullptr);
 
+      SparseSymbolicFactorOptions opts{};
+      opts.control     = SparseDefaultControl;
+      opts.orderMethod = m_order;
+      opts.order       = nullptr;
+      opts.ignoreRowsAndColumns = nullptr;
+      opts.malloc      = malloc;
+      opts.free        = free;
+      opts.reportError = nullptr;
+
       m_symbolicFactorization.reset(
-        new SymbolicFactorization(SparseFactor(Solver_, A.structure)));
+        new SymbolicFactorization(SparseFactor(Solver_, A.structure, opts)));
 
       SparseStatus_t status = m_symbolicFactorization->status;
 
@@ -293,6 +309,7 @@ class AccelerateImpl : public SparseSolverBase<AccelerateImpl<MatrixType_, UpLo_
     std::unique_ptr<NumericFactorization, NumericFactorizationDeleter> m_numericFactorization;
     SparseKind_t m_sparseKind;
     SparseTriangle_t m_triType;
+    SparseOrder_t m_order;
 };
 
 template<typename MatrixType_, int UpLo_, SparseFactorization_t Solver_, bool EnforceSquare_>
