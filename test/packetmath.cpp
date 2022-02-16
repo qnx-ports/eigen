@@ -643,7 +643,7 @@ void packetmath() {
   CHECK_CWISE1_IF(PacketTraits::HasSqrt, numext::sqrt, internal::psqrt);
   CHECK_CWISE1_IF(PacketTraits::HasRsqrt, numext::rsqrt, internal::prsqrt);
   CHECK_CWISE3_IF(true, REF_MADD, internal::pmadd);
-  if (!std::is_same<Scalar, bool>::value) {
+  if (!std::is_same<Scalar, bool>::value && NumTraits<Scalar>::IsSigned) {
     CHECK_CWISE3_IF(true, REF_MSUB, internal::pmsub);
     CHECK_CWISE3_IF(true, REF_NMADD, internal::pnmadd);
     CHECK_CWISE3_IF(true, REF_NMSUB, internal::pnmsub);
@@ -946,18 +946,35 @@ void packetmath_real() {
       VERIFY((numext::isnan)(data2[0]));
       VERIFY((numext::isnan)(data2[1]));
     }
+
     if (PacketTraits::HasSqrt) {
-      test::packet_helper<PacketTraits::HasSqrt, Packet> h;
       data1[0] = Scalar(-1.0f);
       if (std::numeric_limits<Scalar>::has_denorm == std::denorm_present) {
         data1[1] = -std::numeric_limits<Scalar>::denorm_min();
       } else {
         data1[1] = -((std::numeric_limits<Scalar>::min)());
       }
-      h.store(data2, internal::psqrt(h.load(data1)));
-      VERIFY((numext::isnan)(data2[0]));
-      VERIFY((numext::isnan)(data2[1]));
+      CHECK_CWISE1_IF(PacketTraits::HasSqrt, numext::sqrt, internal::psqrt);
+
+      data1[0] = Scalar(0.0f);
+      data1[1] = NumTraits<Scalar>::infinity();
+      CHECK_CWISE1_IF(PacketTraits::HasSqrt, numext::sqrt, internal::psqrt);
     }
+
+    if (PacketTraits::HasRsqrt) {
+      data1[0] = Scalar(-1.0f);
+      if (std::numeric_limits<Scalar>::has_denorm == std::denorm_present) {
+        data1[1] = -std::numeric_limits<Scalar>::denorm_min();
+      } else {
+        data1[1] = -((std::numeric_limits<Scalar>::min)());
+      }
+      CHECK_CWISE1_IF(PacketTraits::HasRsqrt, numext::rsqrt, internal::prsqrt);
+
+      data1[0] = Scalar(0.0f);
+      data1[1] = NumTraits<Scalar>::infinity();
+      CHECK_CWISE1_IF(PacketTraits::HasRsqrt, numext::rsqrt, internal::prsqrt);
+    }
+
     // TODO(rmlarsen): Re-enable for half and bfloat16.
     if (PacketTraits::HasCos
         && !internal::is_same<Scalar, half>::value
@@ -1006,6 +1023,23 @@ void packetmath_real() {
       h.store(data2, internal::pcos(h.load(data1)));
       VERIFY_IS_EQUAL(data2[0], Scalar(1));
     }
+  }
+  if (PacketTraits::HasReciprocal && PacketSize >= 2) {
+    test::packet_helper<PacketTraits::HasReciprocal, Packet> h;
+    const Scalar inf = NumTraits<Scalar>::infinity();
+    const Scalar zero = Scalar(0);
+    data1[0] = zero;
+    data1[1] = -zero;
+    h.store(data2, internal::preciprocal(h.load(data1)));
+    VERIFY_IS_EQUAL(data2[0], inf);
+    VERIFY_IS_EQUAL(data2[1], -inf);
+
+    data1[0] = inf;
+    data1[1] = -inf;
+    h.store(data2, internal::preciprocal(h.load(data1)));
+    VERIFY_IS_EQUAL(data2[0], zero);
+    VERIFY_IS_EQUAL(data2[1], -zero);
+
   }
 }
 
