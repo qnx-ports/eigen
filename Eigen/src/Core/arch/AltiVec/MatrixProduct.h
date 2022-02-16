@@ -15,6 +15,14 @@
 #define EIGEN_ALTIVEC_USE_CUSTOM_PACK    1
 #endif
 
+#define TEST_VERBOSE   // Report timings and gemm type, MMA, rows, depth and cols
+
+#ifdef TEST_VERBOSE
+#include <cstdio>
+#include <iostream>
+#include <sys/platform/ppc.h>
+#endif
+
 #include "MatrixProductCommon.h"
 
 // Since LLVM doesn't support dynamic dispatching, force either always MMA or VSX
@@ -1731,9 +1739,9 @@ EIGEN_STRONG_INLINE void gemm_extra_cols(
   const Packet& pAlpha,
   const Packet& pMask)
 {
-  for (; col < cols; col++) {
+  do {
     gemm_cols<Scalar, Packet, DataMapper, Index, 1, accCols>(res, blockA, blockB, depth, strideA, offsetA, strideB, offsetB, col, rows, cols, remaining_rows, pAlpha, pMask);
-  }
+  } while (++col != cols);
 }
 
 /****************
@@ -1742,6 +1750,10 @@ EIGEN_STRONG_INLINE void gemm_extra_cols(
 template<typename Scalar, typename Index, typename Packet, typename RhsPacket, typename DataMapper, const Index accRows, const Index accCols>
 EIGEN_STRONG_INLINE void gemm(const DataMapper& res, const Scalar* blockA, const Scalar* blockB, Index rows, Index depth, Index cols, Scalar alpha, Index strideA, Index strideB, Index offsetA, Index offsetB)
 {
+#ifdef TEST_VERBOSE
+      uint64_t start, end;
+      start = __ppc_get_timebase();
+#endif
       const Index remaining_rows = rows % accCols;
 
       if( strideA == -1 ) strideA = depth;
@@ -1756,7 +1768,14 @@ EIGEN_STRONG_INLINE void gemm(const DataMapper& res, const Scalar* blockA, const
         gemm_cols<Scalar, Packet, DataMapper, Index, accRows, accCols>(res, blockA, blockB, depth, strideA, offsetA, strideB, offsetB, col, rows, cols, remaining_rows, pAlpha, pMask);
       }
 
-      gemm_extra_cols<Scalar, Packet, DataMapper, Index, accCols>(res, blockA, blockB, depth, strideA, offsetA, strideB, offsetB, col, rows, cols, remaining_rows, pAlpha, pMask);
+      if (col != cols)
+      {
+        gemm_extra_cols<Scalar, Packet, DataMapper, Index, accCols>(res, blockA, blockB, depth, strideA, offsetA, strideB, offsetB, col, rows, cols, remaining_rows, pAlpha, pMask);
+      }
+#ifdef TEST_VERBOSE
+      end = __ppc_get_timebase();
+      printf("gemm time = %16ld\n", end - start);
+#endif
 }
 
 #define accColsC (accCols / 2)
@@ -2193,14 +2212,18 @@ EIGEN_STRONG_INLINE void gemm_complex_extra_cols(
   const Packet& pAlphaImag,
   const Packet& pMask)
 {
-  for (; col < cols; col++) {
+  do {
     gemm_complex_cols<Scalar, Packet, Packetc, DataMapper, Index, 1, accCols, ConjugateLhs, ConjugateRhs, LhsIsReal, RhsIsReal>(res, blockA, blockB, depth, strideA, offsetA, strideB, offsetB, col, rows, cols, remaining_rows, pAlphaReal, pAlphaImag, pMask);
-  }
+  } while (++col != cols);
 }
 
 template<typename LhsScalar, typename RhsScalar, typename Scalarc, typename Scalar, typename Index, typename Packet, typename Packetc, typename RhsPacket, typename DataMapper, const Index accRows, const Index accCols, bool ConjugateLhs, bool ConjugateRhs, bool LhsIsReal, bool RhsIsReal>
 EIGEN_STRONG_INLINE void gemm_complex(const DataMapper& res, const LhsScalar* blockAc, const RhsScalar* blockBc, Index rows, Index depth, Index cols, Scalarc alpha, Index strideA, Index strideB, Index offsetA, Index offsetB)
 {
+#ifdef TEST_VERBOSE
+      uint64_t start, end;
+      start = __ppc_get_timebase();
+#endif
       const Index remaining_rows = rows % accCols;
 
       if( strideA == -1 ) strideA = depth;
@@ -2219,7 +2242,14 @@ EIGEN_STRONG_INLINE void gemm_complex(const DataMapper& res, const LhsScalar* bl
         gemm_complex_cols<Scalar, Packet, Packetc, DataMapper, Index, accRows, accCols, ConjugateLhs, ConjugateRhs, LhsIsReal, RhsIsReal>(res, blockA, blockB, depth, strideA, offsetA, strideB, offsetB, col, rows, cols, remaining_rows, pAlphaReal, pAlphaImag, pMask);
       }
 
-      gemm_complex_extra_cols<Scalar, Packet, Packetc, DataMapper, Index, accCols, ConjugateLhs, ConjugateRhs, LhsIsReal, RhsIsReal>(res, blockA, blockB, depth, strideA, offsetA, strideB, offsetB, col, rows, cols, remaining_rows, pAlphaReal, pAlphaImag, pMask);
+      if (col != cols)
+      {
+        gemm_complex_extra_cols<Scalar, Packet, Packetc, DataMapper, Index, accCols, ConjugateLhs, ConjugateRhs, LhsIsReal, RhsIsReal>(res, blockA, blockB, depth, strideA, offsetA, strideB, offsetB, col, rows, cols, remaining_rows, pAlphaReal, pAlphaImag, pMask);
+      }
+#ifdef TEST_VERBOSE
+      end = __ppc_get_timebase();
+      printf("gemm complex time = %16ld\n", end - start);
+#endif
 }
 
 #undef accColsC

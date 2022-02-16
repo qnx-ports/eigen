@@ -33,18 +33,54 @@ EIGEN_ALWAYS_INLINE void bsetzeroMMA(__vector_quad* acc)
   __builtin_mma_xxsetaccz(acc);
 }
 
-template<typename DataMapper, typename Index, typename Packet, const Index accCols>
-EIGEN_ALWAYS_INLINE void storeAccumulator(Index i, const DataMapper& data, const Packet& alpha, __vector_quad* acc)
+template<typename Scalar, typename DataMapper, typename Packet, typename Index, const Index accCols, bool Complex>
+EIGEN_ALWAYS_INLINE void bloadMMA(PacketBlock<Packet,(Complex?8:4)>& acc, const DataMapper& res, Index row)
+{
+  acc.packet[0] = vec_xl_len(&res(row, 0), accCols * sizeof(Scalar));
+  acc.packet[1] = vec_xl_len(&res(row, 1), accCols * sizeof(Scalar));
+  acc.packet[2] = vec_xl_len(&res(row, 2), accCols * sizeof(Scalar));
+  acc.packet[3] = vec_xl_len(&res(row, 3), accCols * sizeof(Scalar));
+#if 0
+  if (Complex) {
+    acc.packet[4] = res.template loadPacket<Packet>(row + accCols, 0);
+    acc.packet[5] = res.template loadPacket<Packet>(row + accCols, 1);
+    acc.packet[6] = res.template loadPacket<Packet>(row + accCols, 2);
+    acc.packet[7] = res.template loadPacket<Packet>(row + accCols, 3);
+  }
+#endif
+}
+
+template<typename Scalar, typename DataMapper, typename Packet, typename Index, const Index accCols>
+EIGEN_ALWAYS_INLINE void bstoreMMA(PacketBlock<Packet,4>& acc, const DataMapper& res, Index row)
+{
+  vec_xst_len(acc.packet[0], &res(row, 0), accCols * sizeof(Scalar));
+  vec_xst_len(acc.packet[1], &res(row, 1), accCols * sizeof(Scalar));
+  vec_xst_len(acc.packet[2], &res(row, 2), accCols * sizeof(Scalar));
+  vec_xst_len(acc.packet[3], &res(row, 3), accCols * sizeof(Scalar));
+}
+
+template<typename Scalar, typename DataMapper, typename Index, typename Packet, const Index accCols, const Index accCols2>
+EIGEN_ALWAYS_INLINE void storeAccumulator(Index i, const DataMapper& data, const Packet& alpha, const Packet& pMask, __vector_quad* acc)
 {
   PacketBlock<Packet, 4> result;
   __builtin_mma_disassemble_acc(&result.packet, acc);
 
   PacketBlock<Packet, 4> tRes;
-  bload<DataMapper, Packet, Index, accCols, ColMajor, false, 4>(tRes, data, i, 0);
+  if (accCols == accCols2) {
+    EIGEN_UNUSED_VARIABLE(pMask);
 
-  bscale<Packet, 4>(tRes, result, alpha);
+    bload<DataMapper, Packet, Index, accCols, ColMajor, false, 4>(tRes, data, i, 0);
 
-  data.template storePacketBlock<Packet, 4>(i, 0, tRes);
+    bscale<Packet, 4>(tRes, result, alpha);
+
+    data.template storePacketBlock<Packet, 4>(i, 0, tRes);
+  } else {
+    bloadMMA<Scalar, DataMapper, Packet, Index, accCols2, false>(tRes, data, i);
+
+    bscale<Packet, 4>(tRes, result, alpha, pMask);
+
+    bstoreMMA<Scalar, DataMapper, Packet, Index, accCols2>(tRes, data, i);
+  }
 }
 
 template<typename DataMapper, typename Index, typename Packet, typename Packetc, const Index accColsC>
@@ -165,8 +201,13 @@ EIGEN_ALWAYS_INLINE void ploadRhsMMA(const float*, __vector_pair&)
 
 #define MICRO_MMA_LOAD_ONE(iter) \
   if (unroll_factor > iter) { \
-    lhsV##iter = ploadLhs<Scalar, Packet>(lhs_ptr##iter); \
-    lhs_ptr##iter += accCols; \
+    if ((accCols == accCols2) || (unroll_factor != (iter + 1))) { \
+      lhsV##iter = ploadLhs<Scalar, Packet>(lhs_ptr##iter); \
+      lhs_ptr##iter += accCols; \
+    } else { \
+      lhsV##iter = vec_xl_len(lhs_ptr##iter, accCols2 * sizeof(Scalar)); \
+      lhs_ptr##iter += accCols2; \
+    } \
   } else { \
     EIGEN_UNUSED_VARIABLE(lhsV##iter); \
   }
@@ -241,12 +282,12 @@ EIGEN_ALWAYS_INLINE void ploadRhsMMA(const float*, __vector_pair&)
 
 #define MICRO_MMA_STORE_ONE(iter) \
   if (unroll_factor > iter) { \
-    storeAccumulator<DataMapper, Index, Packet, accCols>(row + iter*accCols, res, pAlpha, &accZero##iter); \
+    storeAccumulator<Scalar, DataMapper, Index, Packet, accCols, ((accCols == accCols2) || (unroll_factor != (iter + 1))) ? accCols : accCols2>(row + iter*accCols, res, pAlpha, pMask, &accZero##iter); \
   }
 
 #define MICRO_MMA_STORE MICRO_MMA_UNROLL(MICRO_MMA_STORE_ONE)
 
-template<int unroll_factor, typename Scalar, typename Packet, typename RhsPacket, typename DataMapper, typename Index, const Index accRows, const Index accCols>
+template<int unroll_factor, typename Scalar, typename Packet, typename RhsPacket, typename DataMapper, typename Index, const Index accRows, const Index accCols, const Index accCols2>
 EIGEN_ALWAYS_INLINE void gemm_unrolled_MMA_iteration(
   const DataMapper& res,
   const Scalar* lhs_base,
@@ -254,7 +295,8 @@ EIGEN_ALWAYS_INLINE void gemm_unrolled_MMA_iteration(
   Index depth,
   Index strideA,
   Index& row,
-  const Packet& pAlpha)
+  const Packet& pAlpha,
+  const Packet& pMask)
 {
   const Scalar* rhs_ptr = rhs_base;
   const Scalar* lhs_ptr0 = NULL, * lhs_ptr1 = NULL, * lhs_ptr2 = NULL, * lhs_ptr3 = NULL, * lhs_ptr4 = NULL, * lhs_ptr5 = NULL, * lhs_ptr6 = NULL, * lhs_ptr7 = NULL;
@@ -276,8 +318,42 @@ EIGEN_ALWAYS_INLINE void gemm_unrolled_MMA_iteration(
   }
   MICRO_MMA_STORE
 
-  row += unroll_factor*accCols;
+  if (accCols == accCols2) {
+    EIGEN_UNUSED_VARIABLE(pMask);
+    row += unroll_factor*accCols;
+  }
 }
+
+#define NEW_EXTRA
+
+#ifdef NEW_EXTRA
+#define MICRO_MMA_UNROLL_ITER(N) \
+  switch (remaining_rows) { \
+    case 0: \
+      if (N) { \
+        gemm_unrolled_MMA_iteration<N, Scalar, Packet, RhsPacket, DataMapper, Index, accRows, accCols, accCols>(res3, lhs_base, rhs_base, depth, strideA, row, pAlpha, pMask); \
+      } \
+      break; \
+    case 1: \
+      gemm_unrolled_MMA_iteration<N + 1, Scalar, Packet, RhsPacket, DataMapper, Index, accRows, accCols, 1>(res3, lhs_base, rhs_base, depth, strideA, row, pAlpha, pMask); \
+      break; \
+    case 2: \
+      if (sizeof(Scalar) == sizeof(float)) { \
+        gemm_unrolled_MMA_iteration<N + 1, Scalar, Packet, RhsPacket, DataMapper, Index, accRows, accCols, 2>(res3, lhs_base, rhs_base, depth, strideA, row, pAlpha, pMask); \
+      } \
+      break; \
+    default: \
+      if (sizeof(Scalar) == sizeof(float)) { \
+        gemm_unrolled_MMA_iteration<N + 1, Scalar, Packet, RhsPacket, DataMapper, Index, accRows, accCols, 3>(res3, lhs_base, rhs_base, depth, strideA, row, pAlpha, pMask); \
+      } \
+      break; \
+  }
+#else
+#define MICRO_MMA_UNROLL_ITER(N) \
+  if (N) { \
+    gemm_unrolled_MMA_iteration<N, Scalar, Packet, RhsPacket, DataMapper, Index, accRows, accCols, accCols>(res3, lhs_base, rhs_base, depth, strideA, row, pAlpha, pMask); \
+  }
+#endif
 
 template<typename Scalar, typename Packet, typename RhsPacket, typename DataMapper, typename Index, const Index accRows, const Index accCols>
 EIGEN_ALWAYS_INLINE void gemmMMA_cols(
@@ -304,58 +380,65 @@ EIGEN_ALWAYS_INLINE void gemmMMA_cols(
 
 #define MAX_MMA_UNROLL 7
   while(row + MAX_MMA_UNROLL*accCols <= rows) {
-    gemm_unrolled_MMA_iteration<MAX_MMA_UNROLL, Scalar, Packet, RhsPacket, DataMapper, Index, accRows, accCols>(res3, lhs_base, rhs_base, depth, strideA, row, pAlpha);
+    gemm_unrolled_MMA_iteration<MAX_MMA_UNROLL, Scalar, Packet, RhsPacket, DataMapper, Index, accRows, accCols, accCols>(res3, lhs_base, rhs_base, depth, strideA, row, pAlpha, pMask);
   }
   switch( (rows-row)/accCols ) {
 #if MAX_MMA_UNROLL > 7
     case 7:
-      gemm_unrolled_MMA_iteration<7, Scalar, Packet, RhsPacket, DataMapper, Index, accRows, accCols>(res3, lhs_base, rhs_base, depth, strideA, row, pAlpha);
+      MICRO_MMA_UNROLL_ITER(7);
       break;
 #endif
 #if MAX_MMA_UNROLL > 6
     case 6:
-      gemm_unrolled_MMA_iteration<6, Scalar, Packet, RhsPacket, DataMapper, Index, accRows, accCols>(res3, lhs_base, rhs_base, depth, strideA, row, pAlpha);
+      MICRO_MMA_UNROLL_ITER(6);
       break;
 #endif
 #if MAX_MMA_UNROLL > 5
     case 5:
-      gemm_unrolled_MMA_iteration<5, Scalar, Packet, RhsPacket, DataMapper, Index, accRows, accCols>(res3, lhs_base, rhs_base, depth, strideA, row, pAlpha);
+      MICRO_MMA_UNROLL_ITER(5);
       break;
 #endif
 #if MAX_MMA_UNROLL > 4
     case 4:
-      gemm_unrolled_MMA_iteration<4, Scalar, Packet, RhsPacket, DataMapper, Index, accRows, accCols>(res3, lhs_base, rhs_base, depth, strideA, row, pAlpha);
+      MICRO_MMA_UNROLL_ITER(4);
       break;
 #endif
 #if MAX_MMA_UNROLL > 3
     case 3:
-      gemm_unrolled_MMA_iteration<3, Scalar, Packet, RhsPacket, DataMapper, Index, accRows, accCols>(res3, lhs_base, rhs_base, depth, strideA, row, pAlpha);
+      MICRO_MMA_UNROLL_ITER(3);
       break;
 #endif
 #if MAX_MMA_UNROLL > 2
     case 2:
-      gemm_unrolled_MMA_iteration<2, Scalar, Packet, RhsPacket, DataMapper, Index, accRows, accCols>(res3, lhs_base, rhs_base, depth, strideA, row, pAlpha);
+      MICRO_MMA_UNROLL_ITER(2);
       break;
 #endif
 #if MAX_MMA_UNROLL > 1
     case 1:
-      gemm_unrolled_MMA_iteration<1, Scalar, Packet, RhsPacket, DataMapper, Index, accRows, accCols>(res3, lhs_base, rhs_base, depth, strideA, row, pAlpha);
+      MICRO_MMA_UNROLL_ITER(1);
       break;
 #endif
     default:
+      MICRO_MMA_UNROLL_ITER(0);
       break;
   }
 #undef MAX_MMA_UNROLL
 
+#ifndef NEW_EXTRA
   if(remaining_rows > 0)
   {
     gemm_extra_row<Scalar, Packet, DataMapper, Index, accRows, accCols>(res3, blockA, rhs_base, depth, strideA, offsetA, row, col, rows, cols, remaining_rows, pAlpha, pMask);
   }
+#endif
 }
 
 template<typename Scalar, typename Index, typename Packet, typename RhsPacket, typename DataMapper, const Index accRows, const Index accCols>
 void gemmMMA(const DataMapper& res, const Scalar* blockA, const Scalar* blockB, Index rows, Index depth, Index cols, Scalar alpha, Index strideA, Index strideB, Index offsetA, Index offsetB)
 {
+#ifdef TEST_VERBOSE
+      uint64_t start, end;
+      start = __ppc_get_timebase();
+#endif
       const Index remaining_rows = rows % accCols;
 
       if( strideA == -1 ) strideA = depth;
@@ -370,7 +453,14 @@ void gemmMMA(const DataMapper& res, const Scalar* blockA, const Scalar* blockB, 
         gemmMMA_cols<Scalar, Packet, RhsPacket, DataMapper, Index, accRows, accCols>(res, blockA, blockB, depth, strideA, offsetA, strideB, offsetB, col, rows, cols, remaining_rows, pAlpha, pMask);
       }
 
-      gemm_extra_cols<Scalar, Packet, DataMapper, Index, accCols>(res, blockA, blockB, depth, strideA, offsetA, strideB, offsetB, col, rows, cols, remaining_rows, pAlpha, pMask);
+      if (col != cols)
+      {
+        gemm_extra_cols<Scalar, Packet, DataMapper, Index, accCols>(res, blockA, blockB, depth, strideA, offsetA, strideB, offsetB, col, rows, cols, remaining_rows, pAlpha, pMask);
+      }
+#ifdef TEST_VERBOSE
+      end = __ppc_get_timebase();
+      printf("gemm MMA time = %16ld\n", end - start);
+#endif
 }
 
 #define accColsC (accCols / 2)
@@ -590,6 +680,10 @@ EIGEN_ALWAYS_INLINE void gemmMMA_complex_cols(
 template<typename LhsScalar, typename RhsScalar, typename Scalarc, typename Scalar, typename Index, typename Packet, typename Packetc, typename RhsPacket, typename DataMapper, const Index accRows, const Index accCols, bool ConjugateLhs, bool ConjugateRhs, bool LhsIsReal, bool RhsIsReal>
 void gemm_complexMMA(const DataMapper& res, const LhsScalar* blockAc, const RhsScalar* blockBc, Index rows, Index depth, Index cols, Scalarc alpha, Index strideA, Index strideB, Index offsetA, Index offsetB)
 {
+#ifdef TEST_VERBOSE
+      uint64_t start, end;
+      start = __ppc_get_timebase();
+#endif
       const Index remaining_rows = rows % accCols;
 
       if( strideA == -1 ) strideA = depth;
@@ -608,7 +702,14 @@ void gemm_complexMMA(const DataMapper& res, const LhsScalar* blockAc, const RhsS
         gemmMMA_complex_cols<Scalar, Packet, Packetc, RhsPacket, DataMapper, Index, accRows, accCols, ConjugateLhs, ConjugateRhs, LhsIsReal, RhsIsReal>(res, blockA, blockB, depth, strideA, offsetA, strideB, offsetB, col, rows, cols, remaining_rows, pAlphaReal, pAlphaImag, pMask);
       }
 
-      gemm_complex_extra_cols<Scalar, Packet, Packetc, DataMapper, Index, accCols, ConjugateLhs, ConjugateRhs, LhsIsReal, RhsIsReal>(res, blockA, blockB, depth, strideA, offsetA, strideB, offsetB, col, rows, cols, remaining_rows, pAlphaReal, pAlphaImag, pMask);
+      if (col != cols)
+      {
+        gemm_complex_extra_cols<Scalar, Packet, Packetc, DataMapper, Index, accCols, ConjugateLhs, ConjugateRhs, LhsIsReal, RhsIsReal>(res, blockA, blockB, depth, strideA, offsetA, strideB, offsetB, col, rows, cols, remaining_rows, pAlphaReal, pAlphaImag, pMask);
+      }
+#ifdef TEST_VERBOSE
+      end = __ppc_get_timebase();
+      printf("gemm complex MMA time = %16ld\n", end - start);
+#endif
 }
 
 #undef accColsC
