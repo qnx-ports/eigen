@@ -326,33 +326,36 @@ EIGEN_ALWAYS_INLINE void gemm_unrolled_MMA_iteration(
 
 #define NEW_EXTRA
 
+#define MICRO_MMA_UNROLL_ITER2(N, M) \
+  if (N) { \
+    gemm_unrolled_MMA_iteration<N + ((M) ? 1 : 0), Scalar, Packet, RhsPacket, DataMapper, Index, accRows, accCols, M ? M : accCols>(res3, lhs_base, rhs_base, depth, strideA, row, pAlpha, pMask); \
+  } else if (M) { \
+    gemm_extra_row<Scalar, Packet, DataMapper, Index, accRows, accCols>(res3, blockA, rhs_base, depth, strideA, offsetA, row, col, rows, cols, remaining_rows, pAlpha, pMask); \
+  }
+
 #ifdef NEW_EXTRA
 #define MICRO_MMA_UNROLL_ITER(N) \
   switch (remaining_rows) { \
     case 0: \
-      if (N) { \
-        gemm_unrolled_MMA_iteration<N, Scalar, Packet, RhsPacket, DataMapper, Index, accRows, accCols, accCols>(res3, lhs_base, rhs_base, depth, strideA, row, pAlpha, pMask); \
-      } \
+      MICRO_MMA_UNROLL_ITER2(N, 0) \
       break; \
     case 1: \
-      gemm_unrolled_MMA_iteration<N + 1, Scalar, Packet, RhsPacket, DataMapper, Index, accRows, accCols, 1>(res3, lhs_base, rhs_base, depth, strideA, row, pAlpha, pMask); \
+      MICRO_MMA_UNROLL_ITER2(N, 1) \
       break; \
     case 2: \
       if (sizeof(Scalar) == sizeof(float)) { \
-        gemm_unrolled_MMA_iteration<N + 1, Scalar, Packet, RhsPacket, DataMapper, Index, accRows, accCols, 2>(res3, lhs_base, rhs_base, depth, strideA, row, pAlpha, pMask); \
+        MICRO_MMA_UNROLL_ITER2(N, 2) \
       } \
       break; \
     default: \
       if (sizeof(Scalar) == sizeof(float)) { \
-        gemm_unrolled_MMA_iteration<N + 1, Scalar, Packet, RhsPacket, DataMapper, Index, accRows, accCols, 3>(res3, lhs_base, rhs_base, depth, strideA, row, pAlpha, pMask); \
+        MICRO_MMA_UNROLL_ITER2(N, 3) \
       } \
       break; \
   }
 #else
 #define MICRO_MMA_UNROLL_ITER(N) \
-  if (N) { \
-    gemm_unrolled_MMA_iteration<N, Scalar, Packet, RhsPacket, DataMapper, Index, accRows, accCols, accCols>(res3, lhs_base, rhs_base, depth, strideA, row, pAlpha, pMask); \
-  }
+  MICRO_MMA_UNROLL_ITER2(N, 0)
 #endif
 
 template<typename Scalar, typename Packet, typename RhsPacket, typename DataMapper, typename Index, const Index accRows, const Index accCols>
@@ -382,44 +385,46 @@ EIGEN_ALWAYS_INLINE void gemmMMA_cols(
   while(row + MAX_MMA_UNROLL*accCols <= rows) {
     gemm_unrolled_MMA_iteration<MAX_MMA_UNROLL, Scalar, Packet, RhsPacket, DataMapper, Index, accRows, accCols, accCols>(res3, lhs_base, rhs_base, depth, strideA, row, pAlpha, pMask);
   }
+//uint64_t start, end;
+//start = __ppc_get_timebase();
   switch( (rows-row)/accCols ) {
 #if MAX_MMA_UNROLL > 7
     case 7:
-      MICRO_MMA_UNROLL_ITER(7);
+      MICRO_MMA_UNROLL_ITER(7)
       break;
 #endif
 #if MAX_MMA_UNROLL > 6
     case 6:
-      MICRO_MMA_UNROLL_ITER(6);
+      MICRO_MMA_UNROLL_ITER(6)
       break;
 #endif
 #if MAX_MMA_UNROLL > 5
     case 5:
-      MICRO_MMA_UNROLL_ITER(5);
+      MICRO_MMA_UNROLL_ITER(5)
       break;
 #endif
 #if MAX_MMA_UNROLL > 4
     case 4:
-      MICRO_MMA_UNROLL_ITER(4);
+      MICRO_MMA_UNROLL_ITER(4)
       break;
 #endif
 #if MAX_MMA_UNROLL > 3
     case 3:
-      MICRO_MMA_UNROLL_ITER(3);
+      MICRO_MMA_UNROLL_ITER(3)
       break;
 #endif
 #if MAX_MMA_UNROLL > 2
     case 2:
-      MICRO_MMA_UNROLL_ITER(2);
+      MICRO_MMA_UNROLL_ITER(2)
       break;
 #endif
 #if MAX_MMA_UNROLL > 1
     case 1:
-      MICRO_MMA_UNROLL_ITER(1);
+      MICRO_MMA_UNROLL_ITER(1)
       break;
 #endif
     default:
-      MICRO_MMA_UNROLL_ITER(0);
+      MICRO_MMA_UNROLL_ITER(0)
       break;
   }
 #undef MAX_MMA_UNROLL
@@ -430,6 +435,8 @@ EIGEN_ALWAYS_INLINE void gemmMMA_cols(
     gemm_extra_row<Scalar, Packet, DataMapper, Index, accRows, accCols>(res3, blockA, rhs_base, depth, strideA, offsetA, row, col, rows, cols, remaining_rows, pAlpha, pMask);
   }
 #endif
+//end = __ppc_get_timebase();
+//printf("gemm extra MMA time = %16ld\n", end - start);
 }
 
 template<typename Scalar, typename Index, typename Packet, typename RhsPacket, typename DataMapper, const Index accRows, const Index accCols>
