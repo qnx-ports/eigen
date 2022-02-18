@@ -27,19 +27,19 @@ namespace Eigen {
 
 namespace internal {
 
-template<typename Scalar, typename Packet>
 EIGEN_ALWAYS_INLINE void bsetzeroMMA(__vector_quad* acc)
 {
   __builtin_mma_xxsetaccz(acc);
 }
 
-template<typename Scalar, typename DataMapper, typename Packet, typename Index, const Index accCols, bool Complex>
+template<typename DataMapper, typename Packet, typename Index, const Index accCols, bool Complex>
 EIGEN_ALWAYS_INLINE void bloadMMA(PacketBlock<Packet,(Complex?8:4)>& acc, const DataMapper& res, Index row)
 {
-  acc.packet[0] = vec_xl_len(&res(row, 0), accCols * sizeof(Scalar));
-  acc.packet[1] = vec_xl_len(&res(row, 1), accCols * sizeof(Scalar));
-  acc.packet[2] = vec_xl_len(&res(row, 2), accCols * sizeof(Scalar));
-  acc.packet[3] = vec_xl_len(&res(row, 3), accCols * sizeof(Scalar));
+  const size_t size = accCols * sizeof(__UNPACK_TYPE__(Packet));
+  acc.packet[0] = vec_xl_len(&res(row, 0), size);
+  acc.packet[1] = vec_xl_len(&res(row, 1), size);
+  acc.packet[2] = vec_xl_len(&res(row, 2), size);
+  acc.packet[3] = vec_xl_len(&res(row, 3), size);
 #if 0
   if (Complex) {
     acc.packet[4] = res.template loadPacket<Packet>(row + accCols, 0);
@@ -50,16 +50,17 @@ EIGEN_ALWAYS_INLINE void bloadMMA(PacketBlock<Packet,(Complex?8:4)>& acc, const 
 #endif
 }
 
-template<typename Scalar, typename DataMapper, typename Packet, typename Index, const Index accCols>
+template<typename DataMapper, typename Packet, typename Index, const Index accCols>
 EIGEN_ALWAYS_INLINE void bstoreMMA(PacketBlock<Packet,4>& acc, const DataMapper& res, Index row)
 {
-  vec_xst_len(acc.packet[0], &res(row, 0), accCols * sizeof(Scalar));
-  vec_xst_len(acc.packet[1], &res(row, 1), accCols * sizeof(Scalar));
-  vec_xst_len(acc.packet[2], &res(row, 2), accCols * sizeof(Scalar));
-  vec_xst_len(acc.packet[3], &res(row, 3), accCols * sizeof(Scalar));
+  const size_t size = accCols * sizeof(__UNPACK_TYPE__(Packet));
+  vec_xst_len(acc.packet[0], &res(row, 0), size);
+  vec_xst_len(acc.packet[1], &res(row, 1), size);
+  vec_xst_len(acc.packet[2], &res(row, 2), size);
+  vec_xst_len(acc.packet[3], &res(row, 3), size);
 }
 
-template<typename Scalar, typename DataMapper, typename Index, typename Packet, const Index accCols, const Index accCols2>
+template<typename DataMapper, typename Index, typename Packet, const Index accCols, const Index accCols2>
 EIGEN_ALWAYS_INLINE void storeAccumulator(Index i, const DataMapper& data, const Packet& alpha, const Packet& pMask, __vector_quad* acc)
 {
   PacketBlock<Packet, 4> result;
@@ -75,11 +76,11 @@ EIGEN_ALWAYS_INLINE void storeAccumulator(Index i, const DataMapper& data, const
 
     data.template storePacketBlock<Packet, 4>(i, 0, tRes);
   } else {
-    bloadMMA<Scalar, DataMapper, Packet, Index, accCols2, false>(tRes, data, i);
+    bloadMMA<DataMapper, Packet, Index, accCols2, false>(tRes, data, i);
 
     bscale<Packet, 4>(tRes, result, alpha, pMask);
 
-    bstoreMMA<Scalar, DataMapper, Packet, Index, accCols2>(tRes, data, i);
+    bstoreMMA<DataMapper, Packet, Index, accCols2>(tRes, data, i);
   }
 }
 
@@ -199,9 +200,12 @@ EIGEN_ALWAYS_INLINE void ploadRhsMMA(const float*, __vector_pair&)
 #define MICRO_MMA_UNROLL(func) \
   func(0) func(1) func(2) func(3) func(4) func(5) func(6) func(7)
 
+#define MICRO_MMA_NORMAL(iter) \
+  (accCols == accCols2) || (unroll_factor != (iter + 1))
+
 #define MICRO_MMA_LOAD_ONE(iter) \
   if (unroll_factor > iter) { \
-    if ((accCols == accCols2) || (unroll_factor != (iter + 1))) { \
+    if (MICRO_MMA_NORMAL(iter)) { \
       lhsV##iter = ploadLhs<Scalar, Packet>(lhs_ptr##iter); \
       lhs_ptr##iter += accCols; \
     } else { \
@@ -257,7 +261,7 @@ EIGEN_ALWAYS_INLINE void ploadRhsMMA(const float*, __vector_pair&)
 
 #define MICRO_MMA_DST_PTR_ONE(iter) \
   if (unroll_factor > iter) { \
-    bsetzeroMMA<Scalar, Packet>(&accZero##iter); \
+    bsetzeroMMA(&accZero##iter); \
   } else { \
     EIGEN_UNUSED_VARIABLE(accZero##iter); \
   }
@@ -266,7 +270,11 @@ EIGEN_ALWAYS_INLINE void ploadRhsMMA(const float*, __vector_pair&)
 
 #define MICRO_MMA_SRC_PTR_ONE(iter) \
   if (unroll_factor > iter) { \
-    lhs_ptr##iter = lhs_base + ( (row/accCols) + iter )*strideA*accCols; \
+    if (MICRO_MMA_NORMAL(iter)) { \
+      lhs_ptr##iter = lhs_base + ( (row/accCols) + iter )*strideA*accCols; \
+    } else { \
+      lhs_ptr##iter = blockA + (row+(iter*accCols))*strideA + accCols2*offsetA; \
+    } \
   } else { \
     EIGEN_UNUSED_VARIABLE(lhs_ptr##iter); \
   }
@@ -282,7 +290,7 @@ EIGEN_ALWAYS_INLINE void ploadRhsMMA(const float*, __vector_pair&)
 
 #define MICRO_MMA_STORE_ONE(iter) \
   if (unroll_factor > iter) { \
-    storeAccumulator<Scalar, DataMapper, Index, Packet, accCols, ((accCols == accCols2) || (unroll_factor != (iter + 1))) ? accCols : accCols2>(row + iter*accCols, res, pAlpha, pMask, &accZero##iter); \
+    storeAccumulator<DataMapper, Index, Packet, accCols, (unroll_factor != (iter + 1)) ? accCols : accCols2>(row + iter*accCols, res, pAlpha, pMask, &accZero##iter); \
   }
 
 #define MICRO_MMA_STORE MICRO_MMA_UNROLL(MICRO_MMA_STORE_ONE)
@@ -290,10 +298,12 @@ EIGEN_ALWAYS_INLINE void ploadRhsMMA(const float*, __vector_pair&)
 template<int unroll_factor, typename Scalar, typename Packet, typename RhsPacket, typename DataMapper, typename Index, const Index accRows, const Index accCols, const Index accCols2>
 EIGEN_ALWAYS_INLINE void gemm_unrolled_MMA_iteration(
   const DataMapper& res,
+  const Scalar* blockA,
   const Scalar* lhs_base,
   const Scalar* rhs_base,
   Index depth,
   Index strideA,
+  Index offsetA,
   Index& row,
   const Packet& pAlpha,
   const Packet& pMask)
@@ -320,6 +330,8 @@ EIGEN_ALWAYS_INLINE void gemm_unrolled_MMA_iteration(
 
   if (accCols == accCols2) {
     EIGEN_UNUSED_VARIABLE(pMask);
+    EIGEN_UNUSED_VARIABLE(blockA);
+    EIGEN_UNUSED_VARIABLE(offsetA);
     row += unroll_factor*accCols;
   }
 }
@@ -328,7 +340,7 @@ EIGEN_ALWAYS_INLINE void gemm_unrolled_MMA_iteration(
 
 #define MICRO_MMA_UNROLL_ITER2(N, M) \
   if (N) { \
-    gemm_unrolled_MMA_iteration<N + ((M) ? 1 : 0), Scalar, Packet, RhsPacket, DataMapper, Index, accRows, accCols, M ? M : accCols>(res3, lhs_base, rhs_base, depth, strideA, row, pAlpha, pMask); \
+    gemm_unrolled_MMA_iteration<(N + (M ? 1 : 0)), Scalar, Packet, RhsPacket, DataMapper, Index, accRows, accCols, M ? M : accCols>(res3, blockA, lhs_base, rhs_base, depth, strideA, offsetA, row, pAlpha, pMask); \
   } else if (M) { \
     gemm_extra_row<Scalar, Packet, DataMapper, Index, accRows, accCols>(res3, blockA, rhs_base, depth, strideA, offsetA, row, col, rows, cols, remaining_rows, pAlpha, pMask); \
   }
@@ -336,7 +348,7 @@ EIGEN_ALWAYS_INLINE void gemm_unrolled_MMA_iteration(
 #ifdef NEW_EXTRA
 #define MICRO_MMA_UNROLL_ITER(N) \
   switch (remaining_rows) { \
-    case 0: \
+    default: \
       MICRO_MMA_UNROLL_ITER2(N, 0) \
       break; \
     case 1: \
@@ -347,7 +359,7 @@ EIGEN_ALWAYS_INLINE void gemm_unrolled_MMA_iteration(
         MICRO_MMA_UNROLL_ITER2(N, 2) \
       } \
       break; \
-    default: \
+    case 3: \
       if (sizeof(Scalar) == sizeof(float)) { \
         MICRO_MMA_UNROLL_ITER2(N, 3) \
       } \
@@ -383,7 +395,7 @@ EIGEN_ALWAYS_INLINE void gemmMMA_cols(
 
 #define MAX_MMA_UNROLL 7
   while(row + MAX_MMA_UNROLL*accCols <= rows) {
-    gemm_unrolled_MMA_iteration<MAX_MMA_UNROLL, Scalar, Packet, RhsPacket, DataMapper, Index, accRows, accCols, accCols>(res3, lhs_base, rhs_base, depth, strideA, row, pAlpha, pMask);
+    gemm_unrolled_MMA_iteration<MAX_MMA_UNROLL, Scalar, Packet, RhsPacket, DataMapper, Index, accRows, accCols, accCols>(res3, blockA, lhs_base, rhs_base, depth, strideA, offsetA, row, pAlpha, pMask);
   }
 //uint64_t start, end;
 //start = __ppc_get_timebase();
@@ -546,8 +558,8 @@ void gemmMMA(const DataMapper& res, const Scalar* blockA, const Scalar* blockB, 
 
 #define MICRO_COMPLEX_MMA_DST_PTR_ONE(iter) \
   if (unroll_factor > iter) { \
-    bsetzeroMMA<Scalar, Packet>(&accReal##iter); \
-    bsetzeroMMA<Scalar, Packet>(&accImag##iter); \
+    bsetzeroMMA(&accReal##iter); \
+    bsetzeroMMA(&accImag##iter); \
   } else { \
     EIGEN_UNUSED_VARIABLE(accReal##iter); \
     EIGEN_UNUSED_VARIABLE(accImag##iter); \
