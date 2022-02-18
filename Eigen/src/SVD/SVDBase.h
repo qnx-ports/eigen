@@ -37,8 +37,8 @@ constexpr int should_svd_compute_full_u(int options) { return options & ComputeF
 constexpr int should_svd_compute_thin_v(int options) { return options & ComputeThinV; }
 constexpr int should_svd_compute_full_v(int options) { return options & ComputeFullV; }
 
-template <typename MatrixType, int Options>
-void check_svd_options_assertions(unsigned int computationOptions) {
+template<typename MatrixType, int Options>
+void check_svd_options_assertions(unsigned int computationOptions, Index cols) {
   EIGEN_STATIC_ASSERT((Options & ComputationOptionsBits) == 0,
                       "SVDBase: Cannot request U or V using both static and runtime options, even if they match. "
                       "Requesting unitaries at runtime is DEPRECATED: "
@@ -48,7 +48,14 @@ void check_svd_options_assertions(unsigned int computationOptions) {
       !(should_svd_compute_thin_v(computationOptions) && MatrixType::ColsAtCompileTime != Dynamic) &&
       "SVDBase: If U or V are requested at runtime, then thin U and V are only available when "
       "your matrix has a dynamic number of columns.");
+  const bool runtimeU = !should_svd_compute_thin_u(Options) && should_svd_compute_thin_u(computationOptions);
+  if (MatrixType::RowsAtCompileTime != Dynamic && runtimeU) {
+    eigen_assert(MatrixType::RowsAtCompileTime <= cols &&
+                 "SVDBase: If thin U is requested at runtime and your matrix has a fixed number of rows, it must have at least as many"
+                 "columns as rows");
+  }
   (void)computationOptions;
+  (void)cols;
 }
 
 template<typename Derived> struct traits<SVDBase<Derived> >
