@@ -156,42 +156,6 @@ struct generic_sqrt_newton_step {
   }
 };
 
-// template <typename Packet, int Steps=1>
-// struct generic_sqrt_newton_step {
-//   static_assert(Steps > 0, "Steps must be at least 1.");
-
-//   EIGEN_DEVICE_FUNC static EIGEN_STRONG_INLINE  Packet
-//   run(const Packet& a, const Packet& approx_rsqrt) {
-//     using Scalar = typename unpacket_traits<Packet>::type;
-//     const Scalar norm_min = (std::numeric_limits<Scalar>::min)();
-//     const Scalar pos_inf = std::numeric_limits<Scalar>::infinity();
-//     const Packet pos_inf_mask = pcmp_eq(a, pset1<Packet>(pos_inf));
-//     const Packet denorm_mask = pcmp_lt(a, pset1<Packet>(norm_min));
-//     const Packet negative_mask = pcmp_lt(a, pzero(a));
-//     const Packet return_a_poisoned = por(por(denorm_mask, pos_inf_mask), negative_mask);
-
-//     // Do a single step of Newton's iteration for reciprocal square root:
-//     //   x_{n+1} = x_n * (1.5 - x_n * ((0.5 * a) * x_n)).
-//     const Packet minus_half_a = pmul(a, pset1<Packet>(Scalar(-0.5)));
-//     const Packet tmp = pmul(approx_rsqrt, minus_half_a);
-//     // If tmp is NaN, it means that the argument was either 0 or +inf,
-//     // and we should return the argument itself as the result.
-//     const Packet one_point_five = pset1<Packet>(Scalar(1.5));
-//     Packet rsqrt = pmul(approx_rsqrt, pmadd(tmp, approx_rsqrt, one_point_five));
-//     for (int step = 1; step < Steps; ++step) {
-//       rsqrt = pmul(rsqrt, pmadd(pmul(rsqrt, minus_half_a), rsqrt, one_point_five));
-//     }
-
-//     // Set negative arguments to NaN and positive subnormals to zero.
-//     const Packet a_poisoned = por(pandnot(a, denorm_mask), negative_mask);
-
-//     // Return a_poisoned for 0 or +inf, NaN,negative arguments, and denormal arguments.
-//     // Other wise return sqrt(x) = x * rsqrt(x).
-//     return pselect(return_a_poisoned, a_poisoned, pmul(a, rsqrt));
-//   }
-// };
-
-
 /** \internal \returns the hyperbolic tan of \a a (coeff-wise)
     Doesn't do anything fancy, just a 13/6-degree rational interpolant which
     is accurate up to a couple of ulps in the (approximate) range [-8, 8],
