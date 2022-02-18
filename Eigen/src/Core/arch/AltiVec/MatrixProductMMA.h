@@ -339,10 +339,8 @@ EIGEN_ALWAYS_INLINE void gemm_unrolled_MMA_iteration(
 #define NEW_EXTRA
 
 #define MICRO_MMA_UNROLL_ITER2(N, M) \
-  if (N) { \
-    gemm_unrolled_MMA_iteration<N + (M ? 1 : 0), Scalar, Packet, RhsPacket, DataMapper, Index, accRows, accCols, M ? M : accCols>(res3, blockA, lhs_base, rhs_base, depth, strideA, offsetA, row, pAlpha, pMask); \
-    if (M) remaining_rows = 0; \
-  }
+  gemm_unrolled_MMA_iteration<N + (M ? 1 : 0), Scalar, Packet, RhsPacket, DataMapper, Index, accRows, accCols, M ? M : accCols>(res3, blockA, lhs_base, rhs_base, depth, strideA, offsetA, row, pAlpha, pMask); \
+  if (M) remaining_rows = 0;
 
 #ifdef NEW_EXTRA
 #define MICRO_MMA_UNROLL_ITER(N) \
