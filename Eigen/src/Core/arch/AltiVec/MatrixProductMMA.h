@@ -32,34 +32,6 @@ EIGEN_ALWAYS_INLINE void bsetzeroMMA(__vector_quad* acc)
   __builtin_mma_xxsetaccz(acc);
 }
 
-template<typename DataMapper, typename Packet, typename Index, const Index accCols, bool Complex>
-EIGEN_ALWAYS_INLINE void bloadMMA(PacketBlock<Packet,(Complex?8:4)>& acc, const DataMapper& res, Index row)
-{
-  const size_t size = accCols * sizeof(__UNPACK_TYPE__(Packet));
-  acc.packet[0] = vec_xl_len(&res(row, 0), size);
-  acc.packet[1] = vec_xl_len(&res(row, 1), size);
-  acc.packet[2] = vec_xl_len(&res(row, 2), size);
-  acc.packet[3] = vec_xl_len(&res(row, 3), size);
-#if 0
-  if (Complex) {
-    acc.packet[4] = res.template loadPacket<Packet>(row + accCols, 0);
-    acc.packet[5] = res.template loadPacket<Packet>(row + accCols, 1);
-    acc.packet[6] = res.template loadPacket<Packet>(row + accCols, 2);
-    acc.packet[7] = res.template loadPacket<Packet>(row + accCols, 3);
-  }
-#endif
-}
-
-template<typename DataMapper, typename Packet, typename Index, const Index accCols>
-EIGEN_ALWAYS_INLINE void bstoreMMA(PacketBlock<Packet,4>& acc, const DataMapper& res, Index row)
-{
-  const size_t size = accCols * sizeof(__UNPACK_TYPE__(Packet));
-  vec_xst_len(acc.packet[0], &res(row, 0), size);
-  vec_xst_len(acc.packet[1], &res(row, 1), size);
-  vec_xst_len(acc.packet[2], &res(row, 2), size);
-  vec_xst_len(acc.packet[3], &res(row, 3), size);
-}
-
 template<typename DataMapper, typename Index, typename Packet, const Index accCols, const Index accCols2>
 EIGEN_ALWAYS_INLINE void storeAccumulator(Index i, const DataMapper& data, const Packet& alpha, const Packet& pMask, __vector_quad* acc)
 {
@@ -76,11 +48,11 @@ EIGEN_ALWAYS_INLINE void storeAccumulator(Index i, const DataMapper& data, const
 
     data.template storePacketBlock<Packet, 4>(i, 0, tRes);
   } else {
-    bloadMMA<DataMapper, Packet, Index, accCols2, false>(tRes, data, i);
+    bload<DataMapper, Packet, Index, 0, ColMajor, false, 4>(tRes, data, i, 0);
 
     bscale<Packet, 4>(tRes, result, alpha, pMask);
 
-    bstoreMMA<DataMapper, Packet, Index, accCols2>(tRes, data, i);
+    data.template storePacketBlock<Packet, 4>(i, 0, tRes);
   }
 }
 

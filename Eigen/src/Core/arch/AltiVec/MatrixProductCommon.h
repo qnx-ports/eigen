@@ -11,7 +11,6 @@ namespace Eigen {
 
 namespace internal {
 
-// Remove me
 template<typename Scalar, typename Packet, typename DataMapper, typename Index, const Index accRows, const Index accCols>
 EIGEN_ALWAYS_INLINE void gemm_extra_row(
   const DataMapper& res,
@@ -48,7 +47,6 @@ EIGEN_STRONG_INLINE void gemm_extra_cols(
 template<typename Packet, typename Index>
 EIGEN_ALWAYS_INLINE Packet bmask(const Index remaining_rows);
 
-// Remove me
 template<typename Scalar, typename Packet, typename Packetc, typename DataMapper, typename Index, const Index accRows, const Index accCols, bool ConjugateLhs, bool ConjugateRhs, bool LhsIsReal, bool RhsIsReal>
 EIGEN_ALWAYS_INLINE void gemm_complex_extra_row(
   const DataMapper& res,
