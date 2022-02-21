@@ -243,9 +243,9 @@ EIGEN_ALWAYS_INLINE void ploadRhsMMA(const float*, __vector_pair&)
 #define MICRO_MMA_SRC_PTR_ONE(iter) \
   if (unroll_factor > iter) { \
     if (MICRO_MMA_NORMAL(iter)) { \
-      lhs_ptr##iter = lhs_base + ( (row/accCols) + iter )*strideA*accCols; \
+      lhs_ptr##iter = lhs_base + (row+(iter*accCols))*strideA; \
     } else { \
-      lhs_ptr##iter = blockA + (row+(iter*accCols))*strideA + accCols2*offsetA; \
+      lhs_ptr##iter = lhs_base + (row+(iter*accCols))*strideA - (accCols-accCols2)*offsetA; \
     } \
   } else { \
     EIGEN_UNUSED_VARIABLE(lhs_ptr##iter); \
@@ -270,7 +270,6 @@ EIGEN_ALWAYS_INLINE void ploadRhsMMA(const float*, __vector_pair&)
 template<int unroll_factor, typename Scalar, typename Packet, typename RhsPacket, typename DataMapper, typename Index, const Index accRows, const Index accCols, const Index accCols2>
 EIGEN_ALWAYS_INLINE void gemm_unrolled_MMA_iteration(
   const DataMapper& res,
-  const Scalar* blockA,
   const Scalar* lhs_base,
   const Scalar* rhs_base,
   Index depth,
@@ -302,7 +301,6 @@ EIGEN_ALWAYS_INLINE void gemm_unrolled_MMA_iteration(
 
   if (accCols == accCols2) {
     EIGEN_UNUSED_VARIABLE(pMask);
-    EIGEN_UNUSED_VARIABLE(blockA);
     EIGEN_UNUSED_VARIABLE(offsetA);
     row += unroll_factor*accCols;
   }
@@ -311,7 +309,7 @@ EIGEN_ALWAYS_INLINE void gemm_unrolled_MMA_iteration(
 #define NEW_EXTRA
 
 #define MICRO_MMA_UNROLL_ITER2(N, M) \
-  gemm_unrolled_MMA_iteration<N + (M ? 1 : 0), Scalar, Packet, RhsPacket, DataMapper, Index, accRows, accCols, M ? M : accCols>(res3, blockA, lhs_base, rhs_base, depth, strideA, offsetA, row, pAlpha, pMask); \
+  gemm_unrolled_MMA_iteration<N + (M ? 1 : 0), Scalar, Packet, RhsPacket, DataMapper, Index, accRows, accCols, M ? M : accCols>(res3, lhs_base, rhs_base, depth, strideA, offsetA, row, pAlpha, pMask); \
   if (M) remaining_rows = 0;
 
 #ifdef NEW_EXTRA
@@ -364,7 +362,7 @@ EIGEN_ALWAYS_INLINE void gemmMMA_cols(
 
 #define MAX_MMA_UNROLL 7
   while(row + MAX_MMA_UNROLL*accCols <= rows) {
-    gemm_unrolled_MMA_iteration<MAX_MMA_UNROLL, Scalar, Packet, RhsPacket, DataMapper, Index, accRows, accCols, accCols>(res3, blockA, lhs_base, rhs_base, depth, strideA, offsetA, row, pAlpha, pMask);
+    gemm_unrolled_MMA_iteration<MAX_MMA_UNROLL, Scalar, Packet, RhsPacket, DataMapper, Index, accRows, accCols, accCols>(res3, lhs_base, rhs_base, depth, strideA, offsetA, row, pAlpha, pMask);
   }
 //uint64_t start, end;
 //start = __ppc_get_timebase();
