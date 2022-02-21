@@ -482,14 +482,11 @@ void svd_compute_checks(const MatrixType& m) {
 
 template <typename SvdType, typename MatrixType>
 void svd_check_constructor_options(const MatrixType& m, unsigned int computationOptions) {
-  const bool thinUnitary = (computationOptions & ComputeThinU) != 0 || (computationOptions & ComputeThinV) != 0;
-  if (MatrixType::ColsAtCompileTime != Dynamic && thinUnitary) {
+  const bool fixedRowAndThinU = SvdType::RowsAtCompileTime != Dynamic && (computationOptions & ComputeThinU) != 0 && m.cols() < m.rows();
+  const bool fixedColAndThinV = SvdType::ColsAtCompileTime != Dynamic && (computationOptions & ComputeThinV) != 0 && m.rows() < m.cols();
+  if (fixedRowAndThinU || fixedColAndThinV) {
     VERIFY_RAISES_ASSERT(SvdType svd(m, computationOptions));
     return;
-  }
-  if (MatrixType::RowsAtCompileTime > m.cols() && (computationOptions & ComputeThinU) != 0) {
-    VERIFY_RAISES_ASSERT(SvdType svd(m, computationOptions));
-    return;  
   }
 
   Index diagSize = (std::min)(m.rows(), m.cols());
