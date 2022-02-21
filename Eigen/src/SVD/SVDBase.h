@@ -44,9 +44,9 @@ void check_svd_options_assertions(unsigned int computationOptions, Index rows, I
                       "Requesting unitaries at runtime is DEPRECATED: "
                       "Prefer requesting unitaries statically, using the Options template parameter.");
   eigen_assert(!(should_svd_compute_thin_u(computationOptions) && cols < rows && MatrixType::RowsAtCompileTime != Dynamic) &&
-               "SVDBase: If thin U is requested at runtime, your matrix must have more rows than columns or a dynamic number of rows.");
-  eigen_assert(!(should_svd_compute_thin_v(computationOptions) && rows < cols && MatrixType::ColsAtCompileTime != Dynamic) &&
-               "SVDBase: If thin V is requested at runtime, your matrix must have more columns than rows or a dynamic number of columns.");
+               !(should_svd_compute_thin_v(computationOptions) && rows < cols && MatrixType::ColsAtCompileTime != Dynamic) &&
+               "SVDBase: If thin U is requested at runtime, your matrix must have more rows than columns or a dynamic number of rows."
+               "Similarly, if thin V is requested at runtime, you matrix must have more columns than rows or a dynamic number of columns.");
   (void)computationOptions;
   (void)rows;
   (void)cols;
