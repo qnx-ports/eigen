@@ -1515,7 +1515,7 @@ EIGEN_ALWAYS_INLINE void gemm_extra_row(
   const Packet& pMask)
 {
   switch(remaining_rows) {
-    case 1:
+    default:
       gemm_unrolled_row_iteration<Scalar, Packet, DataMapper, Index, accRows, accCols, 1>(res, lhs_base, rhs_base, depth, strideA, offsetA, row, col, rows, cols, pAlpha, pMask);
       break;
     case 2:
@@ -1523,7 +1523,7 @@ EIGEN_ALWAYS_INLINE void gemm_extra_row(
         gemm_unrolled_row_iteration<Scalar, Packet, DataMapper, Index, accRows, accCols, 2>(res, lhs_base, rhs_base, depth, strideA, offsetA, row, col, rows, cols, pAlpha, pMask);
       }
       break;
-    default:
+    case 3:
       if (sizeof(Scalar) == sizeof(float)) {
         gemm_unrolled_row_iteration<Scalar, Packet, DataMapper, Index, accRows, accCols, 3>(res, lhs_base, rhs_base, depth, strideA, offsetA, row, col, rows, cols, pAlpha, pMask);
       }
@@ -1534,6 +1534,9 @@ EIGEN_ALWAYS_INLINE void gemm_extra_row(
 #define MICRO_UNROLL(func) \
   func(0) func(1) func(2) func(3) func(4) func(5) func(6) func(7)
 
+#define MICRO_NORMAL(iter) \
+  (accCols == accCols2) || (unroll_factor != (iter + 1))
+
 #define MICRO_UNROLL_WORK(func, func2, peel) \
     MICRO_UNROLL(func2); \
     func(0,peel) func(1,peel) func(2,peel) func(3,peel) \
@@ -1541,8 +1544,13 @@ EIGEN_ALWAYS_INLINE void gemm_extra_row(
 
 #define MICRO_LOAD_ONE(iter) \
   if (unroll_factor > iter) { \
-    lhsV##iter = ploadLhs<Scalar, Packet>(lhs_ptr##iter); \
-    lhs_ptr##iter += accCols; \
+    if (MICRO_NORMAL(iter)) { \
+      lhsV##iter = ploadLhs<Scalar, Packet>(lhs_ptr##iter); \
+      lhs_ptr##iter += accCols; \
+    } else { \
+      loadPacketRemaining<Scalar, Packet, Index, accCols2>(lhs_ptr##iter, lhsV##iter); \
+      lhs_ptr##iter += accCols2; \
+    } \
   } else { \
     EIGEN_UNUSED_VARIABLE(lhsV##iter); \
   }
@@ -1591,7 +1599,11 @@ EIGEN_ALWAYS_INLINE void gemm_extra_row(
 
 #define MICRO_SRC_PTR_ONE(iter) \
   if (unroll_factor > iter) { \
-    lhs_ptr##iter = lhs_base + ( (row/accCols) + iter )*strideA*accCols; \
+    if (MICRO_NORMAL(iter)) { \
+      lhs_ptr##iter = lhs_base + (row+(iter*accCols))*strideA; \
+    } else { \
+      lhs_ptr##iter = lhs_base + (row+(iter*accCols))*strideA - (accCols-accCols2)*offsetA; \
+    } \
   } else { \
     EIGEN_UNUSED_VARIABLE(lhs_ptr##iter); \
   }
@@ -1608,21 +1620,27 @@ EIGEN_ALWAYS_INLINE void gemm_extra_row(
 #define MICRO_STORE_ONE(iter) \
   if (unroll_factor > iter) { \
     bload<DataMapper, Packet, Index, 0, ColMajor, false, accRows>(acc, res, row + iter*accCols, 0); \
-    bscale<Packet,accRows>(acc, accZero##iter, pAlpha); \
+    if (MICRO_NORMAL(iter)) { \
+      bscale<Packet,accRows>(acc, accZero##iter, pAlpha); \
+    } else { \
+      bscale<Packet,accRows>(acc, accZero##iter, pAlpha, pMask); \
+    } \
     res.template storePacketBlock<Packet,accRows>(row + iter*accCols, 0, acc); \
   }
 
 #define MICRO_STORE MICRO_UNROLL(MICRO_STORE_ONE)
 
-template<int unroll_factor, typename Scalar, typename Packet, typename DataMapper, typename Index, const Index accRows, const Index accCols>
+template<int unroll_factor, typename Scalar, typename Packet, typename DataMapper, typename Index, const Index accRows, const Index accCols, const Index accCols2>
 EIGEN_STRONG_INLINE void gemm_unrolled_iteration(
   const DataMapper& res,
   const Scalar* lhs_base,
   const Scalar* rhs_base,
   Index depth,
   Index strideA,
+  Index offsetA,
   Index& row,
-  const Packet& pAlpha)
+  const Packet& pAlpha,
+  const Packet& pMask)
 {
   const Scalar* rhs_ptr = rhs_base;
   const Scalar* lhs_ptr0 = NULL, *  lhs_ptr1 = NULL, * lhs_ptr2 = NULL, * lhs_ptr3 = NULL, * lhs_ptr4 = NULL, * lhs_ptr5 = NULL, * lhs_ptr6 = NULL, * lhs_ptr7 = NULL;
@@ -1645,8 +1663,43 @@ EIGEN_STRONG_INLINE void gemm_unrolled_iteration(
   }
   MICRO_STORE
 
-  row += unroll_factor*accCols;
+  if (accCols == accCols2) {
+    EIGEN_UNUSED_VARIABLE(pMask);
+    EIGEN_UNUSED_VARIABLE(offsetA);
+    row += unroll_factor*accCols;
+  }
 }
+
+#define NEW_EXTRA_VSX
+
+#define MICRO_UNROLL_ITER2(N, M) \
+  gemm_unrolled_iteration<N + ((M) ? 1 : 0), Scalar, Packet, DataMapper, Index, accRows, accCols, M ? M : accCols>(res3, lhs_base, rhs_base, depth, strideA, offsetA, row, pAlpha, pMask); \
+  if (M) remaining_rows = 0;
+
+#ifdef NEW_EXTRA_VSX
+#define MICRO_UNROLL_ITER(N) \
+  switch (remaining_rows) { \
+    default: \
+      MICRO_UNROLL_ITER2(N, 0) \
+      break; \
+    case 1: \
+      MICRO_UNROLL_ITER2(N, 1) \
+      break; \
+    case 2: \
+      if (sizeof(Scalar) == sizeof(float)) { \
+        MICRO_UNROLL_ITER2(N, 2) \
+      } \
+      break; \
+    case 3: \
+      if (sizeof(Scalar) == sizeof(float)) { \
+        MICRO_UNROLL_ITER2(N, 3) \
+      } \
+      break; \
+  }
+#else
+#define MICRO_UNROLL_ITER(N) \
+  MICRO_UNROLL_ITER2(N, 0)
+#endif
 
 template<typename Scalar, typename Packet, typename DataMapper, typename Index, const Index accRows, const Index accCols>
 EIGEN_ALWAYS_INLINE void gemm_cols(
@@ -1673,42 +1726,42 @@ EIGEN_ALWAYS_INLINE void gemm_cols(
 
 #define MAX_UNROLL 6
   while(row + MAX_UNROLL*accCols <= rows) {
-    gemm_unrolled_iteration<MAX_UNROLL, Scalar, Packet, DataMapper, Index, accRows, accCols>(res3, lhs_base, rhs_base, depth, strideA, row, pAlpha);
+    gemm_unrolled_iteration<MAX_UNROLL, Scalar, Packet, DataMapper, Index, accRows, accCols, accCols>(res3, lhs_base, rhs_base, depth, strideA, offsetA, row, pAlpha, pMask);
   }
   switch( (rows-row)/accCols ) {
 #if MAX_UNROLL > 7
     case 7:
-      gemm_unrolled_iteration<7, Scalar, Packet, DataMapper, Index, accRows, accCols>(res3, lhs_base, rhs_base, depth, strideA, row, pAlpha);
+      MICRO_UNROLL_ITER(7)
       break;
 #endif
 #if MAX_UNROLL > 6
     case 6:
-      gemm_unrolled_iteration<6, Scalar, Packet, DataMapper, Index, accRows, accCols>(res3, lhs_base, rhs_base, depth, strideA, row, pAlpha);
+      MICRO_UNROLL_ITER(6)
       break;
 #endif
 #if MAX_UNROLL > 5
     case 5:
-      gemm_unrolled_iteration<5, Scalar, Packet, DataMapper, Index, accRows, accCols>(res3, lhs_base, rhs_base, depth, strideA, row, pAlpha);
+      MICRO_UNROLL_ITER(5)
       break;
 #endif
 #if MAX_UNROLL > 4
     case 4:
-      gemm_unrolled_iteration<4, Scalar, Packet, DataMapper, Index, accRows, accCols>(res3, lhs_base, rhs_base, depth, strideA, row, pAlpha);
+      MICRO_UNROLL_ITER(4)
       break;
 #endif
 #if MAX_UNROLL > 3
     case 3:
-      gemm_unrolled_iteration<3, Scalar, Packet, DataMapper, Index, accRows, accCols>(res3, lhs_base, rhs_base, depth, strideA, row, pAlpha);
+      MICRO_UNROLL_ITER(3)
       break;
 #endif
 #if MAX_UNROLL > 2
     case 2:
-      gemm_unrolled_iteration<2, Scalar, Packet, DataMapper, Index, accRows, accCols>(res3, lhs_base, rhs_base, depth, strideA, row, pAlpha);
+      MICRO_UNROLL_ITER(2)
       break;
 #endif
 #if MAX_UNROLL > 1
     case 1:
-      gemm_unrolled_iteration<1, Scalar, Packet, DataMapper, Index, accRows, accCols>(res3, lhs_base, rhs_base, depth, strideA, row, pAlpha);
+      MICRO_UNROLL_ITER(1)
       break;
 #endif
     default:
@@ -1968,7 +2021,7 @@ EIGEN_ALWAYS_INLINE void gemm_complex_extra_row(
   const Packet& pMask)
 {
   switch(remaining_rows) {
-    case 1:
+    default:
       gemm_unrolled_complex_row_iteration<Scalar, Packet, Packetc, DataMapper, Index, accRows, accCols, ConjugateLhs, ConjugateRhs, LhsIsReal, RhsIsReal, 1>(res, lhs_base, rhs_base, depth, strideA, offsetA, strideB, row, col, rows, cols, pAlphaReal, pAlphaImag, pMask);
       break;
     case 2:
@@ -1976,7 +2029,7 @@ EIGEN_ALWAYS_INLINE void gemm_complex_extra_row(
         gemm_unrolled_complex_row_iteration<Scalar, Packet, Packetc, DataMapper, Index, accRows, accCols, ConjugateLhs, ConjugateRhs, LhsIsReal, RhsIsReal, 2>(res, lhs_base, rhs_base, depth, strideA, offsetA, strideB, row, col, rows, cols, pAlphaReal, pAlphaImag, pMask);
       }
       break;
-    default:
+    case 3:
       if (sizeof(Scalar) == sizeof(float)) {
         gemm_unrolled_complex_row_iteration<Scalar, Packet, Packetc, DataMapper, Index, accRows, accCols, ConjugateLhs, ConjugateRhs, LhsIsReal, RhsIsReal, 3>(res, lhs_base, rhs_base, depth, strideA, offsetA, strideB, row, col, rows, cols, pAlphaReal, pAlphaImag, pMask);
       }

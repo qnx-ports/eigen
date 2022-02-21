@@ -39,21 +39,15 @@ EIGEN_ALWAYS_INLINE void storeAccumulator(Index i, const DataMapper& data, const
   __builtin_mma_disassemble_acc(&result.packet, acc);
 
   PacketBlock<Packet, 4> tRes;
+  bload<DataMapper, Packet, Index, 0, ColMajor, false, 4>(tRes, data, i, 0);
   if (accCols == accCols2) {
     EIGEN_UNUSED_VARIABLE(pMask);
 
-    bload<DataMapper, Packet, Index, accCols, ColMajor, false, 4>(tRes, data, i, 0);
-
     bscale<Packet, 4>(tRes, result, alpha);
-
-    data.template storePacketBlock<Packet, 4>(i, 0, tRes);
   } else {
-    bload<DataMapper, Packet, Index, 0, ColMajor, false, 4>(tRes, data, i, 0);
-
     bscale<Packet, 4>(tRes, result, alpha, pMask);
-
-    data.template storePacketBlock<Packet, 4>(i, 0, tRes);
   }
+  data.template storePacketBlock<Packet, 4>(i, 0, tRes);
 }
 
 template<typename DataMapper, typename Index, typename Packet, typename Packetc, const Index accColsC>
@@ -364,8 +358,6 @@ EIGEN_ALWAYS_INLINE void gemmMMA_cols(
   while(row + MAX_MMA_UNROLL*accCols <= rows) {
     gemm_unrolled_MMA_iteration<MAX_MMA_UNROLL, Scalar, Packet, RhsPacket, DataMapper, Index, accRows, accCols, accCols>(res3, lhs_base, rhs_base, depth, strideA, offsetA, row, pAlpha, pMask);
   }
-//uint64_t start, end;
-//start = __ppc_get_timebase();
   switch( (rows-row)/accCols ) {
 #if MAX_MMA_UNROLL > 7
     case 7:
@@ -411,8 +403,6 @@ EIGEN_ALWAYS_INLINE void gemmMMA_cols(
   {
     gemm_extra_row<Scalar, Packet, DataMapper, Index, accRows, accCols>(res3, blockA, rhs_base, depth, strideA, offsetA, row, col, rows, cols, remaining_rows, pAlpha, pMask);
   }
-//end = __ppc_get_timebase();
-//printf("gemm extra MMA time = %16ld\n", end - start);
 }
 
 template<typename Scalar, typename Index, typename Packet, typename RhsPacket, typename DataMapper, const Index accRows, const Index accCols>
