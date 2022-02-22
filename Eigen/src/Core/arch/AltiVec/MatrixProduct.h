@@ -2046,13 +2046,23 @@ EIGEN_ALWAYS_INLINE void gemm_complex_extra_row(
 
 #define MICRO_COMPLEX_LOAD_ONE(iter) \
   if (unroll_factor > iter) { \
-    lhsV##iter = ploadLhs<Scalar, Packet>(lhs_ptr_real##iter); \
-    if(!LhsIsReal) { \
-      lhsVi##iter = ploadLhs<Scalar, Packet>(lhs_ptr_real##iter + imag_delta); \
+    if (MICRO_NORMAL(iter)) { \
+      lhsV##iter = ploadLhs<Scalar, Packet>(lhs_ptr_real##iter); \
+      if(!LhsIsReal) { \
+        lhsVi##iter = ploadLhs<Scalar, Packet>(lhs_ptr_real##iter + imag_delta); \
+      } else { \
+        EIGEN_UNUSED_VARIABLE(lhsVi##iter); \
+      } \
+      lhs_ptr_real##iter += accCols; \
     } else { \
-      EIGEN_UNUSED_VARIABLE(lhsVi##iter); \
+      lhsV##iter = vec_xl_len(lhs_ptr_real##iter, accCols2 * sizeof(Scalar)); \
+      if(!LhsIsReal) { \
+        lhsVi##iter = vec_xl_len(lhs_ptr_real##iter + imag_delta2, accCols2 * sizeof(Scalar)); \
+      } else { \
+        EIGEN_UNUSED_VARIABLE(lhsVi##iter); \
+      } \
+      lhs_ptr_real##iter += accCols2; \
     } \
-    lhs_ptr_real##iter += accCols; \
   } else { \
     EIGEN_UNUSED_VARIABLE(lhsV##iter); \
     EIGEN_UNUSED_VARIABLE(lhsVi##iter); \
@@ -2112,7 +2122,11 @@ EIGEN_ALWAYS_INLINE void gemm_complex_extra_row(
 
 #define MICRO_COMPLEX_SRC_PTR_ONE(iter) \
   if (unroll_factor > iter) { \
-    lhs_ptr_real##iter = lhs_base + (row+(iter*accCols))*strideA*advanceRows; \
+    if (MICRO_NORMAL(iter)) { \
+      lhs_ptr_real##iter = lhs_base + (row+(iter*accCols))*strideA*advanceRows; \
+    } else { \
+      lhs_ptr_real##iter = lhs_base + (row+(iter*accCols))*strideA*advanceRows - (accCols-accCols2)*offsetA; \
+    } \
   } else { \
     EIGEN_UNUSED_VARIABLE(lhs_ptr_real##iter); \
   }
@@ -2129,7 +2143,11 @@ EIGEN_ALWAYS_INLINE void gemm_complex_extra_row(
 #define MICRO_COMPLEX_STORE_ONE(iter) \
   if (unroll_factor > iter) { \
     bload<DataMapper, Packetc, Index, accColsC, ColMajor, true, accRows>(tRes, res, row + iter*accCols, 0); \
-    bscalec<Packet,accRows>(accReal##iter, accImag##iter, pAlphaReal, pAlphaImag, taccReal, taccImag); \
+    if (MICRO_NORMAL(iter)) { \
+      bscalec<Packet,accRows>(accReal##iter, accImag##iter, pAlphaReal, pAlphaImag, taccReal, taccImag); \
+    } else { \
+      bscalec<Packet,accRows>(accReal##iter, accImag##iter, pAlphaReal, pAlphaImag, taccReal, taccImag, pMask); \
+    } \
     bcouple<Packet, Packetc, accRows>(taccReal, taccImag, tRes, acc0, acc1); \
     res.template storePacketBlock<Packetc,accRows>(row + iter*accCols + 0, 0, acc0); \
     res.template storePacketBlock<Packetc,accRows>(row + iter*accCols + accColsC, 0, acc1); \
@@ -2137,21 +2155,24 @@ EIGEN_ALWAYS_INLINE void gemm_complex_extra_row(
 
 #define MICRO_COMPLEX_STORE MICRO_COMPLEX_UNROLL(MICRO_COMPLEX_STORE_ONE)
 
-template<int unroll_factor, typename Scalar, typename Packet, typename Packetc, typename DataMapper, typename Index, const Index accRows, const Index accCols, bool ConjugateLhs, bool ConjugateRhs, bool LhsIsReal, bool RhsIsReal>
+template<int unroll_factor, typename Scalar, typename Packet, typename Packetc, typename DataMapper, typename Index, const Index accRows, const Index accCols, const Index accCols2, bool ConjugateLhs, bool ConjugateRhs, bool LhsIsReal, bool RhsIsReal>
 EIGEN_STRONG_INLINE void gemm_complex_unrolled_iteration(
   const DataMapper& res,
   const Scalar* lhs_base,
   const Scalar* rhs_base,
   Index depth,
   Index strideA,
+  Index offsetA,
   Index strideB,
   Index& row,
   const Packet& pAlphaReal,
-  const Packet& pAlphaImag)
+  const Packet& pAlphaImag,
+  const Packet& pMask)
 {
   const Scalar* rhs_ptr_real = rhs_base;
   const Scalar* rhs_ptr_imag = NULL;
   const Index imag_delta = accCols*strideA;
+  const Index imag_delta2 = accCols2*strideA;
   if(!RhsIsReal) {
     rhs_ptr_imag = rhs_base + accRows*strideB;
   } else {
@@ -2184,8 +2205,42 @@ EIGEN_STRONG_INLINE void gemm_complex_unrolled_iteration(
   }
   MICRO_COMPLEX_STORE
 
-  row += unroll_factor*accCols;
+  if (accCols == accCols2) {
+    EIGEN_UNUSED_VARIABLE(pMask);
+    EIGEN_UNUSED_VARIABLE(offsetA);
+    EIGEN_UNUSED_VARIABLE(imag_delta2);
+    row += unroll_factor*accCols;
+  }
 }
+
+#define MICRO_COMPLEX_UNROLL_ITER2(N, M) \
+  gemm_complex_unrolled_iteration<N + (M ? 1 : 0), Scalar, Packet, Packetc, DataMapper, Index, accRows, accCols, M ? M : accCols, ConjugateLhs, ConjugateRhs, LhsIsReal, RhsIsReal>(res3, lhs_base, rhs_base, depth, strideA, offsetA, strideB, row, pAlphaReal, pAlphaImag, pMask); \
+  if (M) remaining_rows = 0;
+
+#ifdef NEW_EXTRA_VSX
+#define MICRO_COMPLEX_UNROLL_ITER(N) \
+  switch (remaining_rows) { \
+    default: \
+      MICRO_COMPLEX_UNROLL_ITER2(N, 0) \
+      break; \
+    case 1: \
+      MICRO_COMPLEX_UNROLL_ITER2(N, 1) \
+      break; \
+    case 2: \
+      if (sizeof(Scalar) == sizeof(float)) { \
+        MICRO_COMPLEX_UNROLL_ITER2(N, 2) \
+      } \
+      break; \
+    case 3: \
+      if (sizeof(Scalar) == sizeof(float)) { \
+        MICRO_COMPLEX_UNROLL_ITER2(N, 3) \
+      } \
+      break; \
+  }
+#else
+#define MICRO_COMPLEX_UNROLL_ITER(N) \
+  MICRO_COMPLEX_UNROLL_ITER2(N, 0)
+#endif
 
 template<typename Scalar, typename Packet, typename Packetc, typename DataMapper, typename Index, const Index accRows, const Index accCols, bool ConjugateLhs, bool ConjugateRhs, bool LhsIsReal, bool RhsIsReal>
 EIGEN_ALWAYS_INLINE void gemm_complex_cols(
@@ -2213,27 +2268,27 @@ EIGEN_ALWAYS_INLINE void gemm_complex_cols(
 
 #define MAX_COMPLEX_UNROLL 3
   while(row + MAX_COMPLEX_UNROLL*accCols <= rows) {
-    gemm_complex_unrolled_iteration<MAX_COMPLEX_UNROLL, Scalar, Packet, Packetc, DataMapper, Index, accRows, accCols, ConjugateLhs, ConjugateRhs, LhsIsReal, RhsIsReal>(res3, lhs_base, rhs_base, depth, strideA, strideB, row, pAlphaReal, pAlphaImag);
+    gemm_complex_unrolled_iteration<MAX_COMPLEX_UNROLL, Scalar, Packet, Packetc, DataMapper, Index, accRows, accCols, accCols, ConjugateLhs, ConjugateRhs, LhsIsReal, RhsIsReal>(res3, lhs_base, rhs_base, depth, strideA, offsetA, strideB, row, pAlphaReal, pAlphaImag, pMask);
   }
   switch( (rows-row)/accCols ) {
 #if MAX_COMPLEX_UNROLL > 4
     case 4:
-      gemm_complex_unrolled_iteration<4, Scalar, Packet, Packetc, DataMapper, Index, accRows, accCols, ConjugateLhs, ConjugateRhs, LhsIsReal, RhsIsReal>(res3, lhs_base, rhs_base, depth, strideA, strideB, row, pAlphaReal, pAlphaImag);
+      MICRO_COMPLEX_UNROLL_ITER(4)
       break;
 #endif
 #if MAX_COMPLEX_UNROLL > 3
     case 3:
-      gemm_complex_unrolled_iteration<3, Scalar, Packet, Packetc, DataMapper, Index, accRows, accCols, ConjugateLhs, ConjugateRhs, LhsIsReal, RhsIsReal>(res3, lhs_base, rhs_base, depth, strideA, strideB, row, pAlphaReal, pAlphaImag);
+      MICRO_COMPLEX_UNROLL_ITER(3)
       break;
 #endif
 #if MAX_COMPLEX_UNROLL > 2
     case 2:
-      gemm_complex_unrolled_iteration<2, Scalar, Packet, Packetc, DataMapper, Index, accRows, accCols, ConjugateLhs, ConjugateRhs, LhsIsReal, RhsIsReal>(res3, lhs_base, rhs_base, depth, strideA, strideB, row, pAlphaReal, pAlphaImag);
+      MICRO_COMPLEX_UNROLL_ITER(2)
       break;
 #endif
 #if MAX_COMPLEX_UNROLL > 1
     case 1:
-      gemm_complex_unrolled_iteration<1, Scalar, Packet, Packetc, DataMapper, Index, accRows, accCols, ConjugateLhs, ConjugateRhs, LhsIsReal, RhsIsReal>(res3, lhs_base, rhs_base, depth, strideA, strideB, row, pAlphaReal, pAlphaImag);
+      MICRO_COMPLEX_UNROLL_ITER(1)
       break;
 #endif
     default:
@@ -2306,6 +2361,7 @@ EIGEN_STRONG_INLINE void gemm_complex(const DataMapper& res, const LhsScalar* bl
 }
 
 #undef accColsC
+#undef accColsC2
 #undef advanceCols
 #undef advanceRows
 

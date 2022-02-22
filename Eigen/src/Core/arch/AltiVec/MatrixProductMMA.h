@@ -646,7 +646,7 @@ EIGEN_ALWAYS_INLINE void gemm_complex_unrolled_MMA_iteration(
   }
 #else
 #define MICRO_COMPLEX_MMA_UNROLL_ITER(N) \
-  MICRO_MMA_COMPLEX_UNROLL_ITER2(N, 0)
+  MICRO_COMPLEX_MMA_UNROLL_ITER2(N, 0)
 #endif
 
 template<typename Scalar, typename Packet, typename Packetc, typename RhsPacket, typename DataMapper, typename Index, const Index accRows, const Index accCols, bool ConjugateLhs, bool ConjugateRhs, bool LhsIsReal, bool RhsIsReal>
