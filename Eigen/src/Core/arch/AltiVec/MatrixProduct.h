@@ -2112,7 +2112,7 @@ EIGEN_ALWAYS_INLINE void gemm_complex_extra_row(
 
 #define MICRO_COMPLEX_SRC_PTR_ONE(iter) \
   if (unroll_factor > iter) { \
-    lhs_ptr_real##iter = lhs_base + ( ((advanceRows*row)/accCols) + iter*advanceRows )*strideA*accCols; \
+    lhs_ptr_real##iter = lhs_base + (row+(iter*accCols))*strideA*advanceRows; \
   } else { \
     EIGEN_UNUSED_VARIABLE(lhs_ptr_real##iter); \
   }
