@@ -163,5 +163,32 @@ EIGEN_ALWAYS_INLINE Packet ploadRhs(const Scalar* rhs)
   return ploadu<Packet>(rhs);
 }
 
+#define NEW_EXTRA
+
+#ifdef NEW_EXTRA
+#define MICRO_UNROLL_ITER(func, N) \
+  switch (remaining_rows) { \
+    default: \
+      func(N, 0) \
+      break; \
+    case 1: \
+      func(N, 1) \
+      break; \
+    case 2: \
+      if (sizeof(Scalar) == sizeof(float)) { \
+        func(N, 2) \
+      } \
+      break; \
+    case 3: \
+      if (sizeof(Scalar) == sizeof(float)) { \
+        func(N, 3) \
+      } \
+      break; \
+  }
+#else
+#define MICRO_UNROLL_ITER(func, N) \
+  func(N, 0)
+#endif
+
 } // end namespace internal
 } // end namespace Eigen

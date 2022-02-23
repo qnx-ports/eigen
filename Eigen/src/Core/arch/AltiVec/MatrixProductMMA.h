@@ -307,36 +307,9 @@ EIGEN_ALWAYS_INLINE void gemm_unrolled_MMA_iteration(
   }
 }
 
-#define NEW_EXTRA
-
 #define MICRO_MMA_UNROLL_ITER2(N, M) \
   gemm_unrolled_MMA_iteration<N + (M ? 1 : 0), Scalar, Packet, RhsPacket, DataMapper, Index, accRows, accCols, M ? M : accCols>(res3, lhs_base, rhs_base, depth, strideA, offsetA, row, pAlpha, pMask); \
   if (M) remaining_rows = 0;
-
-#ifdef NEW_EXTRA
-#define MICRO_MMA_UNROLL_ITER(N) \
-  switch (remaining_rows) { \
-    default: \
-      MICRO_MMA_UNROLL_ITER2(N, 0) \
-      break; \
-    case 1: \
-      MICRO_MMA_UNROLL_ITER2(N, 1) \
-      break; \
-    case 2: \
-      if (sizeof(Scalar) == sizeof(float)) { \
-        MICRO_MMA_UNROLL_ITER2(N, 2) \
-      } \
-      break; \
-    case 3: \
-      if (sizeof(Scalar) == sizeof(float)) { \
-        MICRO_MMA_UNROLL_ITER2(N, 3) \
-      } \
-      break; \
-  }
-#else
-#define MICRO_MMA_UNROLL_ITER(N) \
-  MICRO_MMA_UNROLL_ITER2(N, 0)
-#endif
 
 template<typename Scalar, typename Packet, typename RhsPacket, typename DataMapper, typename Index, const Index accRows, const Index accCols>
 EIGEN_ALWAYS_INLINE void gemmMMA_cols(
@@ -368,37 +341,37 @@ EIGEN_ALWAYS_INLINE void gemmMMA_cols(
   switch( (rows-row)/accCols ) {
 #if MAX_MMA_UNROLL > 7
     case 7:
-      MICRO_MMA_UNROLL_ITER(7)
+      MICRO_UNROLL_ITER(MICRO_MMA_UNROLL_ITER2, 7)
       break;
 #endif
 #if MAX_MMA_UNROLL > 6
     case 6:
-      MICRO_MMA_UNROLL_ITER(6)
+      MICRO_UNROLL_ITER(MICRO_MMA_UNROLL_ITER2, 6)
       break;
 #endif
 #if MAX_MMA_UNROLL > 5
     case 5:
-      MICRO_MMA_UNROLL_ITER(5)
+      MICRO_UNROLL_ITER(MICRO_MMA_UNROLL_ITER2, 5)
       break;
 #endif
 #if MAX_MMA_UNROLL > 4
     case 4:
-      MICRO_MMA_UNROLL_ITER(4)
+      MICRO_UNROLL_ITER(MICRO_MMA_UNROLL_ITER2, 4)
       break;
 #endif
 #if MAX_MMA_UNROLL > 3
     case 3:
-      MICRO_MMA_UNROLL_ITER(3)
+      MICRO_UNROLL_ITER(MICRO_MMA_UNROLL_ITER2, 3)
       break;
 #endif
 #if MAX_MMA_UNROLL > 2
     case 2:
-      MICRO_MMA_UNROLL_ITER(2)
+      MICRO_UNROLL_ITER(MICRO_MMA_UNROLL_ITER2, 2)
       break;
 #endif
 #if MAX_MMA_UNROLL > 1
     case 1:
-      MICRO_MMA_UNROLL_ITER(1)
+      MICRO_UNROLL_ITER(MICRO_MMA_UNROLL_ITER2, 1)
       break;
 #endif
     default:
@@ -624,31 +597,6 @@ EIGEN_ALWAYS_INLINE void gemm_complex_unrolled_MMA_iteration(
   gemm_complex_unrolled_MMA_iteration<N + (M ? 1 : 0), Scalar, Packet, Packetc, RhsPacket, DataMapper, Index, accRows, accCols, M ? M : accCols, ConjugateLhs, ConjugateRhs, LhsIsReal, RhsIsReal>(res3, lhs_base, rhs_base, depth, strideA, offsetA, strideB, row, pAlphaReal, pAlphaImag, pMask); \
   if (M) remaining_rows = 0;
 
-#ifdef NEW_EXTRA
-#define MICRO_COMPLEX_MMA_UNROLL_ITER(N) \
-  switch (remaining_rows) { \
-    default: \
-      MICRO_COMPLEX_MMA_UNROLL_ITER2(N, 0) \
-      break; \
-    case 1: \
-      MICRO_COMPLEX_MMA_UNROLL_ITER2(N, 1) \
-      break; \
-    case 2: \
-      if (sizeof(Scalar) == sizeof(float)) { \
-        MICRO_COMPLEX_MMA_UNROLL_ITER2(N, 2) \
-      } \
-      break; \
-    case 3: \
-      if (sizeof(Scalar) == sizeof(float)) { \
-        MICRO_COMPLEX_MMA_UNROLL_ITER2(N, 3) \
-      } \
-      break; \
-  }
-#else
-#define MICRO_COMPLEX_MMA_UNROLL_ITER(N) \
-  MICRO_COMPLEX_MMA_UNROLL_ITER2(N, 0)
-#endif
-
 template<typename Scalar, typename Packet, typename Packetc, typename RhsPacket, typename DataMapper, typename Index, const Index accRows, const Index accCols, bool ConjugateLhs, bool ConjugateRhs, bool LhsIsReal, bool RhsIsReal>
 EIGEN_ALWAYS_INLINE void gemmMMA_complex_cols(
   const DataMapper& res,
@@ -680,22 +628,22 @@ EIGEN_ALWAYS_INLINE void gemmMMA_complex_cols(
   switch( (rows-row)/accCols ) {
 #if MAX_COMPLEX_MMA_UNROLL > 4
     case 4:
-      MICRO_COMPLEX_MMA_UNROLL_ITER(4)
+      MICRO_UNROLL_ITER(MICRO_COMPLEX_MMA_UNROLL_ITER2, 4)
       break;
 #endif
 #if MAX_COMPLEX_MMA_UNROLL > 3
     case 3:
-      MICRO_COMPLEX_MMA_UNROLL_ITER(3)
+      MICRO_UNROLL_ITER(MICRO_COMPLEX_MMA_UNROLL_ITER2, 3)
       break;
 #endif
 #if MAX_COMPLEX_MMA_UNROLL > 2
     case 2:
-      MICRO_COMPLEX_MMA_UNROLL_ITER(2)
+      MICRO_UNROLL_ITER(MICRO_COMPLEX_MMA_UNROLL_ITER2, 2)
       break;
 #endif
 #if MAX_COMPLEX_MMA_UNROLL > 1
     case 1:
-      MICRO_COMPLEX_MMA_UNROLL_ITER(1)
+      MICRO_UNROLL_ITER(MICRO_COMPLEX_MMA_UNROLL_ITER2, 1)
       break;
 #endif
     default:
