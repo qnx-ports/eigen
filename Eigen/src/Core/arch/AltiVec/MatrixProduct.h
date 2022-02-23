@@ -1534,9 +1534,6 @@ EIGEN_ALWAYS_INLINE void gemm_extra_row(
 #define MICRO_UNROLL(func) \
   func(0) func(1) func(2) func(3) func(4) func(5) func(6) func(7)
 
-#define MICRO_NORMAL(iter) \
-  (accCols == accCols2) || (unroll_factor != (iter + 1))
-
 #define MICRO_UNROLL_WORK(func, func2, peel) \
     MICRO_UNROLL(func2); \
     func(0,peel) func(1,peel) func(2,peel) func(3,peel) \

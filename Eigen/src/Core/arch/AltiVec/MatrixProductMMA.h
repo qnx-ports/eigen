@@ -173,12 +173,9 @@ EIGEN_ALWAYS_INLINE void ploadRhsMMA(const float*, __vector_pair&)
 #define MICRO_MMA_UNROLL(func) \
   func(0) func(1) func(2) func(3) func(4) func(5) func(6) func(7)
 
-#define MICRO_MMA_NORMAL(iter) \
-  (accCols == accCols2) || (unroll_factor != (iter + 1))
-
 #define MICRO_MMA_LOAD_ONE(iter) \
   if (unroll_factor > iter) { \
-    if (MICRO_MMA_NORMAL(iter)) { \
+    if (MICRO_NORMAL(iter)) { \
       lhsV##iter = ploadLhs<Scalar, Packet>(lhs_ptr##iter); \
       lhs_ptr##iter += accCols; \
     } else { \
@@ -243,7 +240,7 @@ EIGEN_ALWAYS_INLINE void ploadRhsMMA(const float*, __vector_pair&)
 
 #define MICRO_MMA_SRC_PTR_ONE(iter) \
   if (unroll_factor > iter) { \
-    if (MICRO_MMA_NORMAL(iter)) { \
+    if (MICRO_NORMAL(iter)) { \
       lhs_ptr##iter = lhs_base + (row+(iter*accCols))*strideA; \
     } else { \
       lhs_ptr##iter = lhs_base + (row+(iter*accCols))*strideA - (accCols-accCols2)*offsetA; \
@@ -429,7 +426,7 @@ void gemmMMA(const DataMapper& res, const Scalar* blockA, const Scalar* blockB, 
 
 #define MICRO_COMPLEX_MMA_LOAD_ONE(iter) \
   if (unroll_factor > iter) { \
-    if (MICRO_MMA_NORMAL(iter)) { \
+    if (MICRO_NORMAL(iter)) { \
       lhsV##iter = ploadLhs<Scalar, Packet>(lhs_ptr_real##iter); \
       if(!LhsIsReal) { \
         lhsVi##iter = ploadLhs<Scalar, Packet>(lhs_ptr_real##iter + imag_delta); \
@@ -514,7 +511,7 @@ void gemmMMA(const DataMapper& res, const Scalar* blockA, const Scalar* blockB, 
 
 #define MICRO_COMPLEX_MMA_SRC_PTR_ONE(iter) \
   if (unroll_factor > iter) { \
-    if (MICRO_MMA_NORMAL(iter)) { \
+    if (MICRO_NORMAL(iter)) { \
       lhs_ptr_real##iter = lhs_base + (row+(iter*accCols))*strideA*advanceRows; \
     } else { \
       lhs_ptr_real##iter = lhs_base + (row+(iter*accCols))*strideA*advanceRows - (accCols-accCols2)*offsetA; \

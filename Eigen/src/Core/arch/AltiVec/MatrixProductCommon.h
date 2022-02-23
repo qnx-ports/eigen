@@ -165,6 +165,9 @@ EIGEN_ALWAYS_INLINE Packet ploadRhs(const Scalar* rhs)
 
 #define NEW_EXTRA
 
+#define MICRO_NORMAL(iter) \
+  (accCols == accCols2) || (unroll_factor != (iter + 1))
+
 #ifdef NEW_EXTRA
 #define MICRO_UNROLL_ITER(func, N) \
   switch (remaining_rows) { \
