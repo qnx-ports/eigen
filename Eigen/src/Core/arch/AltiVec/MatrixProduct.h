@@ -1581,17 +1581,6 @@ EIGEN_ALWAYS_INLINE void gemm_extra_row(
 
 #define MICRO_DST_PTR MICRO_UNROLL(MICRO_DST_PTR_ONE)
 
-#define MICRO_SRC_PTR_ONE(iter) \
-  if (unroll_factor > iter) { \
-    if (MICRO_NORMAL(iter)) { \
-      lhs_ptr##iter = lhs_base + (row+(iter*accCols))*strideA; \
-    } else { \
-      lhs_ptr##iter = lhs_base + (row+(iter*accCols))*strideA - (accCols-accCols2)*offsetA; \
-    } \
-  } else { \
-    EIGEN_UNUSED_VARIABLE(lhs_ptr##iter); \
-  }
-
 #define MICRO_SRC_PTR MICRO_UNROLL(MICRO_SRC_PTR_ONE)
 
 #define MICRO_PREFETCH_ONE(iter) \
@@ -2052,17 +2041,6 @@ EIGEN_ALWAYS_INLINE void gemm_complex_extra_row(
   }
 
 #define MICRO_COMPLEX_DST_PTR MICRO_COMPLEX_UNROLL(MICRO_COMPLEX_DST_PTR_ONE)
-
-#define MICRO_COMPLEX_SRC_PTR_ONE(iter) \
-  if (unroll_factor > iter) { \
-    if (MICRO_NORMAL(iter)) { \
-      lhs_ptr_real##iter = lhs_base + (row+(iter*accCols))*strideA*advanceRows; \
-    } else { \
-      lhs_ptr_real##iter = lhs_base + (row+(iter*accCols))*strideA*advanceRows - (accCols-accCols2)*offsetA; \
-    } \
-  } else { \
-    EIGEN_UNUSED_VARIABLE(lhs_ptr_real##iter); \
-  }
 
 #define MICRO_COMPLEX_SRC_PTR MICRO_COMPLEX_UNROLL(MICRO_COMPLEX_SRC_PTR_ONE)
 

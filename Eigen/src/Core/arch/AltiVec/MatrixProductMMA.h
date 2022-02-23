@@ -225,18 +225,7 @@ EIGEN_ALWAYS_INLINE void ploadRhsMMA(const float*, __vector_pair&)
 
 #define MICRO_MMA_DST_PTR MICRO_MMA_UNROLL(MICRO_MMA_DST_PTR_ONE)
 
-#define MICRO_MMA_SRC_PTR_ONE(iter) \
-  if (unroll_factor > iter) { \
-    if (MICRO_NORMAL(iter)) { \
-      lhs_ptr##iter = lhs_base + (row+(iter*accCols))*strideA; \
-    } else { \
-      lhs_ptr##iter = lhs_base + (row+(iter*accCols))*strideA - (accCols-accCols2)*offsetA; \
-    } \
-  } else { \
-    EIGEN_UNUSED_VARIABLE(lhs_ptr##iter); \
-  }
-
-#define MICRO_MMA_SRC_PTR MICRO_MMA_UNROLL(MICRO_MMA_SRC_PTR_ONE)
+#define MICRO_MMA_SRC_PTR MICRO_MMA_UNROLL(MICRO_SRC_PTR_ONE)
 
 #define MICRO_MMA_PREFETCH_ONE(iter) \
   if (unroll_factor > iter) { \
@@ -472,18 +461,7 @@ void gemmMMA(const DataMapper& res, const Scalar* blockA, const Scalar* blockB, 
 
 #define MICRO_COMPLEX_MMA_DST_PTR MICRO_COMPLEX_MMA_UNROLL(MICRO_COMPLEX_MMA_DST_PTR_ONE)
 
-#define MICRO_COMPLEX_MMA_SRC_PTR_ONE(iter) \
-  if (unroll_factor > iter) { \
-    if (MICRO_NORMAL(iter)) { \
-      lhs_ptr_real##iter = lhs_base + (row+(iter*accCols))*strideA*advanceRows; \
-    } else { \
-      lhs_ptr_real##iter = lhs_base + (row+(iter*accCols))*strideA*advanceRows - (accCols-accCols2)*offsetA; \
-    } \
-  } else { \
-    EIGEN_UNUSED_VARIABLE(lhs_ptr_real##iter); \
-  }
-
-#define MICRO_COMPLEX_MMA_SRC_PTR MICRO_COMPLEX_MMA_UNROLL(MICRO_COMPLEX_MMA_SRC_PTR_ONE)
+#define MICRO_COMPLEX_MMA_SRC_PTR MICRO_COMPLEX_MMA_UNROLL(MICRO_COMPLEX_SRC_PTR_ONE)
 
 #define MICRO_COMPLEX_MMA_PREFETCH_ONE(iter) \
   if (unroll_factor > iter) { \
