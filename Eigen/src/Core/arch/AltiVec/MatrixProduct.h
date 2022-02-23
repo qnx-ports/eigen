@@ -1539,19 +1539,6 @@ EIGEN_ALWAYS_INLINE void gemm_extra_row(
     func(0,peel) func(1,peel) func(2,peel) func(3,peel) \
     func(4,peel) func(5,peel) func(6,peel) func(7,peel)
 
-#define MICRO_LOAD_ONE(iter) \
-  if (unroll_factor > iter) { \
-    if (MICRO_NORMAL(iter)) { \
-      lhsV##iter = ploadLhs<Scalar, Packet>(lhs_ptr##iter); \
-      lhs_ptr##iter += accCols; \
-    } else { \
-      loadPacketRemaining<Scalar, Packet, Index, accCols2>(lhs_ptr##iter, lhsV##iter); \
-      lhs_ptr##iter += accCols2; \
-    } \
-  } else { \
-    EIGEN_UNUSED_VARIABLE(lhsV##iter); \
-  }
-
 #define MICRO_WORK_ONE(iter, peel) \
   if (unroll_factor > iter) { \
     pger_common<Packet, false, accRows>(&accZero##iter, lhsV##iter, rhsV##peel); \
@@ -2013,30 +2000,6 @@ EIGEN_ALWAYS_INLINE void gemm_complex_extra_row(
 #define MICRO_COMPLEX_UNROLL_WORK(func, func2, peel) \
     MICRO_COMPLEX_UNROLL(func2); \
     func(0,peel) func(1,peel) func(2,peel) func(3,peel)
-
-#define MICRO_COMPLEX_LOAD_ONE(iter) \
-  if (unroll_factor > iter) { \
-    if (MICRO_NORMAL(iter)) { \
-      lhsV##iter = ploadLhs<Scalar, Packet>(lhs_ptr_real##iter); \
-      if(!LhsIsReal) { \
-        lhsVi##iter = ploadLhs<Scalar, Packet>(lhs_ptr_real##iter + imag_delta); \
-      } else { \
-        EIGEN_UNUSED_VARIABLE(lhsVi##iter); \
-      } \
-      lhs_ptr_real##iter += accCols; \
-    } else { \
-      lhsV##iter = vec_xl_len(lhs_ptr_real##iter, accCols2 * sizeof(Scalar)); \
-      if(!LhsIsReal) { \
-        lhsVi##iter = vec_xl_len(lhs_ptr_real##iter + imag_delta2, accCols2 * sizeof(Scalar)); \
-      } else { \
-        EIGEN_UNUSED_VARIABLE(lhsVi##iter); \
-      } \
-      lhs_ptr_real##iter += accCols2; \
-    } \
-  } else { \
-    EIGEN_UNUSED_VARIABLE(lhsV##iter); \
-    EIGEN_UNUSED_VARIABLE(lhsVi##iter); \
-  }
 
 #define MICRO_COMPLEX_WORK_ONE4(iter, peel) \
   if (unroll_factor > iter) { \

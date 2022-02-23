@@ -101,6 +101,9 @@ EIGEN_ALWAYS_INLINE void bscalec(PacketBlock<Packet,N>& aReal, PacketBlock<Packe
 template<typename Packet, int N>
 EIGEN_ALWAYS_INLINE void bscalec(PacketBlock<Packet,N>& aReal, PacketBlock<Packet,N>& aImag, const Packet& bReal, const Packet& bImag, PacketBlock<Packet,N>& cReal, PacketBlock<Packet,N>& cImag, const Packet& pMask);
 
+template<typename Scalar, typename Packet, typename Index, const Index remaining_rows>
+EIGEN_ALWAYS_INLINE void loadPacketRemaining(const Scalar* lhs, Packet &lhsV);
+
 // Grab two decouples real/imaginary PacketBlocks and return two coupled (real/imaginary pairs) PacketBlocks.
 template<typename Packet, typename Packetc, int N>
 EIGEN_ALWAYS_INLINE void bcouple_common(PacketBlock<Packet,N>& taccReal, PacketBlock<Packet,N>& taccImag, PacketBlock<Packetc, N>& acc1, PacketBlock<Packetc, N>& acc2)
@@ -192,6 +195,43 @@ EIGEN_ALWAYS_INLINE Packet ploadRhs(const Scalar* rhs)
 #define MICRO_UNROLL_ITER(func, N) \
   func(N, 0)
 #endif
+
+#define MICRO_LOAD_ONE(iter) \
+  if (unroll_factor > iter) { \
+    if (MICRO_NORMAL(iter)) { \
+      lhsV##iter = ploadLhs<Scalar, Packet>(lhs_ptr##iter); \
+      lhs_ptr##iter += accCols; \
+    } else { \
+      loadPacketRemaining<Scalar, Packet, Index, accCols2>(lhs_ptr##iter, lhsV##iter); \
+      lhs_ptr##iter += accCols2; \
+    } \
+  } else { \
+    EIGEN_UNUSED_VARIABLE(lhsV##iter); \
+  }
+
+#define MICRO_COMPLEX_LOAD_ONE(iter) \
+  if (unroll_factor > iter) { \
+    if (MICRO_NORMAL(iter)) { \
+      lhsV##iter = ploadLhs<Scalar, Packet>(lhs_ptr_real##iter); \
+      if(!LhsIsReal) { \
+        lhsVi##iter = ploadLhs<Scalar, Packet>(lhs_ptr_real##iter + imag_delta); \
+      } else { \
+        EIGEN_UNUSED_VARIABLE(lhsVi##iter); \
+      } \
+      lhs_ptr_real##iter += accCols; \
+    } else { \
+      loadPacketRemaining<Scalar, Packet, Index, accCols2>(lhs_ptr_real##iter, lhsV##iter); \
+      if(!LhsIsReal) { \
+        loadPacketRemaining<Scalar, Packet, Index, accCols2>(lhs_ptr_real##iter + imag_delta2, lhsVi##iter); \
+      } else { \
+        EIGEN_UNUSED_VARIABLE(lhsVi##iter); \
+      } \
+      lhs_ptr_real##iter += accCols2; \
+    } \
+  } else { \
+    EIGEN_UNUSED_VARIABLE(lhsV##iter); \
+    EIGEN_UNUSED_VARIABLE(lhsVi##iter); \
+  }
 
 } // end namespace internal
 } // end namespace Eigen
