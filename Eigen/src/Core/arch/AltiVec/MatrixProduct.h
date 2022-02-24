@@ -1645,7 +1645,7 @@ EIGEN_STRONG_INLINE void gemm_unrolled_iteration(
 
 #define MICRO_UNROLL_ITER2(N, M) \
   gemm_unrolled_iteration<N + ((M) ? 1 : 0), Scalar, Packet, DataMapper, Index, accRows, accCols, M ? M : accCols>(res3, lhs_base, rhs_base, depth, strideA, offsetA, row, pAlpha, pMask); \
-  if (M) remaining_rows = 0;
+  if (M) return;
 
 template<typename Scalar, typename Packet, typename DataMapper, typename Index, const Index accRows, const Index accCols>
 EIGEN_ALWAYS_INLINE void gemm_cols(
@@ -2126,7 +2126,7 @@ EIGEN_STRONG_INLINE void gemm_complex_unrolled_iteration(
 
 #define MICRO_COMPLEX_UNROLL_ITER2(N, M) \
   gemm_complex_unrolled_iteration<N + (M ? 1 : 0), Scalar, Packet, Packetc, DataMapper, Index, accRows, accCols, M ? M : accCols, ConjugateLhs, ConjugateRhs, LhsIsReal, RhsIsReal>(res3, lhs_base, rhs_base, depth, strideA, offsetA, strideB, row, pAlphaReal, pAlphaImag, pMask); \
-  if (M) remaining_rows = 0;
+  if (M) return;
 
 template<typename Scalar, typename Packet, typename Packetc, typename DataMapper, typename Index, const Index accRows, const Index accCols, bool ConjugateLhs, bool ConjugateRhs, bool LhsIsReal, bool RhsIsReal>
 EIGEN_ALWAYS_INLINE void gemm_complex_cols(
