@@ -1661,7 +1661,7 @@ EIGEN_ALWAYS_INLINE void gemm_extra_row(
 #define MICRO_STORE MICRO_UNROLL(MICRO_STORE_ONE)
 
 template<int unroll_factor, typename Scalar, typename Packet, typename DataMapper, typename Index, const Index accRows, const Index accCols, const Index accCols2>
-EIGEN_STRONG_INLINE void gemm_unrolled_iteration(
+EIGEN_ALWAYS_INLINE void gemm_unrolled_iteration(
   const DataMapper& res,
   const Scalar* lhs_base,
   const Scalar* rhs_base,
@@ -2119,7 +2119,7 @@ EIGEN_ALWAYS_INLINE void gemm_complex_extra_row(
 #define MICRO_COMPLEX_STORE MICRO_COMPLEX_UNROLL(MICRO_COMPLEX_STORE_ONE)
 
 template<int unroll_factor, typename Scalar, typename Packet, typename Packetc, typename DataMapper, typename Index, const Index accRows, const Index accCols, const Index accCols2, bool ConjugateLhs, bool ConjugateRhs, bool LhsIsReal, bool RhsIsReal>
-EIGEN_STRONG_INLINE void gemm_complex_unrolled_iteration(
+EIGEN_ALWAYS_INLINE void gemm_complex_unrolled_iteration(
   const DataMapper& res,
   const Scalar* lhs_base,
   const Scalar* rhs_base,
