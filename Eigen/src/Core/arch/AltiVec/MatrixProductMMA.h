@@ -227,12 +227,7 @@ EIGEN_ALWAYS_INLINE void ploadRhsMMA(const float*, __vector_pair&)
 
 #define MICRO_MMA_SRC_PTR MICRO_MMA_UNROLL(MICRO_SRC_PTR_ONE)
 
-#define MICRO_MMA_PREFETCH_ONE(iter) \
-  if (unroll_factor > iter) { \
-    EIGEN_POWER_PREFETCH(lhs_ptr##iter); \
-  }
-
-#define MICRO_MMA_PREFETCH MICRO_MMA_UNROLL(MICRO_MMA_PREFETCH_ONE)
+#define MICRO_MMA_PREFETCH MICRO_MMA_UNROLL(MICRO_PREFETCH_ONE)
 
 #define MICRO_MMA_STORE_ONE(iter) \
   if (unroll_factor > iter) { \
@@ -463,12 +458,7 @@ void gemmMMA(const DataMapper& res, const Scalar* blockA, const Scalar* blockB, 
 
 #define MICRO_COMPLEX_MMA_SRC_PTR MICRO_COMPLEX_MMA_UNROLL(MICRO_COMPLEX_SRC_PTR_ONE)
 
-#define MICRO_COMPLEX_MMA_PREFETCH_ONE(iter) \
-  if (unroll_factor > iter) { \
-    EIGEN_POWER_PREFETCH(lhs_ptr_real##iter); \
-  }
-
-#define MICRO_COMPLEX_MMA_PREFETCH MICRO_COMPLEX_MMA_UNROLL(MICRO_COMPLEX_MMA_PREFETCH_ONE)
+#define MICRO_COMPLEX_MMA_PREFETCH MICRO_COMPLEX_MMA_UNROLL(MICRO_COMPLEX_PREFETCH_ONE)
 
 #define MICRO_COMPLEX_MMA_STORE_ONE(iter) \
   if (unroll_factor > iter) { \

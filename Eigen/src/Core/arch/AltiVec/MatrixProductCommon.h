@@ -255,5 +255,15 @@ EIGEN_ALWAYS_INLINE Packet ploadRhs(const Scalar* rhs)
     EIGEN_UNUSED_VARIABLE(lhs_ptr_real##iter); \
   }
 
+#define MICRO_PREFETCH_ONE(iter) \
+  if (unroll_factor > iter) { \
+    EIGEN_POWER_PREFETCH(lhs_ptr##iter); \
+  }
+
+#define MICRO_COMPLEX_PREFETCH_ONE(iter) \
+  if (unroll_factor > iter) { \
+    EIGEN_POWER_PREFETCH(lhs_ptr_real##iter); \
+  }
+
 } // end namespace internal
 } // end namespace Eigen
