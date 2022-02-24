@@ -104,67 +104,11 @@ EIGEN_ALWAYS_INLINE void bscalec(PacketBlock<Packet,N>& aReal, PacketBlock<Packe
 template<typename Scalar, typename Packet, typename Index, const Index remaining_rows>
 EIGEN_ALWAYS_INLINE void loadPacketRemaining(const Scalar* lhs, Packet &lhsV);
 
-// Grab two decouples real/imaginary PacketBlocks and return two coupled (real/imaginary pairs) PacketBlocks.
 template<typename Packet, typename Packetc, int N>
-EIGEN_ALWAYS_INLINE void bcouple_common(PacketBlock<Packet,N>& taccReal, PacketBlock<Packet,N>& taccImag, PacketBlock<Packetc, N>& acc1, PacketBlock<Packetc, N>& acc2)
-{
-  acc1.packet[0].v = vec_mergeh(taccReal.packet[0], taccImag.packet[0]);
-  if (N > 1) {
-    acc1.packet[1].v = vec_mergeh(taccReal.packet[1], taccImag.packet[1]);
-  }
-  if (N > 2) {
-    acc1.packet[2].v = vec_mergeh(taccReal.packet[2], taccImag.packet[2]);
-  }
-  if (N > 3) {
-    acc1.packet[3].v = vec_mergeh(taccReal.packet[3], taccImag.packet[3]);
-  }
+EIGEN_ALWAYS_INLINE void bcouple(PacketBlock<Packet,N>& taccReal, PacketBlock<Packet,N>& taccImag, PacketBlock<Packetc,N*2>& tRes, PacketBlock<Packetc, N>& acc1, PacketBlock<Packetc, N>& acc2);
 
-  acc2.packet[0].v = vec_mergel(taccReal.packet[0], taccImag.packet[0]);
-  if (N > 1) {
-    acc2.packet[1].v = vec_mergel(taccReal.packet[1], taccImag.packet[1]);
-  }
-  if (N > 2) {
-    acc2.packet[2].v = vec_mergel(taccReal.packet[2], taccImag.packet[2]);
-  }
-  if (N > 3) {
-    acc2.packet[3].v = vec_mergel(taccReal.packet[3], taccImag.packet[3]);
-  }
-}
-
-template<typename Packet, typename Packetc, int N>
-EIGEN_ALWAYS_INLINE void bcouple(PacketBlock<Packet,N>& taccReal, PacketBlock<Packet,N>& taccImag, PacketBlock<Packetc,N*2>& tRes, PacketBlock<Packetc, N>& acc1, PacketBlock<Packetc, N>& acc2)
-{
-  bcouple_common<Packet, Packetc, N>(taccReal, taccImag, acc1, acc2);
-
-  acc1.packet[0] = padd<Packetc>(tRes.packet[0], acc1.packet[0]);
-  if (N > 1) {
-    acc1.packet[1] = padd<Packetc>(tRes.packet[1], acc1.packet[1]);
-  }
-  if (N > 2) {
-    acc1.packet[2] = padd<Packetc>(tRes.packet[2], acc1.packet[2]);
-  }
-  if (N > 3) {
-    acc1.packet[3] = padd<Packetc>(tRes.packet[3], acc1.packet[3]);
-  }
-
-  acc2.packet[0] = padd<Packetc>(tRes.packet[0+N], acc2.packet[0]);
-  if (N > 1) {
-    acc2.packet[1] = padd<Packetc>(tRes.packet[1+N], acc2.packet[1]);
-  }
-  if (N > 2) {
-    acc2.packet[2] = padd<Packetc>(tRes.packet[2+N], acc2.packet[2]);
-  }
-  if (N > 3) {
-    acc2.packet[3] = padd<Packetc>(tRes.packet[3+N], acc2.packet[3]);
-  }
-}
-
-// This is necessary because ploadRhs for double returns a pair of vectors when MMA is enabled.
 template<typename Scalar, typename Packet>
-EIGEN_ALWAYS_INLINE Packet ploadRhs(const Scalar* rhs)
-{
-  return ploadu<Packet>(rhs);
-}
+EIGEN_ALWAYS_INLINE Packet ploadRhs(const Scalar* rhs);
 
 #define NEW_EXTRA
 
