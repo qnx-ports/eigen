@@ -1729,7 +1729,7 @@ EIGEN_ALWAYS_INLINE void gemm_cols(
 
 #define MAX_UNROLL 6
   while(row + MAX_UNROLL*accCols <= rows) {
-    gemm_unrolled_iteration<MAX_UNROLL, Scalar, Packet, DataMapper, Index, accRows, accCols, accCols>(res3, lhs_base, rhs_base, depth, strideA, offsetA, row, pAlpha, pMask);
+    MICRO_UNROLL_ITER2(MAX_UNROLL, 0);
   }
   switch( (rows-row)/accCols ) {
 #if MAX_UNROLL > 7
@@ -2206,7 +2206,7 @@ EIGEN_ALWAYS_INLINE void gemm_complex_cols(
 
 #define MAX_COMPLEX_UNROLL 3
   while(row + MAX_COMPLEX_UNROLL*accCols <= rows) {
-    gemm_complex_unrolled_iteration<MAX_COMPLEX_UNROLL, Scalar, Packet, Packetc, DataMapper, Index, accRows, accCols, accCols, ConjugateLhs, ConjugateRhs, LhsIsReal, RhsIsReal>(res3, lhs_base, rhs_base, depth, strideA, offsetA, strideB, row, pAlphaReal, pAlphaImag, pMask);
+    MICRO_COMPLEX_UNROLL_ITER2(MAX_COMPLEX_UNROLL, 0);
   }
   switch( (rows-row)/accCols ) {
 #if MAX_COMPLEX_UNROLL > 4

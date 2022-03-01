@@ -304,7 +304,7 @@ EIGEN_ALWAYS_INLINE void gemmMMA_cols(
 
 #define MAX_MMA_UNROLL 7
   while(row + MAX_MMA_UNROLL*accCols <= rows) {
-    gemm_unrolled_MMA_iteration<MAX_MMA_UNROLL, Scalar, Packet, RhsPacket, DataMapper, Index, accRows, accCols, accCols>(res3, lhs_base, rhs_base, depth, strideA, offsetA, row, pAlpha, pMask);
+    MICRO_MMA_UNROLL_ITER2(MAX_MMA_UNROLL, 0);
   }
   switch( (rows-row)/accCols ) {
 #if MAX_MMA_UNROLL > 7
@@ -551,7 +551,7 @@ EIGEN_ALWAYS_INLINE void gemmMMA_complex_cols(
 
 #define MAX_COMPLEX_MMA_UNROLL 3
   while(row + MAX_COMPLEX_MMA_UNROLL*accCols <= rows) {
-    gemm_complex_unrolled_MMA_iteration<MAX_COMPLEX_MMA_UNROLL, Scalar, Packet, Packetc, RhsPacket, DataMapper, Index, accRows, accCols, accCols, ConjugateLhs, ConjugateRhs, LhsIsReal, RhsIsReal>(res3, lhs_base, rhs_base, depth, strideA, offsetA, strideB, row, pAlphaReal, pAlphaImag, pMask);
+    MICRO_COMPLEX_MMA_UNROLL_ITER2(MAX_COMPLEX_MMA_UNROLL, 0);
   }
   switch( (rows-row)/accCols ) {
 #if MAX_COMPLEX_MMA_UNROLL > 4
