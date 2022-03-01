@@ -209,5 +209,14 @@ EIGEN_ALWAYS_INLINE Packet ploadRhs(const Scalar* rhs);
     EIGEN_POWER_PREFETCH(lhs_ptr_real##iter); \
   }
 
+#define MICRO_PREFETCHN(N, rhs_ptr0, rhs_ptr1, rhs_ptr2) \
+  EIGEN_POWER_PREFETCH(rhs_ptr0); \
+  if (N == 2 || N == 3) { \
+    EIGEN_POWER_PREFETCH(rhs_ptr1); \
+    if (N == 3) { \
+      EIGEN_POWER_PREFETCH(rhs_ptr2); \
+    } \
+  }
+
 } // end namespace internal
 } // end namespace Eigen
