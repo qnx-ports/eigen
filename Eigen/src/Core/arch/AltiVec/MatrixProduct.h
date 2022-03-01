@@ -1363,6 +1363,7 @@ pbroadcastN(const __UNPACK_TYPE__(Packet) *ap0, const __UNPACK_TYPE__(Packet) *a
     }
   } else {
     EIGEN_UNUSED_VARIABLE(a1);
+    EIGEN_UNUSED_VARIABLE(ap1);
   }
   if (N > 2) {
     if (N == 4) {
@@ -1373,6 +1374,7 @@ pbroadcastN(const __UNPACK_TYPE__(Packet) *ap0, const __UNPACK_TYPE__(Packet) *a
     }
   } else {
     EIGEN_UNUSED_VARIABLE(a2);
+    EIGEN_UNUSED_VARIABLE(ap2);
   }
   if (N > 3) {
     a3 = pset1<Packet>(ap0[3]);
@@ -1473,17 +1475,6 @@ EIGEN_ALWAYS_INLINE Packet ploadRhs(const Scalar* rhs)
     EIGEN_UNUSED_VARIABLE(accZero##peel); \
   }
 
-#define MICRO_ZERO_PEEL_ROW \
-  MICRO_UNROLL_PEEL(MICRO_ZERO_PEEL);
-
-#define MICRO_WORK_PEEL(peel) \
-  if (PEEL_ROW > peel) { \
-    pbroadcastN<Packet,accRows>(rhs_ptr + (accRows * peel), rhs_ptr + (accRows * peel), rhs_ptr + (accRows * peel), rhsV##peel[0], rhsV##peel[1], rhsV##peel[2], rhsV##peel[3]); \
-    pger<accRows, Scalar, Packet, false>(&accZero##peel, lhs_ptr + (remaining_rows * peel), rhsV##peel); \
-  } else { \
-    EIGEN_UNUSED_VARIABLE(rhsV##peel); \
-  }
-
 #define MICRO_ADD_ROWS(N) \
   if (MICRO_NORMAL_ROWS) { \
     rhs_ptr0 += (accRows * N); \
@@ -1495,11 +1486,52 @@ EIGEN_ALWAYS_INLINE Packet ploadRhs(const Scalar* rhs)
     } \
   }
 
+#define MICRO_BROADCAST(peel) \
+  if (MICRO_NORMAL_ROWS) { \
+    pbroadcastN<Packet,accRows>(rhs_ptr0 + (accRows * peel), rhs_ptr0, rhs_ptr0, rhsV##peel[0], rhsV##peel[1], rhsV##peel[2], rhsV##peel[3]); \
+  } else { \
+    pbroadcastN<Packet,accRows>(rhs_ptr0 + peel, rhs_ptr1 + peel, rhs_ptr2 + peel, rhsV##peel[0], rhsV##peel[1], rhsV##peel[2], rhsV##peel[3]); \
+  }
+
+#define MICRO_BROADCAST_EXTRA \
+  Packet rhsV[4]; \
+  if (MICRO_NORMAL_ROWS) { \
+    pbroadcastN<Packet,accRows>(rhs_ptr0, rhs_ptr0, rhs_ptr0, rhsV[0], rhsV[1], rhsV[2], rhsV[3]); \
+  } else { \
+    pbroadcastN<Packet,accRows>(rhs_ptr0, rhs_ptr1, rhs_ptr2, rhsV[0], rhsV[1], rhsV[2], rhsV[3]); \
+  } \
+  MICRO_ADD_ROWS(1)
+
+#define MICRO_SRC2_PTR \
+  if (MICRO_NORMAL_ROWS) { \
+    EIGEN_UNUSED_VARIABLE(strideB); \
+    EIGEN_UNUSED_VARIABLE(rhs_ptr1); \
+    EIGEN_UNUSED_VARIABLE(rhs_ptr2); \
+  } else { \
+    rhs_ptr1 = rhs_base + strideB; \
+    if (accRows == 3) { \
+      rhs_ptr2 = rhs_base + strideB*2; \
+    } else { \
+      EIGEN_UNUSED_VARIABLE(rhs_ptr2); \
+    } \
+  }
+
+#define MICRO_ZERO_PEEL_ROW \
+  MICRO_UNROLL_PEEL(MICRO_ZERO_PEEL);
+
+#define MICRO_WORK_PEEL(peel) \
+  if (PEEL_ROW > peel) { \
+    MICRO_BROADCAST(peel) \
+    pger<accRows, Scalar, Packet, false>(&accZero##peel, lhs_ptr + (remaining_rows * peel), rhsV##peel); \
+  } else { \
+    EIGEN_UNUSED_VARIABLE(rhsV##peel); \
+  }
+
 #define MICRO_WORK_PEEL_ROW \
   Packet rhsV0[4], rhsV1[4], rhsV2[4], rhsV3[4], rhsV4[4], rhsV5[4], rhsV6[4], rhsV7[4]; \
   MICRO_UNROLL_PEEL(MICRO_WORK_PEEL); \
   lhs_ptr += (remaining_rows * PEEL_ROW); \
-  rhs_ptr += (accRows * PEEL_ROW);
+  MICRO_ADD_ROWS(PEEL_ROW)
 
 #define MICRO_ADD_PEEL(peel, sum) \
   if (PEEL_ROW > peel) { \
@@ -1515,14 +1547,14 @@ EIGEN_ALWAYS_INLINE Packet ploadRhs(const Scalar* rhs)
 template<typename Scalar, typename Packet, typename Index, const Index accRows, const Index remaining_rows>
 EIGEN_ALWAYS_INLINE void MICRO_EXTRA_ROW(
   const Scalar* &lhs_ptr,
-  const Scalar* &rhs_ptr,
+  const Scalar* &rhs_ptr0,
+  const Scalar* &rhs_ptr1,
+  const Scalar* &rhs_ptr2,
   PacketBlock<Packet,accRows> &accZero)
 {
-  Packet rhsV[4];
-  pbroadcastN<Packet,accRows>(rhs_ptr, rhs_ptr, rhs_ptr, rhsV[0], rhsV[1], rhsV[2], rhsV[3]);
+  MICRO_BROADCAST_EXTRA
   pger<accRows, Scalar, Packet, false>(&accZero, lhs_ptr, rhsV);
   lhs_ptr += remaining_rows;
-  rhs_ptr += accRows;
 }
 
 template<typename Scalar, typename Packet, typename DataMapper, typename Index, const Index accRows, const Index accCols, const Index remaining_rows>
@@ -1533,6 +1565,7 @@ EIGEN_ALWAYS_INLINE void gemm_unrolled_row_iteration(
   Index depth,
   Index strideA,
   Index offsetA,
+  Index strideB,
   Index row,
   Index col,
   Index rows,
@@ -1540,10 +1573,11 @@ EIGEN_ALWAYS_INLINE void gemm_unrolled_row_iteration(
   const Packet& pAlpha,
   const Packet& pMask)
 {
-  const Scalar* rhs_ptr = rhs_base;
+  const Scalar* rhs_ptr0 = rhs_base, * rhs_ptr1 = NULL, * rhs_ptr2 = NULL;
   const Scalar* lhs_ptr = lhs_base + row*strideA + remaining_rows*offsetA;
   PacketBlock<Packet,accRows> accZero0, accZero1, accZero2, accZero3, accZero4, accZero5, accZero6, accZero7, acc;
 
+  MICRO_SRC2_PTR
   bsetzero<Scalar, Packet, accRows>(accZero0);
 
   Index remaining_depth = (col + quad_traits<Scalar>::rows < cols) ? depth : (depth & -quad_traits<Scalar>::rows);
@@ -1552,7 +1586,7 @@ EIGEN_ALWAYS_INLINE void gemm_unrolled_row_iteration(
     MICRO_ZERO_PEEL_ROW
     do
     {
-      EIGEN_POWER_PREFETCH(rhs_ptr);
+      MICRO_PREFETCHN(accRows, rhs_ptr0, rhs_ptr1, rhs_ptr2);
       EIGEN_POWER_PREFETCH(lhs_ptr);
       MICRO_WORK_PEEL_ROW
     } while ((k += PEEL_ROW) + PEEL_ROW <= remaining_depth);
@@ -1560,7 +1594,7 @@ EIGEN_ALWAYS_INLINE void gemm_unrolled_row_iteration(
   }
   for(; k < remaining_depth; k++)
   {
-    MICRO_EXTRA_ROW<Scalar, Packet, Index, accRows, remaining_rows>(lhs_ptr, rhs_ptr, accZero0);
+    MICRO_EXTRA_ROW<Scalar, Packet, Index, accRows, remaining_rows>(lhs_ptr, rhs_ptr0, rhs_ptr1, rhs_ptr2, accZero0);
   }
 
   if ((remaining_depth == depth) && (rows >= accCols))
@@ -1571,11 +1605,9 @@ EIGEN_ALWAYS_INLINE void gemm_unrolled_row_iteration(
   } else {
     for(; k < depth; k++)
     {
-      Packet rhsV[4];
-      pbroadcastN<Packet,accRows>(rhs_ptr, rhs_ptr, rhs_ptr, rhsV[0], rhsV[1], rhsV[2], rhsV[3]);
+      MICRO_BROADCAST_EXTRA
       pger<accRows, Scalar, Packet, Index, false, remaining_rows>(&accZero0, lhs_ptr, rhsV);
       lhs_ptr += remaining_rows;
-      rhs_ptr += accRows;
     }
 
     for(Index j = 0; j < accRows; j++) {
@@ -1587,6 +1619,9 @@ EIGEN_ALWAYS_INLINE void gemm_unrolled_row_iteration(
   }
 }
 
+#define MICRO_EXTRA_ROWS(N) \
+  gemm_unrolled_row_iteration<Scalar, Packet, DataMapper, Index, accRows, accCols, N>(res, lhs_base, rhs_base, depth, strideA, offsetA, strideB, row, col, rows, cols, pAlpha, pMask);
+
 template<typename Scalar, typename Packet, typename DataMapper, typename Index, const Index accRows, const Index accCols>
 EIGEN_ALWAYS_INLINE void gemm_extra_row(
   const DataMapper& res,
@@ -1595,6 +1630,7 @@ EIGEN_ALWAYS_INLINE void gemm_extra_row(
   Index depth,
   Index strideA,
   Index offsetA,
+  Index strideB,
   Index row,
   Index col,
   Index rows,
@@ -1605,16 +1641,16 @@ EIGEN_ALWAYS_INLINE void gemm_extra_row(
 {
   switch(remaining_rows) {
     default:
-      gemm_unrolled_row_iteration<Scalar, Packet, DataMapper, Index, accRows, accCols, 1>(res, lhs_base, rhs_base, depth, strideA, offsetA, row, col, rows, cols, pAlpha, pMask);
+      MICRO_EXTRA_ROWS(1)
       break;
     case 2:
       if (sizeof(Scalar) == sizeof(float)) {
-        gemm_unrolled_row_iteration<Scalar, Packet, DataMapper, Index, accRows, accCols, 2>(res, lhs_base, rhs_base, depth, strideA, offsetA, row, col, rows, cols, pAlpha, pMask);
+        MICRO_EXTRA_ROWS(2)
       }
       break;
     case 3:
       if (sizeof(Scalar) == sizeof(float)) {
-        gemm_unrolled_row_iteration<Scalar, Packet, DataMapper, Index, accRows, accCols, 3>(res, lhs_base, rhs_base, depth, strideA, offsetA, row, col, rows, cols, pAlpha, pMask);
+        MICRO_EXTRA_ROWS(3)
       }
       break;
   }
@@ -1636,11 +1672,7 @@ EIGEN_ALWAYS_INLINE void gemm_extra_row(
 #define MICRO_TYPE_PEEL4(func, func2, peel) \
   if (PEEL > peel) { \
     Packet lhsV0, lhsV1, lhsV2, lhsV3, lhsV4, lhsV5, lhsV6, lhsV7; \
-    if (MICRO_NORMAL_ROWS) { \
-      pbroadcastN<Packet,accRows>(rhs_ptr0 + (accRows * peel), rhs_ptr0, rhs_ptr0, rhsV##peel[0], rhsV##peel[1], rhsV##peel[2], rhsV##peel[3]); \
-    } else { \
-      pbroadcastN<Packet,accRows>(rhs_ptr0 + peel, rhs_ptr1 + peel, rhs_ptr2 + peel, rhsV##peel[0], rhsV##peel[1], rhsV##peel[2], rhsV##peel[3]); \
-    } \
+    MICRO_BROADCAST(peel) \
     MICRO_UNROLL_WORK(func, func2, peel) \
   } else { \
     EIGEN_UNUSED_VARIABLE(rhsV##peel); \
@@ -1709,18 +1741,7 @@ EIGEN_ALWAYS_INLINE void gemm_unrolled_iteration(
   PacketBlock<Packet,accRows> accZero0, accZero1, accZero2, accZero3, accZero4, accZero5, accZero6, accZero7;
   PacketBlock<Packet,accRows> acc;
 
-  if (MICRO_NORMAL_ROWS) {
-    EIGEN_UNUSED_VARIABLE(strideB);
-    EIGEN_UNUSED_VARIABLE(rhs_ptr1);
-    EIGEN_UNUSED_VARIABLE(rhs_ptr2);
-  } else {
-    rhs_ptr1 = rhs_base + strideB;
-    if (accRows == 3) {
-      rhs_ptr2 = rhs_base + strideB*2;
-    } else {
-      EIGEN_UNUSED_VARIABLE(rhs_ptr2);
-    }
-  }
+  MICRO_SRC2_PTR
   MICRO_SRC_PTR
   MICRO_DST_PTR
 
@@ -1818,9 +1839,12 @@ EIGEN_ALWAYS_INLINE void gemm_cols(
 
   if(remaining_rows > 0)
   {
-    gemm_extra_row<Scalar, Packet, DataMapper, Index, accRows, accCols>(res3, blockA, rhs_base, depth, strideA, offsetA, row, col, rows, cols, remaining_rows, pAlpha, pMask);
+    gemm_extra_row<Scalar, Packet, DataMapper, Index, accRows, accCols>(res3, blockA, rhs_base, depth, strideA, offsetA, strideB, row, col, rows, cols, remaining_rows, pAlpha, pMask);
   }
 }
+
+#define MICRO_EXTRA_COLS(N) \
+  gemm_cols<Scalar, Packet, DataMapper, Index, N, accCols>(res, blockA, blockB, depth, strideA, offsetA, strideB, offsetB, col, rows, cols, remaining_rows, pAlpha, pMask);
 
 template<typename Scalar, typename Packet, typename DataMapper, typename Index, const Index accCols>
 EIGEN_STRONG_INLINE void gemm_extra_cols(
@@ -1839,23 +1863,17 @@ EIGEN_STRONG_INLINE void gemm_extra_cols(
   const Packet& pAlpha,
   const Packet& pMask)
 {
-#if 0
-  do {
-    gemm_cols<Scalar, Packet, DataMapper, Index, 1, accCols>(res, blockA, blockB, depth, strideA, offsetA, strideB, offsetB, col, rows, cols, remaining_rows, pAlpha, pMask);
-  } while (++col != cols);
-#else
   switch (cols-col) {
-    case 1:
-      gemm_cols<Scalar, Packet, DataMapper, Index, 1, accCols>(res, blockA, blockB, depth, strideA, offsetA, strideB, offsetB, col, rows, cols, remaining_rows, pAlpha, pMask);
+    default:
+      MICRO_EXTRA_COLS(1)
       break;
     case 2:
-      gemm_cols<Scalar, Packet, DataMapper, Index, 2, accCols>(res, blockA, blockB, depth, strideA, offsetA, strideB, offsetB, col, rows, cols, remaining_rows, pAlpha, pMask);
+      MICRO_EXTRA_COLS(2)
       break;
     case 3:
-      gemm_cols<Scalar, Packet, DataMapper, Index, 3, accCols>(res, blockA, blockB, depth, strideA, offsetA, strideB, offsetB, col, rows, cols, remaining_rows, pAlpha, pMask);
+      MICRO_EXTRA_COLS(3)
       break;
   }
-#endif
 }
 
 /****************

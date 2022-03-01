@@ -19,6 +19,7 @@ EIGEN_ALWAYS_INLINE void gemm_extra_row(
   Index depth,
   Index strideA,
   Index offsetA,
+  Index strideB,
   Index row,
   Index col,
   Index rows,
