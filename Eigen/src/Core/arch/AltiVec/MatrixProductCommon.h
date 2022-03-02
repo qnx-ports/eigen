@@ -219,5 +219,20 @@ EIGEN_ALWAYS_INLINE Packet ploadRhs(const Scalar* rhs);
     } \
   }
 
+#define MICRO_UPDATE \
+  if (accCols == accCols2) { \
+    EIGEN_UNUSED_VARIABLE(pMask); \
+    EIGEN_UNUSED_VARIABLE(offsetA); \
+    row += unroll_factor*accCols; \
+  }
+
+#define MICRO_COMPLEX_UPDATE \
+  if (accCols == accCols2) { \
+    EIGEN_UNUSED_VARIABLE(pMask); \
+    EIGEN_UNUSED_VARIABLE(offsetA); \
+    EIGEN_UNUSED_VARIABLE(imag_delta2); \
+    row += unroll_factor*accCols; \
+  }
+
 } // end namespace internal
 } // end namespace Eigen

@@ -268,11 +268,7 @@ EIGEN_ALWAYS_INLINE void gemm_unrolled_MMA_iteration(
   }
   MICRO_MMA_STORE
 
-  if (accCols == accCols2) {
-    EIGEN_UNUSED_VARIABLE(pMask);
-    EIGEN_UNUSED_VARIABLE(offsetA);
-    row += unroll_factor*accCols;
-  }
+  MICRO_UPDATE
 }
 
 #define MICRO_MMA_UNROLL_ITER2(N, M) \
@@ -513,12 +509,7 @@ EIGEN_ALWAYS_INLINE void gemm_complex_unrolled_MMA_iteration(
   }
   MICRO_COMPLEX_MMA_STORE
 
-  if (accCols == accCols2) {
-    EIGEN_UNUSED_VARIABLE(pMask);
-    EIGEN_UNUSED_VARIABLE(offsetA);
-    EIGEN_UNUSED_VARIABLE(imag_delta2);
-    row += unroll_factor*accCols;
-  }
+  MICRO_COMPLEX_UPDATE
 }
 
 #define MICRO_COMPLEX_MMA_UNROLL_ITER2(N, M) \

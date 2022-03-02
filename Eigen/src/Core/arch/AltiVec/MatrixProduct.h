@@ -1309,6 +1309,41 @@ EIGEN_ALWAYS_INLINE void bscale(PacketBlock<Packet,N>& acc, PacketBlock<Packet,N
   bscale<Packet, N>(acc, accZ, pAlpha);
 }
 
+template<typename Packet, int N>
+EIGEN_ALWAYS_INLINE void pbroadcastN_common(const __UNPACK_TYPE__(Packet) *ap0,
+        const __UNPACK_TYPE__(Packet) *ap1, const __UNPACK_TYPE__(Packet) *ap2,
+        Packet& a0, Packet& a1, Packet& a2, Packet& a3)
+{
+  a0 = pset1<Packet>(ap0[0]);
+  if (N > 1) {
+    if (N == 4) {
+      a1 = pset1<Packet>(ap0[1]);
+      EIGEN_UNUSED_VARIABLE(ap1);
+    } else {
+      a1 = pset1<Packet>(ap1[0]);
+    }
+  } else {
+    EIGEN_UNUSED_VARIABLE(a1);
+    EIGEN_UNUSED_VARIABLE(ap1);
+  }
+  if (N > 2) {
+    if (N == 4) {
+      a2 = pset1<Packet>(ap0[2]);
+      EIGEN_UNUSED_VARIABLE(ap2);
+    } else {
+      a2 = pset1<Packet>(ap2[0]);
+    }
+  } else {
+    EIGEN_UNUSED_VARIABLE(a2);
+    EIGEN_UNUSED_VARIABLE(ap2);
+  }
+  if (N > 3) {
+    a3 = pset1<Packet>(ap0[3]);
+  } else {
+    EIGEN_UNUSED_VARIABLE(a3);
+  }
+}
+
 template<typename Packet, int N> EIGEN_ALWAYS_INLINE void
 pbroadcastN_old(const __UNPACK_TYPE__(Packet) *a,
                       Packet& a0, Packet& a1, Packet& a2, Packet& a3)
@@ -1348,39 +1383,12 @@ EIGEN_ALWAYS_INLINE void pbroadcastN_old<Packet2d,4>(const double* a, Packet2d& 
   a3 = vec_splat(a3, 1);
 }
 
-template<typename Packet, int N> EIGEN_ALWAYS_INLINE void
-pbroadcastN(const __UNPACK_TYPE__(Packet) *ap0, const __UNPACK_TYPE__(Packet) *ap1,
-            const __UNPACK_TYPE__(Packet) *ap2,
-            Packet& a0, Packet& a1, Packet& a2, Packet& a3)
+template<typename Packet, int N>
+EIGEN_ALWAYS_INLINE void pbroadcastN(const __UNPACK_TYPE__(Packet) *ap0,
+        const __UNPACK_TYPE__(Packet) *ap1, const __UNPACK_TYPE__(Packet) *ap2,
+        Packet& a0, Packet& a1, Packet& a2, Packet& a3)
 {
-  a0 = pset1<Packet>(ap0[0]);
-  if (N > 1) {
-    if (N == 4) {
-      a1 = pset1<Packet>(ap0[1]);
-      EIGEN_UNUSED_VARIABLE(ap1);
-    } else {
-      a1 = pset1<Packet>(ap1[0]);
-    }
-  } else {
-    EIGEN_UNUSED_VARIABLE(a1);
-    EIGEN_UNUSED_VARIABLE(ap1);
-  }
-  if (N > 2) {
-    if (N == 4) {
-      a2 = pset1<Packet>(ap0[2]);
-      EIGEN_UNUSED_VARIABLE(ap2);
-    } else {
-      a2 = pset1<Packet>(ap2[0]);
-    }
-  } else {
-    EIGEN_UNUSED_VARIABLE(a2);
-    EIGEN_UNUSED_VARIABLE(ap2);
-  }
-  if (N > 3) {
-    a3 = pset1<Packet>(ap0[3]);
-  } else {
-    EIGEN_UNUSED_VARIABLE(a3);
-  }
+  pbroadcastN_common<Packet,N>(ap0, ap1, ap2, a0, a1, a2, a3);
 }
 
 template<> EIGEN_ALWAYS_INLINE void
@@ -1758,11 +1766,7 @@ EIGEN_ALWAYS_INLINE void gemm_unrolled_iteration(
   }
   MICRO_STORE
 
-  if (accCols == accCols2) {
-    EIGEN_UNUSED_VARIABLE(pMask);
-    EIGEN_UNUSED_VARIABLE(offsetA);
-    row += unroll_factor*accCols;
-  }
+  MICRO_UPDATE
 }
 
 #define MICRO_UNROLL_ITER2(N, M) \
@@ -2244,12 +2248,7 @@ EIGEN_ALWAYS_INLINE void gemm_complex_unrolled_iteration(
   }
   MICRO_COMPLEX_STORE
 
-  if (accCols == accCols2) {
-    EIGEN_UNUSED_VARIABLE(pMask);
-    EIGEN_UNUSED_VARIABLE(offsetA);
-    EIGEN_UNUSED_VARIABLE(imag_delta2);
-    row += unroll_factor*accCols;
-  }
+  MICRO_COMPLEX_UPDATE
 }
 
 #define MICRO_COMPLEX_UNROLL_ITER2(N, M) \
