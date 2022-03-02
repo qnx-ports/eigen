@@ -1315,32 +1315,25 @@ EIGEN_ALWAYS_INLINE void pbroadcastN_common(const __UNPACK_TYPE__(Packet) *ap0,
         Packet& a0, Packet& a1, Packet& a2, Packet& a3)
 {
   a0 = pset1<Packet>(ap0[0]);
-  if (N > 1) {
-    if (N == 4) {
-      a1 = pset1<Packet>(ap0[1]);
-      EIGEN_UNUSED_VARIABLE(ap1);
-    } else {
-      a1 = pset1<Packet>(ap1[0]);
-    }
-  } else {
-    EIGEN_UNUSED_VARIABLE(a1);
-    EIGEN_UNUSED_VARIABLE(ap1);
-  }
-  if (N > 2) {
-    if (N == 4) {
-      a2 = pset1<Packet>(ap0[2]);
-      EIGEN_UNUSED_VARIABLE(ap2);
-    } else {
-      a2 = pset1<Packet>(ap2[0]);
-    }
-  } else {
-    EIGEN_UNUSED_VARIABLE(a2);
-    EIGEN_UNUSED_VARIABLE(ap2);
-  }
-  if (N > 3) {
+  if (N == 4) {
+    a1 = pset1<Packet>(ap0[1]);
+    a2 = pset1<Packet>(ap0[2]);
     a3 = pset1<Packet>(ap0[3]);
+    EIGEN_UNUSED_VARIABLE(ap1);
+    EIGEN_UNUSED_VARIABLE(ap2);
   } else {
-    EIGEN_UNUSED_VARIABLE(a3);
+    if (N > 1) {
+      a1 = pset1<Packet>(ap1[0]);
+    } else {
+      EIGEN_UNUSED_VARIABLE(a1);
+      EIGEN_UNUSED_VARIABLE(ap1);
+    }
+    if (N > 2) {
+      a2 = pset1<Packet>(ap2[0]);
+    } else {
+      EIGEN_UNUSED_VARIABLE(a2);
+      EIGEN_UNUSED_VARIABLE(ap2);
+    }
   }
 }
 
@@ -1605,9 +1598,9 @@ EIGEN_ALWAYS_INLINE void gemm_unrolled_row_iteration(
     MICRO_EXTRA_ROW<Scalar, Packet, Index, accRows, remaining_rows>(lhs_ptr, rhs_ptr0, rhs_ptr1, rhs_ptr2, accZero0);
   }
 
+  bload<DataMapper, Packet, Index, 0, ColMajor, false, accRows>(acc, res, row, 0);
   if ((remaining_depth == depth) && (rows >= accCols))
   {
-    bload<DataMapper, Packet, Index, 0, ColMajor, false, accRows>(acc, res, row, 0);
     bscale<Packet,accRows>(acc, accZero0, pAlpha, pMask);
     res.template storePacketBlock<Packet,accRows>(row, 0, acc);
   } else {
@@ -1618,10 +1611,10 @@ EIGEN_ALWAYS_INLINE void gemm_unrolled_row_iteration(
       lhs_ptr += remaining_rows;
     }
 
+    bscale<Packet,accRows>(acc, accZero0, pAlpha);
     for(Index j = 0; j < accRows; j++) {
-      accZero0.packet[j] = vec_mul(pAlpha, accZero0.packet[j]);
       for(Index i = 0; i < remaining_rows; i++) {
-        res(row + i, j) += accZero0.packet[j][i];
+        res(row + i, j) = acc.packet[j][i];
       }
     }
   }
