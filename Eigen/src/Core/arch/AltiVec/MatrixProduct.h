@@ -1470,7 +1470,7 @@ EIGEN_ALWAYS_INLINE Packet ploadRhs(const Scalar* rhs)
 #define PEEL 7
 #define PEEL_ROW 7
 
-#define MICRO_UNROLL_PEEL(func) \
+#define MICRO_UNROLL(func) \
   func(0) func(1) func(2) func(3) func(4) func(5) func(6) func(7)
 
 #define MICRO_NORMAL_ROWS \
@@ -1525,7 +1525,7 @@ EIGEN_ALWAYS_INLINE Packet ploadRhs(const Scalar* rhs)
   }
 
 #define MICRO_ZERO_PEEL_ROW \
-  MICRO_UNROLL_PEEL(MICRO_ZERO_PEEL);
+  MICRO_UNROLL(MICRO_ZERO_PEEL);
 
 #define MICRO_WORK_PEEL(peel) \
   if (PEEL_ROW > peel) { \
@@ -1537,7 +1537,7 @@ EIGEN_ALWAYS_INLINE Packet ploadRhs(const Scalar* rhs)
 
 #define MICRO_WORK_PEEL_ROW \
   Packet rhsV0[4], rhsV1[4], rhsV2[4], rhsV3[4], rhsV4[4], rhsV5[4], rhsV6[4], rhsV7[4]; \
-  MICRO_UNROLL_PEEL(MICRO_WORK_PEEL); \
+  MICRO_UNROLL(MICRO_WORK_PEEL); \
   lhs_ptr += (remaining_rows * PEEL_ROW); \
   MICRO_ADD_ROWS(PEEL_ROW)
 
@@ -1664,13 +1664,10 @@ EIGEN_ALWAYS_INLINE void gemm_extra_row(
   }
 }
 
-#define MICRO_UNROLL(func) \
-  func(0) func(1) func(2) func(3) func(4) func(5) func(6) func(7)
-
 #define MICRO_UNROLL_WORK(func, func2, peel) \
-    MICRO_UNROLL(func2); \
-    func(0,peel) func(1,peel) func(2,peel) func(3,peel) \
-    func(4,peel) func(5,peel) func(6,peel) func(7,peel)
+  MICRO_UNROLL(func2); \
+  func(0,peel) func(1,peel) func(2,peel) func(3,peel) \
+  func(4,peel) func(5,peel) func(6,peel) func(7,peel)
 
 #define MICRO_WORK_ONE(iter, peel) \
   if (unroll_factor > iter) { \
@@ -1922,7 +1919,7 @@ EIGEN_STRONG_INLINE void gemm(const DataMapper& res, const Scalar* blockA, const
 #define PEEL_COMPLEX 3
 #define PEEL_COMPLEX_ROW 3
 
-#define MICRO_COMPLEX_UNROLL_PEEL(func) \
+#define MICRO_COMPLEX_UNROLL(func) \
   func(0) func(1) func(2) func(3)
 
 #define MICRO_COMPLEX_ZERO_PEEL(peel) \
@@ -1935,7 +1932,7 @@ EIGEN_STRONG_INLINE void gemm(const DataMapper& res, const Scalar* blockA, const
   }
 
 #define MICRO_COMPLEX_ZERO_PEEL_ROW \
-  MICRO_COMPLEX_UNROLL_PEEL(MICRO_COMPLEX_ZERO_PEEL);
+  MICRO_COMPLEX_UNROLL(MICRO_COMPLEX_ZERO_PEEL);
 
 #define MICRO_COMPLEX_WORK_PEEL(peel) \
   if (PEEL_COMPLEX_ROW > peel) { \
@@ -1950,7 +1947,7 @@ EIGEN_STRONG_INLINE void gemm(const DataMapper& res, const Scalar* blockA, const
 #define MICRO_COMPLEX_WORK_PEEL_ROW \
   Packet rhsV0[4], rhsV1[4], rhsV2[4], rhsV3[4]; \
   Packet rhsVi0[4], rhsVi1[4], rhsVi2[4], rhsVi3[4]; \
-  MICRO_COMPLEX_UNROLL_PEEL(MICRO_COMPLEX_WORK_PEEL); \
+  MICRO_COMPLEX_UNROLL(MICRO_COMPLEX_WORK_PEEL); \
   lhs_ptr_real += (remaining_rows * PEEL_COMPLEX_ROW); \
   if(!LhsIsReal) lhs_ptr_imag += (remaining_rows * PEEL_COMPLEX_ROW); \
   else EIGEN_UNUSED_VARIABLE(lhs_ptr_imag); \
@@ -2120,12 +2117,9 @@ EIGEN_ALWAYS_INLINE void gemm_complex_extra_row(
   }
 }
 
-#define MICRO_COMPLEX_UNROLL(func) \
-  func(0) func(1) func(2) func(3)
-
 #define MICRO_COMPLEX_UNROLL_WORK(func, func2, peel) \
-    MICRO_COMPLEX_UNROLL(func2); \
-    func(0,peel) func(1,peel) func(2,peel) func(3,peel)
+  MICRO_COMPLEX_UNROLL(func2); \
+  func(0,peel) func(1,peel) func(2,peel) func(3,peel)
 
 #define MICRO_COMPLEX_WORK_ONE4(iter, peel) \
   if (unroll_factor > iter) { \
