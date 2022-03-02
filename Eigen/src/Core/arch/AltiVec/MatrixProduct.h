@@ -2034,9 +2034,9 @@ EIGEN_ALWAYS_INLINE void gemm_unrolled_complex_row_iteration(
     MICRO_COMPLEX_EXTRA_ROW<Scalar, Packet, Index, accRows, ConjugateLhs, ConjugateRhs, LhsIsReal, RhsIsReal, remaining_rows>(lhs_ptr_real, lhs_ptr_imag, rhs_ptr_real, rhs_ptr_imag, accReal0, accImag0);
   }
 
+  bload<DataMapper, Packetc, Index, accColsC, ColMajor, true, accRows>(tRes, res, row, 0);
   if ((remaining_depth == depth) && (rows >= accCols))
   {
-    bload<DataMapper, Packetc, Index, accColsC, ColMajor, true, accRows>(tRes, res, row, 0);
     bscalec<Packet,accRows>(accReal0, accImag0, pAlphaReal, pAlphaImag, taccReal, taccImag, pMask);
     bcouple<Packet, Packetc, accRows>(taccReal, taccImag, tRes, acc0, acc1);
     res.template storePacketBlock<Packetc,accRows>(row + 0, 0, acc0);
@@ -2055,20 +2055,18 @@ EIGEN_ALWAYS_INLINE void gemm_unrolled_complex_row_iteration(
     }
 
     bscalec<Packet,accRows>(accReal0, accImag0, pAlphaReal, pAlphaImag, taccReal, taccImag);
-    bcouple_common<Packet, Packetc, accRows>(taccReal, taccImag, acc0, acc1);
+    bcouple<Packet, Packetc, accRows>(taccReal, taccImag, tRes, acc0, acc1);
 
     if ((sizeof(Scalar) == sizeof(float)) && (remaining_rows == 1))
     {
       for(Index j = 0; j < accRows; j++) {
-        res(row + 0, j) += pfirst<Packetc>(acc0.packet[j]);
+        res(row + 0, j) = pfirst<Packetc>(acc0.packet[j]);
       }
     } else {
-      for(Index j = 0; j < accRows; j++) {
-        PacketBlock<Packetc,1> acc2;
-        acc2.packet[0] = res.template loadPacket<Packetc>(row + 0, j) + acc0.packet[j];
-        res.template storePacketBlock<Packetc,1>(row + 0, j, acc2);
-        if(remaining_rows > accColsC) {
-          res(row + accColsC, j) += pfirst<Packetc>(acc1.packet[j]);
+      res.template storePacketBlock<Packetc,accRows>(row + 0, 0, acc0);
+      if(remaining_rows > accColsC) {
+        for(Index j = 0; j < accRows; j++) {
+          res(row + accColsC, j) = pfirst<Packetc>(acc1.packet[j]);
         }
       }
     }
