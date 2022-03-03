@@ -287,7 +287,6 @@ EIGEN_ALWAYS_INLINE void gemmMMA_cols(
   Index offsetB,
   Index col,
   Index rows,
-  Index cols,
   Index remaining_rows,
   const Packet& pAlpha,
   const Packet& pMask)
@@ -367,7 +366,7 @@ void gemmMMA(const DataMapper& res, const Scalar* blockA, const Scalar* blockB, 
       Index col = 0;
       for(; col + accRows <= cols; col += accRows)
       {
-        gemmMMA_cols<Scalar, Packet, RhsPacket, DataMapper, Index, accRows, accCols>(res, blockA, blockB, depth, strideA, offsetA, strideB, offsetB, col, rows, cols, remaining_rows, pAlpha, pMask);
+        gemmMMA_cols<Scalar, Packet, RhsPacket, DataMapper, Index, accRows, accCols>(res, blockA, blockB, depth, strideA, offsetA, strideB, offsetB, col, rows, remaining_rows, pAlpha, pMask);
       }
 
       if (col != cols)
@@ -528,7 +527,6 @@ EIGEN_ALWAYS_INLINE void gemmMMA_complex_cols(
   Index offsetB,
   Index col,
   Index rows,
-  Index cols,
   Index remaining_rows,
   const Packet& pAlphaReal,
   const Packet& pAlphaImag,
@@ -598,7 +596,7 @@ void gemm_complexMMA(const DataMapper& res, const LhsScalar* blockAc, const RhsS
       Index col = 0;
       for(; col + accRows <= cols; col += accRows)
       {
-        gemmMMA_complex_cols<Scalar, Packet, Packetc, RhsPacket, DataMapper, Index, accRows, accCols, ConjugateLhs, ConjugateRhs, LhsIsReal, RhsIsReal>(res, blockA, blockB, depth, strideA, offsetA, strideB, offsetB, col, rows, cols, remaining_rows, pAlphaReal, pAlphaImag, pMask);
+        gemmMMA_complex_cols<Scalar, Packet, Packetc, RhsPacket, DataMapper, Index, accRows, accCols, ConjugateLhs, ConjugateRhs, LhsIsReal, RhsIsReal>(res, blockA, blockB, depth, strideA, offsetA, strideB, offsetB, col, rows, remaining_rows, pAlphaReal, pAlphaImag, pMask);
       }
 
       if (col != cols)
