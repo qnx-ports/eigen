@@ -1049,19 +1049,6 @@ EIGEN_ALWAYS_INLINE void pger(PacketBlock<Packet,N>* acc, const Scalar* lhs, con
   pger_common<Packet, NegativeAccumulate, N>(acc, lhsV, rhsV);
 }
 
-template<typename Scalar, typename Packet, typename Index, const Index remaining_rows>
-EIGEN_ALWAYS_INLINE void loadPacketRemaining(const Scalar* lhs, Packet &lhsV)
-{
-#ifdef _ARCH_PWR9
-  lhsV = vec_xl_len((Scalar *)lhs, remaining_rows * sizeof(Scalar));
-#else
-  Index i = 0;
-  do {
-    lhsV[i] = lhs[i];
-  } while (++i < remaining_rows);
-#endif
-}
-
 // 512-bits rank1-update of complex acc. It takes decoupled accumulators as entries. It also takes cares of mixed types real * complex and complex * real.
 template<int N, typename Packet, bool ConjugateLhs, bool ConjugateRhs, bool LhsIsReal, bool RhsIsReal>
 EIGEN_ALWAYS_INLINE void pgerc_common(PacketBlock<Packet,N>* accReal, PacketBlock<Packet,N>* accImag, const Packet &lhsV, const Packet &lhsVi, const Packet* rhsV, const Packet* rhsVi)
@@ -2138,6 +2125,9 @@ EIGEN_ALWAYS_INLINE void gemm_complex_unrolled_iteration(
   const Scalar* rhs_ptr_imag = NULL;
   const Index imag_delta = accCols*strideA;
   const Index imag_delta2 = accCols2*strideA;
+  if(LhsIsReal) {
+    EIGEN_UNUSED_VARIABLE(imag_delta2);
+  }
   if(!RhsIsReal) {
     rhs_ptr_imag = rhs_base + accRows*strideB;
   } else {

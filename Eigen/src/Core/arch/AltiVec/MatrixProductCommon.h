@@ -98,9 +98,6 @@ EIGEN_ALWAYS_INLINE void bscalec(PacketBlock<Packet,N>& aReal, PacketBlock<Packe
 template<typename Packet, int N>
 EIGEN_ALWAYS_INLINE void bscalec(PacketBlock<Packet,N>& aReal, PacketBlock<Packet,N>& aImag, const Packet& bReal, const Packet& bImag, PacketBlock<Packet,N>& cReal, PacketBlock<Packet,N>& cImag, const Packet& pMask);
 
-template<typename Scalar, typename Packet, typename Index, const Index remaining_rows>
-EIGEN_ALWAYS_INLINE void loadPacketRemaining(const Scalar* lhs, Packet &lhsV);
-
 template<typename Packet, typename Packetc, int N>
 EIGEN_ALWAYS_INLINE void bcouple(PacketBlock<Packet,N>& taccReal, PacketBlock<Packet,N>& taccImag, PacketBlock<Packetc,N*2>& tRes, PacketBlock<Packetc, N>& acc1, PacketBlock<Packetc, N>& acc2);
 
@@ -139,11 +136,10 @@ EIGEN_ALWAYS_INLINE Packet ploadRhs(const Scalar* rhs);
 
 #define MICRO_LOAD_ONE(iter) \
   if (unroll_factor > iter) { \
+    lhsV##iter = ploadLhs<Scalar, Packet>(lhs_ptr##iter); \
     if (MICRO_NORMAL(iter)) { \
-      lhsV##iter = ploadLhs<Scalar, Packet>(lhs_ptr##iter); \
       lhs_ptr##iter += accCols; \
     } else { \
-      loadPacketRemaining<Scalar, Packet, Index, accCols2>(lhs_ptr##iter, lhsV##iter); \
       lhs_ptr##iter += accCols2; \
     } \
   } else { \
@@ -152,21 +148,15 @@ EIGEN_ALWAYS_INLINE Packet ploadRhs(const Scalar* rhs);
 
 #define MICRO_COMPLEX_LOAD_ONE(iter) \
   if (unroll_factor > iter) { \
+    lhsV##iter = ploadLhs<Scalar, Packet>(lhs_ptr_real##iter); \
+    if(!LhsIsReal) { \
+      lhsVi##iter = ploadLhs<Scalar, Packet>(lhs_ptr_real##iter + ((MICRO_NORMAL(iter)) ? imag_delta : imag_delta2)); \
+    } else { \
+      EIGEN_UNUSED_VARIABLE(lhsVi##iter); \
+    } \
     if (MICRO_NORMAL(iter)) { \
-      lhsV##iter = ploadLhs<Scalar, Packet>(lhs_ptr_real##iter); \
-      if(!LhsIsReal) { \
-        lhsVi##iter = ploadLhs<Scalar, Packet>(lhs_ptr_real##iter + imag_delta); \
-      } else { \
-        EIGEN_UNUSED_VARIABLE(lhsVi##iter); \
-      } \
       lhs_ptr_real##iter += accCols; \
     } else { \
-      loadPacketRemaining<Scalar, Packet, Index, accCols2>(lhs_ptr_real##iter, lhsV##iter); \
-      if(!LhsIsReal) { \
-        loadPacketRemaining<Scalar, Packet, Index, accCols2>(lhs_ptr_real##iter + imag_delta2, lhsVi##iter); \
-      } else { \
-        EIGEN_UNUSED_VARIABLE(lhsVi##iter); \
-      } \
       lhs_ptr_real##iter += accCols2; \
     } \
   } else { \

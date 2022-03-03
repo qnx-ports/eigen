@@ -953,7 +953,10 @@ template<> EIGEN_STRONG_INLINE Packet4f print<Packet4f>(const Packet4f& a)
 template<typename Packet> EIGEN_STRONG_INLINE Packet ploadu_common(const __UNPACK_TYPE__(Packet)* from)
 {
   EIGEN_DEBUG_ALIGNED_LOAD
-#ifdef _BIG_ENDIAN
+#if defined(__VSX__) || !defined(_BIG_ENDIAN)
+  EIGEN_DEBUG_UNALIGNED_LOAD
+  return vec_xl(0, const_cast<__UNPACK_TYPE__(Packet)*>(from));
+#else
   Packet16uc MSQ, LSQ;
   Packet16uc mask;
   MSQ = vec_ld(0, (unsigned char *)from);          // most significant quadword
@@ -961,9 +964,6 @@ template<typename Packet> EIGEN_STRONG_INLINE Packet ploadu_common(const __UNPAC
   mask = vec_lvsl(0, from);                        // create the permute mask
   //TODO: Add static_cast here
   return (Packet) vec_perm(MSQ, LSQ, mask);           // align the data
-#else
-  EIGEN_DEBUG_UNALIGNED_LOAD
-  return vec_xl(0, const_cast<__UNPACK_TYPE__(Packet)*>(from));
 #endif
 }
 
@@ -1068,7 +1068,9 @@ template<> EIGEN_STRONG_INLINE Packet16uc ploaddup<Packet16uc>(const unsigned ch
 template<typename Packet> EIGEN_STRONG_INLINE void pstoreu_common(__UNPACK_TYPE__(Packet)*  to, const Packet& from)
 {
   EIGEN_DEBUG_UNALIGNED_STORE
-#ifdef _BIG_ENDIAN
+#if defined(__VSX__) || !defined(_BIG_ENDIAN)
+  vec_xst(from, 0, to);
+#else
   // Taken from http://developer.apple.com/hardwaredrivers/ve/alignment.html
   // Warning: not thread safe!
   Packet16uc MSQ, LSQ, edges;
@@ -1083,8 +1085,6 @@ template<typename Packet> EIGEN_STRONG_INLINE void pstoreu_common(__UNPACK_TYPE_
   LSQ = vec_perm((Packet16uc)from,edges,align);             // misalign the data (LSQ)
   vec_st( LSQ, 15, (unsigned char *)to );                   // Store the LSQ part first
   vec_st( MSQ, 0, (unsigned char *)to );                   // Store the MSQ part second
-#else
-  vec_xst(from, 0, to);
 #endif
 }
 template<> EIGEN_STRONG_INLINE void pstoreu<float>(float*  to, const Packet4f& from)
