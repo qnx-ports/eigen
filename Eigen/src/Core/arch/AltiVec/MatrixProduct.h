@@ -1223,34 +1223,37 @@ EIGEN_ALWAYS_INLINE void bload(PacketBlock<Packet,N*(Complex?2:1)>& acc, const D
   }
 }
 
-const static Packet4i mask41 = { -1,  0,  0,  0 };
-const static Packet4i mask42 = { -1, -1,  0,  0 };
-const static Packet4i mask43 = { -1, -1, -1,  0 };
-
-const static Packet2l mask21 = { -1, 0 };
+#ifndef _ARCH_PWR10
+const static Packet4i mask4[4] = { {  0,  0,  0,  0 }, { -1,  0,  0,  0 }, { -1, -1,  0,  0 }, { -1, -1, -1,  0 } };
+#endif
 
 template<typename Packet, typename Index>
 EIGEN_ALWAYS_INLINE Packet bmask(const Index remaining_rows)
 {
-  if (remaining_rows == 0) {
-    return pset1<Packet>(float(0.0));  // Not used
-  } else {
-    switch (remaining_rows) {
-      case 1:  return Packet(mask41);
-      case 2:  return Packet(mask42);
-      default: return Packet(mask43);
-    }
-  }
+#ifdef _ARCH_PWR10
+#ifdef _BIG_ENDIAN
+  return Packet(vec_reve(vec_genwm((1 << remaining_rows) - 1)));
+#else
+  return Packet(vec_genwm((1 << remaining_rows) - 1));
+#endif
+#else
+  return mask4[remaining_rows];
+#endif
 }
 
 template<>
 EIGEN_ALWAYS_INLINE Packet2d bmask<Packet2d,Index>(const Index remaining_rows)
 {
-  if (remaining_rows == 0) {
-    return pset1<Packet2d>(double(0.0));  // Not used
-  } else {
-    return Packet2d(mask21);
-  }
+#ifdef _ARCH_PWR10
+#ifdef _BIG_ENDIAN
+  return Packet2d(vec_reve(vec_gendm(remaining_rows)));
+#else
+  return Packet2d(vec_gendm(remaining_rows));
+#endif
+#else
+  Packet2l ret = { -remaining_rows, 0 };
+  return Packet2d(ret);
+#endif
 }
 
 template<typename Packet, int N>
