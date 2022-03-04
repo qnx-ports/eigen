@@ -1171,6 +1171,28 @@ T* construct_at( T* p, Args&&... args )
 }
 #endif
 
+/** \internal
+ * This wraps C++17's std::destroy_at.  If it's not available it calls the destructor.
+ * The wrapper is not a full replacement for C++20's std::destroy_at as it cannot
+ * be applied to std::array.
+ */
+#if EIGEN_COMP_CXXVER >= 17
+template<class T>
+#if EIGEN_COMP_CXXVER >= 20
+constexpr
+#endif
+void destroy_at(T* p)
+{
+  std::destroy_at(p);
+}
+#else
+template<class T>
+void destroy_at(T* p)
+{
+  p->~T();
+}
+#endif
+
 } // end namespace internal
 
 } // end namespace Eigen
