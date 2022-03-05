@@ -1157,11 +1157,7 @@ inline int queryTopLevelCacheSize()
  */
 
 #if EIGEN_COMP_CXXVER >= 20
-template<class T, class... Args>
-constexpr T* construct_at( T* p, Args&&... args )
-{
-  return std::construct_at<T>(p, std::forward<Args>(args)...);
-}
+using std::construct_at;
 #else
 template<class T, class... Args>
 T* construct_at( T* p, Args&&... args )
@@ -1177,14 +1173,7 @@ T* construct_at( T* p, Args&&... args )
  * be applied to std::array.
  */
 #if EIGEN_COMP_CXXVER >= 17
-template<class T>
-#if EIGEN_COMP_CXXVER >= 20
-constexpr
-#endif
-void destroy_at(T* p)
-{
-  std::destroy_at(p);
-}
+using std::destroy_at;
 #else
 template<class T>
 void destroy_at(T* p)
