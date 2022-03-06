@@ -164,8 +164,8 @@ inline const DiagonalWrapper<const Derived> Scaling(const MatrixBase<Derived>& c
 
 /** Constructs an axis aligned scaling expression from vector \a coeffs when passed as an rvalue reference */
 template<typename Derived>
-inline typename std::enable_if<Derived::IsVectorAtCompileTime,DiagonalMatrix<typename Derived::Scalar,Derived::SizeAtCompileTime>>::type Scaling(MatrixBase<Derived>&& coeffs)
-{ return DiagonalMatrix<typename Derived::Scalar,Derived::SizeAtCompileTime>(coeffs.asDiagonal()); }
+inline DiagonalMatrix<typename Derived::Scalar,internal::traits<DiagonalWrapper<Derived>>::DiagonalVectorType::SizeAtCompileTime,internal::traits<DiagonalWrapper<Derived>>::DiagonalVectorType::MaxSizeAtCompileTime> Scaling(MatrixBase<Derived>&& coeffs)
+{ return DiagonalMatrix<typename Derived::Scalar,internal::traits<DiagonalWrapper<Derived>>::DiagonalVectorType::SizeAtCompileTime,internal::traits<DiagonalWrapper<Derived>>::DiagonalVectorType::MaxSizeAtCompileTime>(coeffs.asDiagonal()); }
 
 /** \deprecated */
 typedef DiagonalMatrix<float, 2> AlignedScaling2f;
