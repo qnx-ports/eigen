@@ -29,8 +29,21 @@
   * #include <Eigen/AccelerateSupport>
   * \endcode
   *
-  * In order to use this module, the Accelerate headers must be accessible from the include paths, and your binary must be linked to the Accelerate framework.
+  * In order to use this module, the Accelerate headers must be accessible from
+  * the include paths, and your binary must be linked to the Accelerate framework.
   * The Accelerate library is only available on Apple hardware.
+  * 
+  * Note that many of the algorithms require additional information about your
+  * matrices. This can be provided by setting the UpLo template argument when
+  * defining the factorization class. For example, the following creates an
+  * LDLT factorization where your matrix is symmetric and uses the lower
+  * triangle:
+  * 
+  * \code
+  * AccelerateLDLT<SparseMatrix<float>, Lower | Symmetric> ldlt;
+  * \endcode
+  * 
+  * Failure to do so may result in your application crashing.
   */
 
 #include "src/AccelerateSupport/AccelerateSupport.h"
