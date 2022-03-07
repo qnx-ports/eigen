@@ -312,28 +312,24 @@ void AccelerateImpl<MatrixType_, UpLo_, Solver_, EnforceSquare_>::_solve_impl(co
 
   SparseStatus_t status = SparseStatusOK;
 
-  if (m_numericFactorization) {
-    Scalar* b_ptr = const_cast<Scalar*>(b.derived().data());
-    Scalar* x_ptr = const_cast<Scalar*>(x.derived().data());
+  Scalar* b_ptr = const_cast<Scalar*>(b.derived().data());
+  Scalar* x_ptr = const_cast<Scalar*>(x.derived().data());
 
-    AccelDenseMatrix xmat{};
-    xmat.attributes = SparseAttributes_t();
-    xmat.columnCount = static_cast<int>(x.cols());
-    xmat.rowCount = static_cast<int>(x.rows());
-    xmat.columnStride = xmat.rowCount;
-    xmat.data = x_ptr;
+  AccelDenseMatrix xmat{};
+  xmat.attributes = SparseAttributes_t();
+  xmat.columnCount = static_cast<int>(x.cols());
+  xmat.rowCount = static_cast<int>(x.rows());
+  xmat.columnStride = xmat.rowCount;
+  xmat.data = x_ptr;
 
-    AccelDenseMatrix bmat{};
-    bmat.attributes = SparseAttributes_t();
-    bmat.columnCount = static_cast<int>(b.cols());
-    bmat.rowCount = static_cast<int>(b.rows());
-    bmat.columnStride = bmat.rowCount;
-    bmat.data = b_ptr;
+  AccelDenseMatrix bmat{};
+  bmat.attributes = SparseAttributes_t();
+  bmat.columnCount = static_cast<int>(b.cols());
+  bmat.rowCount = static_cast<int>(b.rows());
+  bmat.columnStride = bmat.rowCount;
+  bmat.data = b_ptr;
 
-    SparseSolve(*m_numericFactorization, bmat, xmat);
-  } else {
-    status = SparseStatusReleased;
-  }
+  SparseSolve(*m_numericFactorization, bmat, xmat);
 
   updateInfoStatus(status);
 }
