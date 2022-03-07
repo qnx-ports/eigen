@@ -1631,13 +1631,13 @@ EIGEN_ALWAYS_INLINE void gemm_extra_row(
   Packet rhsV0[M]; \
   func(func1,func2,0);
 
-#define MICRO_ONE_PEEL4 \
-  MICRO_UNROLL_TYPE_PEEL(4, MICRO_TYPE_PEEL4, MICRO_WORK_ONE, MICRO_LOAD_ONE); \
-  MICRO_ADD_ROWS(PEEL);
+#define MICRO_UNROLL_TYPE(MICRO_TYPE, size) \
+  MICRO_TYPE(4, MICRO_TYPE_PEEL4, MICRO_WORK_ONE, MICRO_LOAD_ONE); \
+  MICRO_ADD_ROWS(size);
 
-#define MICRO_ONE4 \
-  MICRO_UNROLL_TYPE_ONE(4, MICRO_TYPE_PEEL4, MICRO_WORK_ONE, MICRO_LOAD_ONE); \
-  MICRO_ADD_ROWS(1);
+#define MICRO_ONE_PEEL4 MICRO_UNROLL_TYPE(MICRO_UNROLL_TYPE_PEEL, PEEL)
+
+#define MICRO_ONE4 MICRO_UNROLL_TYPE(MICRO_UNROLL_TYPE_ONE, 1)
 
 #define MICRO_DST_PTR_ONE(iter) \
   if (unroll_factor > iter) { \
@@ -1800,6 +1800,7 @@ EIGEN_STRONG_INLINE void gemm_extra_cols(
   const Packet& pAlpha,
   const Packet& pMask)
 {
+#ifdef NEW_EXTRA_COL
   switch (cols-col) {
     default:
       MICRO_EXTRA_COLS(1)
@@ -1811,6 +1812,11 @@ EIGEN_STRONG_INLINE void gemm_extra_cols(
       MICRO_EXTRA_COLS(3)
       break;
   }
+#else
+  do {
+    MICRO_EXTRA_COLS(1)
+  } while (++col != cols);
+#endif
 }
 
 /****************
@@ -2070,15 +2076,14 @@ EIGEN_ALWAYS_INLINE void gemm_complex_extra_row(
   Packet rhsV0[M], rhsVi0[M];\
   func(func1,func2,0);
 
-#define MICRO_COMPLEX_ONE_PEEL4 \
-  MICRO_COMPLEX_UNROLL_TYPE_PEEL(4, MICRO_COMPLEX_TYPE_PEEL4, MICRO_COMPLEX_WORK_ONE4, MICRO_COMPLEX_LOAD_ONE); \
-  rhs_ptr_real += (accRows * PEEL_COMPLEX); \
-  if(!RhsIsReal) rhs_ptr_imag += (accRows * PEEL_COMPLEX);
+#define MICRO_COMPLEX_UNROLL_TYPE(MICRO_COMPLEX_TYPE, size) \
+  MICRO_COMPLEX_TYPE(4, MICRO_COMPLEX_TYPE_PEEL4, MICRO_COMPLEX_WORK_ONE4, MICRO_COMPLEX_LOAD_ONE); \
+  rhs_ptr_real += (accRows * size); \
+  if(!RhsIsReal) rhs_ptr_imag += (accRows * size);
 
-#define MICRO_COMPLEX_ONE4 \
-  MICRO_COMPLEX_UNROLL_TYPE_ONE(4, MICRO_COMPLEX_TYPE_PEEL4, MICRO_COMPLEX_WORK_ONE4, MICRO_COMPLEX_LOAD_ONE); \
-  rhs_ptr_real += accRows; \
-  if(!RhsIsReal) rhs_ptr_imag += accRows;
+#define MICRO_COMPLEX_ONE_PEEL4 MICRO_COMPLEX_UNROLL_TYPE(MICRO_COMPLEX_UNROLL_TYPE_PEEL, PEEL_COMPLEX)
+
+#define MICRO_COMPLEX_ONE4 MICRO_COMPLEX_UNROLL_TYPE(MICRO_COMPLEX_UNROLL_TYPE_ONE, 1)
 
 #define MICRO_COMPLEX_DST_PTR_ONE(iter) \
   if (unroll_factor > iter) { \

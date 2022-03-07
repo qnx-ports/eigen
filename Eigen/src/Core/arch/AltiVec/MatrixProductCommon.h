@@ -11,6 +11,8 @@ namespace Eigen {
 
 namespace internal {
 
+#define NEW_EXTRA_COL
+
 template<typename Scalar, typename Packet, typename DataMapper, typename Index, const Index accRows, const Index accCols>
 EIGEN_ALWAYS_INLINE void gemm_extra_row(
   const DataMapper& res,

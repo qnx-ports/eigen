@@ -90,18 +90,6 @@ EIGEN_ALWAYS_INLINE void pgerMMA(__vector_quad* acc, const RhsPacket& a, const L
 }
 
 template<typename LhsPacket, typename RhsPacket, bool NegativeAccumulate>
-EIGEN_ALWAYS_INLINE void pgerMMA(__vector_quad* acc, const PacketBlock<Packet2d,2>& a, const Packet2d& b)
-{
-  __vector_pair* a0 = reinterpret_cast<__vector_pair *>(const_cast<Packet2d *>(&a.packet[0]));
-  if(NegativeAccumulate)
-  {
-    __builtin_mma_xvf64gernp(acc, *a0, (__vector unsigned char)b);
-  } else {
-    __builtin_mma_xvf64gerpp(acc, *a0, (__vector unsigned char)b);
-  }
-}
-
-template<typename LhsPacket, typename RhsPacket, bool NegativeAccumulate>
 EIGEN_ALWAYS_INLINE void pgerMMA(__vector_quad* acc, const __vector_pair& a, const Packet2d& b)
 {
   if(NegativeAccumulate)
@@ -110,12 +98,6 @@ EIGEN_ALWAYS_INLINE void pgerMMA(__vector_quad* acc, const __vector_pair& a, con
   } else {
     __builtin_mma_xvf64gerpp(acc, (__vector_pair)a, (__vector unsigned char)b);
   }
-}
-
-template<typename LhsPacket, typename RhsPacket, bool NegativeAccumulate>
-EIGEN_ALWAYS_INLINE void pgerMMA(__vector_quad*, const __vector_pair&, const Packet4f&)
-{
-  // Just for compilation
 }
 
 template<typename Scalar, typename Packet, typename RhsPacket, bool ConjugateLhs, bool ConjugateRhs, bool LhsIsReal, bool RhsIsReal>
@@ -143,13 +125,6 @@ EIGEN_ALWAYS_INLINE void ploadRhsMMA(const Scalar* rhs, Packet& rhsV)
 } 
 
 template<>
-EIGEN_ALWAYS_INLINE void ploadRhsMMA<double, PacketBlock<Packet2d, 2> >(const double* rhs, PacketBlock<Packet2d, 2>& rhsV)
-{
-  rhsV.packet[0] = ploadRhs<double, Packet2d>(rhs);
-  rhsV.packet[1] = ploadRhs<double, Packet2d>(rhs + (sizeof(Packet2d) / sizeof(double)));
-}
-
-template<>
 EIGEN_ALWAYS_INLINE void ploadRhsMMA<double, __vector_pair>(const double* rhs, __vector_pair& rhsV)
 {
 #if EIGEN_COMP_LLVM
@@ -159,12 +134,6 @@ EIGEN_ALWAYS_INLINE void ploadRhsMMA<double, __vector_pair>(const double* rhs, _
 #else
   __asm__ ("lxvp %x0,%1" : "=wa" (rhsV) : "Y" (*rhs));
 #endif
-}
-
-template<>
-EIGEN_ALWAYS_INLINE void ploadRhsMMA(const float*, __vector_pair&)
-{
-  // Just for compilation
 }
 
 // PEEL_MMA loop factor.
@@ -200,21 +169,13 @@ EIGEN_ALWAYS_INLINE void ploadRhsMMA(const float*, __vector_pair&)
   type rhsV0; \
   MICRO_MMA_TYPE_PEEL(func,func2,type,0);
 
-#define MICRO_MMA_ONE_PEEL \
-  if (sizeof(Scalar) == sizeof(float)) { \
-    MICRO_MMA_UNROLL_TYPE_PEEL(MICRO_MMA_WORK_ONE, MICRO_LOAD_ONE, RhsPacket); \
-  } else { \
-    MICRO_MMA_UNROLL_TYPE_PEEL(MICRO_MMA_WORK_ONE, MICRO_LOAD_ONE, __vector_pair); \
-  } \
-  rhs_ptr += (accRows * PEEL_MMA);
+#define MICRO_MMA_UNROLL_TYPE(MICRO_MMA_TYPE, size) \
+  MICRO_MMA_TYPE(MICRO_MMA_WORK_ONE, MICRO_LOAD_ONE, RhsPacket); \
+  rhs_ptr += (accRows * size);
 
-#define MICRO_MMA_ONE \
-  if (sizeof(Scalar) == sizeof(float)) { \
-    MICRO_MMA_UNROLL_TYPE_ONE(MICRO_MMA_WORK_ONE, MICRO_LOAD_ONE, RhsPacket); \
-  } else { \
-    MICRO_MMA_UNROLL_TYPE_ONE(MICRO_MMA_WORK_ONE, MICRO_LOAD_ONE, __vector_pair); \
-  } \
-  rhs_ptr += accRows;
+#define MICRO_MMA_ONE_PEEL MICRO_MMA_UNROLL_TYPE(MICRO_MMA_UNROLL_TYPE_PEEL, PEEL_MMA)
+
+#define MICRO_MMA_ONE MICRO_MMA_UNROLL_TYPE(MICRO_MMA_UNROLL_TYPE_ONE, 1)
 
 #define MICRO_MMA_DST_PTR_ONE(iter) \
   if (unroll_factor > iter) { \
@@ -363,10 +324,12 @@ void gemmMMA(const DataMapper& res, const Scalar* blockA, const Scalar* blockB, 
       const Packet pAlpha = pset1<Packet>(alpha);
       const Packet pMask  = bmask<Packet>(remaining_rows);
 
+      typedef typename std::conditional<(sizeof(Scalar) == sizeof(float)), RhsPacket, __vector_pair>::type RhsPacket2;
+
       Index col = 0;
       for(; col + accRows <= cols; col += accRows)
       {
-        gemmMMA_cols<Scalar, Packet, RhsPacket, DataMapper, Index, accRows, accCols>(res, blockA, blockB, depth, strideA, offsetA, strideB, offsetB, col, rows, remaining_rows, pAlpha, pMask);
+        gemmMMA_cols<Scalar, Packet, RhsPacket2, DataMapper, Index, accRows, accCols>(res, blockA, blockB, depth, strideA, offsetA, strideB, offsetB, col, rows, remaining_rows, pAlpha, pMask);
       }
 
       if (col != cols)
@@ -422,23 +385,14 @@ void gemmMMA(const DataMapper& res, const Scalar* blockA, const Scalar* blockB, 
   type rhsV0, rhsVi0; \
   MICRO_COMPLEX_MMA_TYPE_PEEL(func,func2,type,0);
 
-#define MICRO_COMPLEX_MMA_ONE_PEEL \
-  if (sizeof(Scalar) == sizeof(float)) { \
-    MICRO_COMPLEX_MMA_UNROLL_TYPE_PEEL(MICRO_COMPLEX_MMA_WORK_ONE, MICRO_COMPLEX_LOAD_ONE, RhsPacket); \
-  } else { \
-    MICRO_COMPLEX_MMA_UNROLL_TYPE_PEEL(MICRO_COMPLEX_MMA_WORK_ONE, MICRO_COMPLEX_LOAD_ONE, __vector_pair); \
-  } \
-  rhs_ptr_real += (accRows * PEEL_COMPLEX_MMA); \
-  if(!RhsIsReal) rhs_ptr_imag += (accRows * PEEL_COMPLEX_MMA);
+#define MICRO_COMPLEX_MMA_UNROLL_TYPE(MICRO_COMPLEX_MMA_TYPE, size) \
+  MICRO_COMPLEX_MMA_TYPE(MICRO_COMPLEX_MMA_WORK_ONE, MICRO_COMPLEX_LOAD_ONE, RhsPacket); \
+  rhs_ptr_real += (accRows * size); \
+  if(!RhsIsReal) rhs_ptr_imag += (accRows * size);
 
-#define MICRO_COMPLEX_MMA_ONE \
-  if (sizeof(Scalar) == sizeof(float)) { \
-    MICRO_COMPLEX_MMA_UNROLL_TYPE_ONE(MICRO_COMPLEX_MMA_WORK_ONE, MICRO_COMPLEX_LOAD_ONE, RhsPacket); \
-  } else { \
-    MICRO_COMPLEX_MMA_UNROLL_TYPE_ONE(MICRO_COMPLEX_MMA_WORK_ONE, MICRO_COMPLEX_LOAD_ONE, __vector_pair); \
-  } \
-  rhs_ptr_real += accRows; \
-  if(!RhsIsReal) rhs_ptr_imag += accRows;
+#define MICRO_COMPLEX_MMA_ONE_PEEL MICRO_COMPLEX_MMA_UNROLL_TYPE(MICRO_COMPLEX_MMA_UNROLL_TYPE_PEEL, PEEL_COMPLEX_MMA)
+
+#define MICRO_COMPLEX_MMA_ONE MICRO_COMPLEX_MMA_UNROLL_TYPE(MICRO_COMPLEX_MMA_UNROLL_TYPE_ONE, 1)
 
 #define MICRO_COMPLEX_MMA_DST_PTR_ONE(iter) \
   if (unroll_factor > iter) { \
@@ -593,10 +547,12 @@ void gemm_complexMMA(const DataMapper& res, const LhsScalar* blockAc, const RhsS
       const Scalar* blockA = (Scalar *) blockAc;
       const Scalar* blockB = (Scalar *) blockBc;
 
+      typedef typename std::conditional<(sizeof(Scalar) == sizeof(float)), RhsPacket, __vector_pair>::type RhsPacket2;
+
       Index col = 0;
       for(; col + accRows <= cols; col += accRows)
       {
-        gemmMMA_complex_cols<Scalar, Packet, Packetc, RhsPacket, DataMapper, Index, accRows, accCols, ConjugateLhs, ConjugateRhs, LhsIsReal, RhsIsReal>(res, blockA, blockB, depth, strideA, offsetA, strideB, offsetB, col, rows, remaining_rows, pAlphaReal, pAlphaImag, pMask);
+        gemmMMA_complex_cols<Scalar, Packet, Packetc, RhsPacket2, DataMapper, Index, accRows, accCols, ConjugateLhs, ConjugateRhs, LhsIsReal, RhsIsReal>(res, blockA, blockB, depth, strideA, offsetA, strideB, offsetB, col, rows, remaining_rows, pAlphaReal, pAlphaImag, pMask);
       }
 
       if (col != cols)
