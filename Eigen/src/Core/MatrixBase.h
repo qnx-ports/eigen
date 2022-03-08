@@ -208,7 +208,7 @@ template<typename Derived> class MatrixBase
     EIGEN_DEVICE_FUNC
     DiagonalReturnType diagonal();
 
-    typedef std::add_const_t<Diagonal<const Derived>> ConstDiagonalReturnType;
+    typedef typename std::add_const<Diagonal<const Derived>>::type ConstDiagonalReturnType;
     EIGEN_DEVICE_FUNC
     ConstDiagonalReturnType diagonal() const;
 
@@ -224,7 +224,7 @@ template<typename Derived> class MatrixBase
     typename ConstDiagonalIndexReturnType<Index>::Type diagonal() const;
 
     typedef Diagonal<Derived,DynamicIndex> DiagonalDynamicIndexReturnType;
-    typedef std::add_const_t<Diagonal<const Derived,DynamicIndex>> ConstDiagonalDynamicIndexReturnType;
+    typedef typename std::add_const<Diagonal<const Derived,DynamicIndex> >::type ConstDiagonalDynamicIndexReturnType;
 
     EIGEN_DEVICE_FUNC
     DiagonalDynamicIndexReturnType diagonal(Index index);
