@@ -1280,7 +1280,7 @@ EIGEN_ALWAYS_INLINE void bscale(PacketBlock<Packet,N>& acc, PacketBlock<Packet,N
 }
 
 template<typename Packet, int N>
-EIGEN_ALWAYS_INLINE void pbroadcastN_common(const __UNPACK_TYPE__(Packet) *ap0,
+EIGEN_ALWAYS_INLINE void pbroadcastN(const __UNPACK_TYPE__(Packet) *ap0,
         const __UNPACK_TYPE__(Packet) *ap1, const __UNPACK_TYPE__(Packet) *ap2,
         Packet& a0, Packet& a1, Packet& a2, Packet& a3)
 {
@@ -1308,7 +1308,7 @@ EIGEN_ALWAYS_INLINE void pbroadcastN_common(const __UNPACK_TYPE__(Packet) *ap0,
 }
 
 template<> EIGEN_ALWAYS_INLINE void
-pbroadcastN_common<Packet4f,4>(const float *ap0, const float *ap1, const float *ap2,
+pbroadcastN<Packet4f,4>(const float *ap0, const float *ap1, const float *ap2,
                                Packet4f& a0, Packet4f& a1, Packet4f& a2, Packet4f& a3)
 {
   pbroadcast4<Packet4f>(ap0, a0, a1, a2, a3);
@@ -1320,28 +1320,7 @@ template<typename Packet, int N> EIGEN_ALWAYS_INLINE void
 pbroadcastN_old(const __UNPACK_TYPE__(Packet) *a,
                       Packet& a0, Packet& a1, Packet& a2, Packet& a3)
 {
-  a0 = pset1<Packet>(a[0]);
-  if (N > 1) {
-    a1 = pset1<Packet>(a[1]);
-  } else {
-    EIGEN_UNUSED_VARIABLE(a1);
-  }
-  if (N > 2) {
-    a2 = pset1<Packet>(a[2]);
-  } else {
-    EIGEN_UNUSED_VARIABLE(a2);
-  }
-  if (N > 3) {
-    a3 = pset1<Packet>(a[3]);
-  } else {
-    EIGEN_UNUSED_VARIABLE(a3);
-  }
-}
-
-template<>
-EIGEN_ALWAYS_INLINE void pbroadcastN_old<Packet4f,4>(const float* a, Packet4f& a0, Packet4f& a1, Packet4f& a2, Packet4f& a3)
-{
-  pbroadcast4<Packet4f>(a, a0, a1, a2, a3);
+  pbroadcastN<Packet,N>(a, a, a, a0, a1, a2, a3);
 }
 
 template<>
@@ -1353,14 +1332,6 @@ EIGEN_ALWAYS_INLINE void pbroadcastN_old<Packet2d,4>(const double* a, Packet2d& 
   a1 = vec_splat(a1, 1);
   a2 = vec_splat(a3, 0);
   a3 = vec_splat(a3, 1);
-}
-
-template<typename Packet, int N>
-EIGEN_ALWAYS_INLINE void pbroadcastN(const __UNPACK_TYPE__(Packet) *ap0,
-        const __UNPACK_TYPE__(Packet) *ap1, const __UNPACK_TYPE__(Packet) *ap2,
-        Packet& a0, Packet& a1, Packet& a2, Packet& a3)
-{
-  pbroadcastN_common<Packet,N>(ap0, ap1, ap2, a0, a1, a2, a3);
 }
 
 // Grab two decouples real/imaginary PacketBlocks and return two coupled (real/imaginary pairs) PacketBlocks.
