@@ -1413,7 +1413,7 @@ EIGEN_ALWAYS_INLINE Packet ploadRhs(const Scalar* rhs)
     EIGEN_UNUSED_VARIABLE(accZero##peel); \
   }
 
-#define MICRO_ADD_ROWS(N) \
+#define MICRO_ADD(rhs_ptr, N) \
   if (MICRO_NORMAL_ROWS) { \
     rhs_ptr0 += (accRows * N); \
   } else { \
@@ -1423,6 +1423,8 @@ EIGEN_ALWAYS_INLINE Packet ploadRhs(const Scalar* rhs)
       rhs_ptr2 += N; \
     } \
   }
+
+#define MICRO_ADD_ROWS(N) MICRO_ADD(rhs_ptr, N)
 
 #define MICRO_BROADCAST(peel) \
   if (MICRO_NORMAL_ROWS) { \
@@ -1436,22 +1438,23 @@ EIGEN_ALWAYS_INLINE Packet ploadRhs(const Scalar* rhs)
   pbroadcastN<Packet,accRows>(rhs_ptr0, rhs_ptr1, rhs_ptr2, rhsV[0], rhsV[1], rhsV[2], rhsV[3]); \
   MICRO_ADD_ROWS(1)
 
-#define MICRO_SRC2_PTR \
+#define MICRO_SRC2(rhs_ptr, N, M) \
   if (MICRO_NORMAL_ROWS) { \
     EIGEN_UNUSED_VARIABLE(strideB); \
     EIGEN_UNUSED_VARIABLE(rhs_ptr1); \
     EIGEN_UNUSED_VARIABLE(rhs_ptr2); \
   } else { \
-    rhs_ptr1 = rhs_base + strideB; \
+    rhs_ptr1 = rhs_base + N + M; \
     if (accRows == 3) { \
-      rhs_ptr2 = rhs_base + strideB*2; \
+      rhs_ptr2 = rhs_base + N*2 + M; \
     } else { \
       EIGEN_UNUSED_VARIABLE(rhs_ptr2); \
     } \
   }
 
-#define MICRO_ZERO_PEEL_ROW \
-  MICRO_UNROLL(MICRO_ZERO_PEEL);
+#define MICRO_SRC2_PTR MICRO_SRC2(rhs_ptr, strideB, 0)
+
+#define MICRO_ZERO_PEEL_ROW MICRO_UNROLL(MICRO_ZERO_PEEL)
 
 #define MICRO_WORK_PEEL(peel) \
   if (PEEL_ROW > peel) { \
@@ -1463,7 +1466,7 @@ EIGEN_ALWAYS_INLINE Packet ploadRhs(const Scalar* rhs)
 
 #define MICRO_WORK_PEEL_ROW \
   Packet rhsV0[4], rhsV1[4], rhsV2[4], rhsV3[4], rhsV4[4], rhsV5[4], rhsV6[4], rhsV7[4]; \
-  MICRO_UNROLL(MICRO_WORK_PEEL); \
+  MICRO_UNROLL(MICRO_WORK_PEEL) \
   lhs_ptr += (remaining_rows * PEEL_ROW); \
   MICRO_ADD_ROWS(PEEL_ROW)
 
@@ -1518,7 +1521,7 @@ EIGEN_ALWAYS_INLINE void gemm_unrolled_row_iteration(
     MICRO_ZERO_PEEL_ROW
     do
     {
-      MICRO_PREFETCHN(accRows, rhs_ptr0, rhs_ptr1, rhs_ptr2);
+      MICRO_PREFETCHN(accRows)
       EIGEN_POWER_PREFETCH(lhs_ptr);
       MICRO_WORK_PEEL_ROW
     } while ((k += PEEL_ROW) + PEEL_ROW <= remaining_depth);
@@ -1603,18 +1606,18 @@ EIGEN_ALWAYS_INLINE void gemm_extra_row(
 
 #define MICRO_UNROLL_TYPE_PEEL(M, func, func1, func2) \
   Packet rhsV0[M], rhsV1[M], rhsV2[M], rhsV3[M], rhsV4[M], rhsV5[M], rhsV6[M], rhsV7[M]; \
-  func(func1,func2,0); func(func1,func2,1); \
-  func(func1,func2,2); func(func1,func2,3); \
-  func(func1,func2,4); func(func1,func2,5); \
-  func(func1,func2,6); func(func1,func2,7);
+  func(func1,func2,0) func(func1,func2,1) \
+  func(func1,func2,2) func(func1,func2,3) \
+  func(func1,func2,4) func(func1,func2,5) \
+  func(func1,func2,6) func(func1,func2,7)
 
 #define MICRO_UNROLL_TYPE_ONE(M, func, func1, func2) \
   Packet rhsV0[M]; \
-  func(func1,func2,0);
+  func(func1,func2,0)
 
 #define MICRO_UNROLL_TYPE(MICRO_TYPE, size) \
-  MICRO_TYPE(4, MICRO_TYPE_PEEL4, MICRO_WORK_ONE, MICRO_LOAD_ONE); \
-  MICRO_ADD_ROWS(size);
+  MICRO_TYPE(4, MICRO_TYPE_PEEL4, MICRO_WORK_ONE, MICRO_LOAD_ONE) \
+  MICRO_ADD_ROWS(size)
 
 #define MICRO_ONE_PEEL4 MICRO_UNROLL_TYPE(MICRO_UNROLL_TYPE_PEEL, PEEL)
 
@@ -1671,7 +1674,7 @@ EIGEN_ALWAYS_INLINE void gemm_unrolled_iteration(
   Index k = 0;
   for(; k + PEEL <= depth; k+= PEEL)
   {
-    MICRO_PREFETCHN(accRows, rhs_ptr0, rhs_ptr1, rhs_ptr2);
+    MICRO_PREFETCHN(accRows)
     MICRO_PREFETCH
     MICRO_ONE_PEEL4
   }
@@ -1845,54 +1848,18 @@ EIGEN_STRONG_INLINE void gemm(const DataMapper& res, const Scalar* blockA, const
   }
 
 #define MICRO_COMPLEX_ADD_ROWS(N) \
-  if (MICRO_NORMAL_ROWS) { \
-    rhs_real_ptr0 += (accRows * N); \
-    if(!RhsIsReal) { \
-      rhs_imag_ptr0 += (accRows * N); \
-    } \
-  } else { \
-    rhs_real_ptr0 += N; \
-    rhs_real_ptr1 += N; \
-    if (accRows == 3) { \
-      rhs_real_ptr2 += N; \
-    } \
-    if(!RhsIsReal) { \
-      rhs_imag_ptr0 += N; \
-      rhs_imag_ptr1 += N; \
-      if (accRows == 3) { \
-        rhs_imag_ptr2 += N; \
-      } \
-    } \
+  MICRO_ADD(rhs_real_ptr, N) \
+  if (!RhsIsReal) { \
+    MICRO_ADD(rhs_imag_ptr, N) \
   }
 
 #define MICRO_COMPLEX_SRC2_PTR \
-  if (MICRO_NORMAL_ROWS) { \
-    EIGEN_UNUSED_VARIABLE(strideB); \
-    EIGEN_UNUSED_VARIABLE(rhs_real_ptr1); \
-    EIGEN_UNUSED_VARIABLE(rhs_real_ptr2); \
-    if(!RhsIsReal) { \
-      EIGEN_UNUSED_VARIABLE(rhs_imag_ptr1); \
-      EIGEN_UNUSED_VARIABLE(rhs_imag_ptr2); \
-    } \
-  } else { \
-    rhs_real_ptr1 = rhs_base + strideB*2; \
-    if (accRows == 3) { \
-      rhs_real_ptr2 = rhs_base + strideB*4; \
-    } else { \
-      EIGEN_UNUSED_VARIABLE(rhs_real_ptr2); \
-    } \
-    if(!RhsIsReal) { \
-      rhs_imag_ptr1 = rhs_base + strideB*3; \
-      if (accRows == 3) { \
-        rhs_imag_ptr2 = rhs_base + strideB*5; \
-      } else { \
-        EIGEN_UNUSED_VARIABLE(rhs_imag_ptr2); \
-      } \
-    } \
+  MICRO_SRC2(rhs_rptr, strideB*2, 0) \
+  if (!RhsIsReal) { \
+    MICRO_SRC2(rhs_imag_ptr, strideB*2, strideB) \
   }
 
-#define MICRO_COMPLEX_ZERO_PEEL_ROW \
-  MICRO_COMPLEX_UNROLL(MICRO_COMPLEX_ZERO_PEEL);
+#define MICRO_COMPLEX_ZERO_PEEL_ROW MICRO_COMPLEX_UNROLL(MICRO_COMPLEX_ZERO_PEEL)
 
 #define MICRO_COMPLEX_WORK_PEEL(peel) \
   if (PEEL_COMPLEX_ROW > peel) { \
@@ -1907,7 +1874,7 @@ EIGEN_STRONG_INLINE void gemm(const DataMapper& res, const Scalar* blockA, const
 #define MICRO_COMPLEX_WORK_PEEL_ROW \
   Packet rhsV0[4], rhsV1[4], rhsV2[4], rhsV3[4]; \
   Packet rhsVi0[4], rhsVi1[4], rhsVi2[4], rhsVi3[4]; \
-  MICRO_COMPLEX_UNROLL(MICRO_COMPLEX_WORK_PEEL); \
+  MICRO_COMPLEX_UNROLL(MICRO_COMPLEX_WORK_PEEL) \
   lhs_ptr_real += (remaining_rows * PEEL_COMPLEX_ROW); \
   if(!LhsIsReal) lhs_ptr_imag += (remaining_rows * PEEL_COMPLEX_ROW); \
   else EIGEN_UNUSED_VARIABLE(lhs_ptr_imag); \
@@ -2076,15 +2043,15 @@ EIGEN_ALWAYS_INLINE void gemm_complex_extra_row(
 #define MICRO_COMPLEX_UNROLL_TYPE_PEEL(M, func, func1, func2) \
   Packet rhsV0[M], rhsV1[M], rhsV2[M], rhsV3[M]; \
   Packet rhsVi0[M], rhsVi1[M], rhsVi2[M], rhsVi3[M]; \
-  func(func1,func2,0); func(func1,func2,1); \
-  func(func1,func2,2); func(func1,func2,3);
+  func(func1,func2,0) func(func1,func2,1) \
+  func(func1,func2,2) func(func1,func2,3)
 
 #define MICRO_COMPLEX_UNROLL_TYPE_ONE(M, func, func1, func2) \
   Packet rhsV0[M], rhsVi0[M];\
-  func(func1,func2,0);
+  func(func1,func2,0)
 
 #define MICRO_COMPLEX_UNROLL_TYPE(MICRO_COMPLEX_TYPE, size) \
-  MICRO_COMPLEX_TYPE(4, MICRO_COMPLEX_TYPE_PEEL4, MICRO_COMPLEX_WORK_ONE4, MICRO_COMPLEX_LOAD_ONE); \
+  MICRO_COMPLEX_TYPE(4, MICRO_COMPLEX_TYPE_PEEL4, MICRO_COMPLEX_WORK_ONE4, MICRO_COMPLEX_LOAD_ONE) \
   rhs_ptr_real += (accRows * size); \
   if(!RhsIsReal) rhs_ptr_imag += (accRows * size);
 

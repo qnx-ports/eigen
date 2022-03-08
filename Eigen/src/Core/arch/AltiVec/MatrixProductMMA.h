@@ -151,7 +151,7 @@ EIGEN_ALWAYS_INLINE void ploadRhsMMA<double, __vector_pair>(const double* rhs, _
   if (PEEL_MMA > peel) { \
     Packet lhsV0, lhsV1, lhsV2, lhsV3, lhsV4, lhsV5, lhsV6, lhsV7; \
     ploadRhsMMA<Scalar, type>(rhs_ptr + (accRows * peel), rhsV##peel); \
-    MICRO_MMA_UNROLL(func2); \
+    MICRO_MMA_UNROLL(func2) \
     func(0,type,peel) func(1,type,peel) func(2,type,peel) func(3,type,peel) \
     func(4,type,peel) func(5,type,peel) func(6,type,peel) func(7,type,peel) \
   } else { \
@@ -160,17 +160,17 @@ EIGEN_ALWAYS_INLINE void ploadRhsMMA<double, __vector_pair>(const double* rhs, _
 
 #define MICRO_MMA_UNROLL_TYPE_PEEL(func, func2, type) \
   type rhsV0, rhsV1, rhsV2, rhsV3, rhsV4, rhsV5, rhsV6, rhsV7; \
-  MICRO_MMA_TYPE_PEEL(func,func2,type,0); MICRO_MMA_TYPE_PEEL(func,func2,type,1); \
-  MICRO_MMA_TYPE_PEEL(func,func2,type,2); MICRO_MMA_TYPE_PEEL(func,func2,type,3); \
-  MICRO_MMA_TYPE_PEEL(func,func2,type,4); MICRO_MMA_TYPE_PEEL(func,func2,type,5); \
-  MICRO_MMA_TYPE_PEEL(func,func2,type,6); MICRO_MMA_TYPE_PEEL(func,func2,type,7);
+  MICRO_MMA_TYPE_PEEL(func,func2,type,0) MICRO_MMA_TYPE_PEEL(func,func2,type,1) \
+  MICRO_MMA_TYPE_PEEL(func,func2,type,2) MICRO_MMA_TYPE_PEEL(func,func2,type,3) \
+  MICRO_MMA_TYPE_PEEL(func,func2,type,4) MICRO_MMA_TYPE_PEEL(func,func2,type,5) \
+  MICRO_MMA_TYPE_PEEL(func,func2,type,6) MICRO_MMA_TYPE_PEEL(func,func2,type,7)
 
 #define MICRO_MMA_UNROLL_TYPE_ONE(func, func2, type) \
   type rhsV0; \
-  MICRO_MMA_TYPE_PEEL(func,func2,type,0);
+  MICRO_MMA_TYPE_PEEL(func,func2,type,0)
 
 #define MICRO_MMA_UNROLL_TYPE(MICRO_MMA_TYPE, size) \
-  MICRO_MMA_TYPE(MICRO_MMA_WORK_ONE, MICRO_LOAD_ONE, RhsPacket); \
+  MICRO_MMA_TYPE(MICRO_MMA_WORK_ONE, MICRO_LOAD_ONE, RhsPacket) \
   rhs_ptr += (accRows * size);
 
 #define MICRO_MMA_ONE_PEEL MICRO_MMA_UNROLL_TYPE(MICRO_MMA_UNROLL_TYPE_PEEL, PEEL_MMA)
@@ -368,7 +368,7 @@ void gemmMMA(const DataMapper& res, const Scalar* blockA, const Scalar* blockB, 
     } else { \
       EIGEN_UNUSED_VARIABLE(rhsVi##peel); \
     } \
-    MICRO_COMPLEX_MMA_UNROLL(func2); \
+    MICRO_COMPLEX_MMA_UNROLL(func2) \
     func(0,type,peel) func(1,type,peel) func(2,type,peel) func(3,type,peel) \
   } else { \
     EIGEN_UNUSED_VARIABLE(rhsV##peel); \
@@ -378,15 +378,15 @@ void gemmMMA(const DataMapper& res, const Scalar* blockA, const Scalar* blockB, 
 #define MICRO_COMPLEX_MMA_UNROLL_TYPE_PEEL(func, func2, type) \
   type rhsV0, rhsV1, rhsV2, rhsV3; \
   type rhsVi0, rhsVi1, rhsVi2, rhsVi3; \
-  MICRO_COMPLEX_MMA_TYPE_PEEL(func,func2,type,0); MICRO_COMPLEX_MMA_TYPE_PEEL(func,func2,type,1); \
-  MICRO_COMPLEX_MMA_TYPE_PEEL(func,func2,type,2); MICRO_COMPLEX_MMA_TYPE_PEEL(func,func2,type,3);
+  MICRO_COMPLEX_MMA_TYPE_PEEL(func,func2,type,0) MICRO_COMPLEX_MMA_TYPE_PEEL(func,func2,type,1) \
+  MICRO_COMPLEX_MMA_TYPE_PEEL(func,func2,type,2) MICRO_COMPLEX_MMA_TYPE_PEEL(func,func2,type,3)
 
 #define MICRO_COMPLEX_MMA_UNROLL_TYPE_ONE(func, func2, type) \
   type rhsV0, rhsVi0; \
-  MICRO_COMPLEX_MMA_TYPE_PEEL(func,func2,type,0);
+  MICRO_COMPLEX_MMA_TYPE_PEEL(func,func2,type,0)
 
 #define MICRO_COMPLEX_MMA_UNROLL_TYPE(MICRO_COMPLEX_MMA_TYPE, size) \
-  MICRO_COMPLEX_MMA_TYPE(MICRO_COMPLEX_MMA_WORK_ONE, MICRO_COMPLEX_LOAD_ONE, RhsPacket); \
+  MICRO_COMPLEX_MMA_TYPE(MICRO_COMPLEX_MMA_WORK_ONE, MICRO_COMPLEX_LOAD_ONE, RhsPacket) \
   rhs_ptr_real += (accRows * size); \
   if(!RhsIsReal) rhs_ptr_imag += (accRows * size);
 

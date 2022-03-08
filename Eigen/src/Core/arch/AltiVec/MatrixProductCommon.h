@@ -169,45 +169,45 @@ EIGEN_ALWAYS_INLINE Packet ploadRhs(const Scalar* rhs);
     EIGEN_UNUSED_VARIABLE(lhsVi##iter); \
   }
 
-#define MICRO_SRC_PTR_ONE(iter) \
+#define MICRO_SRC_PTR1(lhs_ptr, advanceRows, iter) \
   if (unroll_factor > iter) { \
     if (MICRO_NORMAL(iter)) { \
-      lhs_ptr##iter = lhs_base + (row+(iter*accCols))*strideA; \
+      lhs_ptr##iter = lhs_base + (row+(iter*accCols))*strideA*advanceRows; \
     } else { \
-      lhs_ptr##iter = lhs_base + (row+(iter*accCols))*strideA - (accCols-accCols2)*offsetA; \
+      lhs_ptr##iter = lhs_base + (row+(iter*accCols))*strideA*advanceRows - (accCols-accCols2)*offsetA; \
     } \
   } else { \
     EIGEN_UNUSED_VARIABLE(lhs_ptr##iter); \
   }
 
-#define MICRO_COMPLEX_SRC_PTR_ONE(iter) \
-  if (unroll_factor > iter) { \
-    if (MICRO_NORMAL(iter)) { \
-      lhs_ptr_real##iter = lhs_base + (row+(iter*accCols))*strideA*advanceRows; \
-    } else { \
-      lhs_ptr_real##iter = lhs_base + (row+(iter*accCols))*strideA*advanceRows - (accCols-accCols2)*offsetA; \
-    } \
-  } else { \
-    EIGEN_UNUSED_VARIABLE(lhs_ptr_real##iter); \
-  }
+#define MICRO_SRC_PTR_ONE(iter) MICRO_SRC_PTR1(lhs_ptr, 1, iter)
 
-#define MICRO_PREFETCH_ONE(iter) \
+#define MICRO_COMPLEX_SRC_PTR_ONE(iter) MICRO_SRC_PTR1(lhs_ptr_real, advanceRows, iter)
+
+#define MICRO_PREFETCH1(lhs_ptr, iter) \
   if (unroll_factor > iter) { \
     EIGEN_POWER_PREFETCH(lhs_ptr##iter); \
   }
 
-#define MICRO_COMPLEX_PREFETCH_ONE(iter) \
-  if (unroll_factor > iter) { \
-    EIGEN_POWER_PREFETCH(lhs_ptr_real##iter); \
-  }
+#define MICRO_PREFETCH_ONE(iter) MICRO_PREFETCH1(lhs_ptr, iter)
 
-#define MICRO_PREFETCHN(N, rhs_ptr0, rhs_ptr1, rhs_ptr2) \
+#define MICRO_COMPLEX_PREFETCH_ONE(iter) MICRO_PREFETCH1(lhs_ptr_real, iter)
+
+#define MICRO_PREFETCHN1(rhs_ptr, N) \
   EIGEN_POWER_PREFETCH(rhs_ptr0); \
   if (N == 2 || N == 3) { \
     EIGEN_POWER_PREFETCH(rhs_ptr1); \
     if (N == 3) { \
       EIGEN_POWER_PREFETCH(rhs_ptr2); \
     } \
+  }
+
+#define MICRO_PREFETCHN(N) MICRO_PREFETCHN1(rhs_ptr, N)
+
+#define MICRO_COMPLEX_PREFETCHN(N) \
+  MICRO_PREFETCHN1(rhs_real_ptr); \
+  if(!RhsIsReal) { \
+    MICRO_PREFETCHN1(rhs_imag_ptr); \
   }
 
 #define MICRO_UPDATE \
@@ -218,11 +218,7 @@ EIGEN_ALWAYS_INLINE Packet ploadRhs(const Scalar* rhs);
   }
 
 #define MICRO_COMPLEX_UPDATE \
-  if (accCols == accCols2) { \
-    EIGEN_UNUSED_VARIABLE(pMask); \
-    EIGEN_UNUSED_VARIABLE(offsetA); \
-    row += unroll_factor*accCols; \
-  } \
+  MICRO_UPDATE \
   if(LhsIsReal || (accCols == accCols2)) { \
     EIGEN_UNUSED_VARIABLE(imag_delta2); \
   }
