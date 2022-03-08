@@ -1307,6 +1307,15 @@ EIGEN_ALWAYS_INLINE void pbroadcastN_common(const __UNPACK_TYPE__(Packet) *ap0,
   }
 }
 
+template<> EIGEN_ALWAYS_INLINE void
+pbroadcastN_common<Packet4f,4>(const float *ap0, const float *ap1, const float *ap2,
+                               Packet4f& a0, Packet4f& a1, Packet4f& a2, Packet4f& a3)
+{
+  pbroadcast4<Packet4f>(ap0, a0, a1, a2, a3);
+  EIGEN_UNUSED_VARIABLE(ap1);
+  EIGEN_UNUSED_VARIABLE(ap2);
+}
+
 template<typename Packet, int N> EIGEN_ALWAYS_INLINE void
 pbroadcastN_old(const __UNPACK_TYPE__(Packet) *a,
                       Packet& a0, Packet& a1, Packet& a2, Packet& a3)
@@ -1352,19 +1361,6 @@ EIGEN_ALWAYS_INLINE void pbroadcastN(const __UNPACK_TYPE__(Packet) *ap0,
         Packet& a0, Packet& a1, Packet& a2, Packet& a3)
 {
   pbroadcastN_common<Packet,N>(ap0, ap1, ap2, a0, a1, a2, a3);
-}
-
-template<> EIGEN_ALWAYS_INLINE void
-pbroadcastN<Packet4f,4>(const float *ap0, const float *ap1, const float *ap2,
-                        Packet4f& a0, Packet4f& a1, Packet4f& a2, Packet4f& a3)
-{
-  a3 = pload<Packet4f>(ap0);
-  a0 = vec_splat(a3, 0);
-  a1 = vec_splat(a3, 1);
-  a2 = vec_splat(a3, 2);
-  a3 = vec_splat(a3, 3);
-  EIGEN_UNUSED_VARIABLE(ap1);
-  EIGEN_UNUSED_VARIABLE(ap2);
 }
 
 // Grab two decouples real/imaginary PacketBlocks and return two coupled (real/imaginary pairs) PacketBlocks.
@@ -1466,11 +1462,7 @@ EIGEN_ALWAYS_INLINE Packet ploadRhs(const Scalar* rhs)
 
 #define MICRO_BROADCAST_EXTRA \
   Packet rhsV[4]; \
-  if (MICRO_NORMAL_ROWS) { \
-    pbroadcastN<Packet,accRows>(rhs_ptr0, rhs_ptr0, rhs_ptr0, rhsV[0], rhsV[1], rhsV[2], rhsV[3]); \
-  } else { \
-    pbroadcastN<Packet,accRows>(rhs_ptr0, rhs_ptr1, rhs_ptr2, rhsV[0], rhsV[1], rhsV[2], rhsV[3]); \
-  } \
+  pbroadcastN<Packet,accRows>(rhs_ptr0, rhs_ptr1, rhs_ptr2, rhsV[0], rhsV[1], rhsV[2], rhsV[3]); \
   MICRO_ADD_ROWS(1)
 
 #define MICRO_SRC2_PTR \
@@ -2148,9 +2140,6 @@ EIGEN_ALWAYS_INLINE void gemm_complex_unrolled_iteration(
   const Scalar* rhs_ptr_imag = NULL;
   const Index imag_delta = accCols*strideA;
   const Index imag_delta2 = accCols2*strideA;
-  if(LhsIsReal) {
-    EIGEN_UNUSED_VARIABLE(imag_delta2);
-  }
   if(!RhsIsReal) {
     rhs_ptr_imag = rhs_base + accRows*strideB;
   } else {

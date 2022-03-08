@@ -221,9 +221,12 @@ EIGEN_ALWAYS_INLINE Packet ploadRhs(const Scalar* rhs);
   if (accCols == accCols2) { \
     EIGEN_UNUSED_VARIABLE(pMask); \
     EIGEN_UNUSED_VARIABLE(offsetA); \
-    EIGEN_UNUSED_VARIABLE(imag_delta2); \
     row += unroll_factor*accCols; \
+  } \
+  if(LhsIsReal || (accCols == accCols2)) { \
+    EIGEN_UNUSED_VARIABLE(imag_delta2); \
   }
+
 
 } // end namespace internal
 } // end namespace Eigen
