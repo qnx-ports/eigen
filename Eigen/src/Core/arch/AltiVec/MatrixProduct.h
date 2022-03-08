@@ -1573,6 +1573,23 @@ EIGEN_ALWAYS_INLINE void gemm_unrolled_row_iteration(
   }
 }
 
+#define MICRO_EXTRA(MICRO_EXTRA_UNROLL, value, is_col) \
+  switch(value) { \
+    default: \
+      MICRO_EXTRA_UNROLL(1) \
+      break; \
+    case 2: \
+      if (is_col || (sizeof(Scalar) == sizeof(float))) { \
+        MICRO_EXTRA_UNROLL(2) \
+      } \
+      break; \
+    case 3: \
+      if (is_col || (sizeof(Scalar) == sizeof(float))) { \
+        MICRO_EXTRA_UNROLL(3) \
+      } \
+      break; \
+  }
+
 #define MICRO_EXTRA_ROWS(N) \
   gemm_unrolled_row_iteration<Scalar, Packet, DataMapper, Index, accRows, accCols, N>(res, lhs_base, rhs_base, depth, strideA, offsetA, strideB, row, rows, pAlpha, pMask);
 
@@ -1591,21 +1608,7 @@ EIGEN_ALWAYS_INLINE void gemm_extra_row(
   const Packet& pAlpha,
   const Packet& pMask)
 {
-  switch(remaining_rows) {
-    default:
-      MICRO_EXTRA_ROWS(1)
-      break;
-    case 2:
-      if (sizeof(Scalar) == sizeof(float)) {
-        MICRO_EXTRA_ROWS(2)
-      }
-      break;
-    case 3:
-      if (sizeof(Scalar) == sizeof(float)) {
-        MICRO_EXTRA_ROWS(3)
-      }
-      break;
-  }
+  MICRO_EXTRA(MICRO_EXTRA_ROWS, remaining_rows, false)
 }
 
 #define MICRO_UNROLL_WORK(func, func2, peel) \
@@ -1808,17 +1811,7 @@ EIGEN_STRONG_INLINE void gemm_extra_cols(
   const Packet& pMask)
 {
 #ifdef NEW_EXTRA_COL
-  switch (cols-col) {
-    default:
-      MICRO_EXTRA_COLS(1)
-      break;
-    case 2:
-      MICRO_EXTRA_COLS(2)
-      break;
-    case 3:
-      MICRO_EXTRA_COLS(3)
-      break;
-  }
+  MICRO_EXTRA(MICRO_EXTRA_COLS, cols-col, true)
 #else
   do {
     MICRO_EXTRA_COLS(1)
@@ -1878,6 +1871,53 @@ EIGEN_STRONG_INLINE void gemm(const DataMapper& res, const Scalar* blockA, const
   } else { \
     EIGEN_UNUSED_VARIABLE(accReal##peel); \
     EIGEN_UNUSED_VARIABLE(accImag##peel); \
+  }
+
+#define MICRO_COMPLEX_ADD_ROWS(N) \
+  if (MICRO_NORMAL_ROWS) { \
+    rhs_real_ptr0 += (accRows * N); \
+    if(!RhsIsReal) { \
+      rhs_imag_ptr0 += (accRows * N); \
+    } \
+  } else { \
+    rhs_real_ptr0 += N; \
+    rhs_real_ptr1 += N; \
+    if (accRows == 3) { \
+      rhs_real_ptr2 += N; \
+    } \
+    if(!RhsIsReal) { \
+      rhs_imag_ptr0 += N; \
+      rhs_imag_ptr1 += N; \
+      if (accRows == 3) { \
+        rhs_imag_ptr2 += N; \
+      } \
+    } \
+  }
+
+#define MICRO_COMPLEX_SRC2_PTR \
+  if (MICRO_NORMAL_ROWS) { \
+    EIGEN_UNUSED_VARIABLE(strideB); \
+    EIGEN_UNUSED_VARIABLE(rhs_real_ptr1); \
+    EIGEN_UNUSED_VARIABLE(rhs_real_ptr2); \
+    if(!RhsIsReal) { \
+      EIGEN_UNUSED_VARIABLE(rhs_imag_ptr1); \
+      EIGEN_UNUSED_VARIABLE(rhs_imag_ptr2); \
+    } \
+  } else { \
+    rhs_real_ptr1 = rhs_base + strideB*2; \
+    if (accRows == 3) { \
+      rhs_real_ptr2 = rhs_base + strideB*4; \
+    } else { \
+      EIGEN_UNUSED_VARIABLE(rhs_real_ptr2); \
+    } \
+    if(!RhsIsReal) { \
+      rhs_imag_ptr1 = rhs_base + strideB*3; \
+      if (accRows == 3) { \
+        rhs_imag_ptr2 = rhs_base + strideB*5; \
+      } else { \
+        EIGEN_UNUSED_VARIABLE(rhs_imag_ptr2); \
+      } \
+    } \
   }
 
 #define MICRO_COMPLEX_ZERO_PEEL_ROW \
@@ -2015,6 +2055,9 @@ EIGEN_ALWAYS_INLINE void gemm_unrolled_complex_row_iteration(
   }
 }
 
+#define MICRO_COMPLEX_EXTRA_ROWS(N) \
+  gemm_unrolled_complex_row_iteration<Scalar, Packet, Packetc, DataMapper, Index, accRows, accCols, ConjugateLhs, ConjugateRhs, LhsIsReal, RhsIsReal, N>(res, lhs_base, rhs_base, depth, strideA, offsetA, strideB, row, rows, pAlphaReal, pAlphaImag, pMask);
+
 template<typename Scalar, typename Packet, typename Packetc, typename DataMapper, typename Index, const Index accRows, const Index accCols, bool ConjugateLhs, bool ConjugateRhs, bool LhsIsReal, bool RhsIsReal>
 EIGEN_ALWAYS_INLINE void gemm_complex_extra_row(
   const DataMapper& res,
@@ -2031,21 +2074,7 @@ EIGEN_ALWAYS_INLINE void gemm_complex_extra_row(
   const Packet& pAlphaImag,
   const Packet& pMask)
 {
-  switch(remaining_rows) {
-    default:
-      gemm_unrolled_complex_row_iteration<Scalar, Packet, Packetc, DataMapper, Index, accRows, accCols, ConjugateLhs, ConjugateRhs, LhsIsReal, RhsIsReal, 1>(res, lhs_base, rhs_base, depth, strideA, offsetA, strideB, row, rows, pAlphaReal, pAlphaImag, pMask);
-      break;
-    case 2:
-      if (sizeof(Scalar) == sizeof(float)) {
-        gemm_unrolled_complex_row_iteration<Scalar, Packet, Packetc, DataMapper, Index, accRows, accCols, ConjugateLhs, ConjugateRhs, LhsIsReal, RhsIsReal, 2>(res, lhs_base, rhs_base, depth, strideA, offsetA, strideB, row, rows, pAlphaReal, pAlphaImag, pMask);
-      }
-      break;
-    case 3:
-      if (sizeof(Scalar) == sizeof(float)) {
-        gemm_unrolled_complex_row_iteration<Scalar, Packet, Packetc, DataMapper, Index, accRows, accCols, ConjugateLhs, ConjugateRhs, LhsIsReal, RhsIsReal, 3>(res, lhs_base, rhs_base, depth, strideA, offsetA, strideB, row, rows, pAlphaReal, pAlphaImag, pMask);
-      }
-      break;
-  }
+  MICRO_EXTRA(MICRO_COMPLEX_EXTRA_ROWS, remaining_rows, false)
 }
 
 #define MICRO_COMPLEX_UNROLL_WORK(func, func2, peel) \
