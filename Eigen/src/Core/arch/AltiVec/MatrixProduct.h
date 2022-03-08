@@ -1223,6 +1223,21 @@ EIGEN_ALWAYS_INLINE void bload(PacketBlock<Packet,N*(Complex?2:1)>& acc, const D
   }
 }
 
+template<typename DataMapper, typename Packet, typename Index, int N>
+EIGEN_ALWAYS_INLINE void bstore(PacketBlock<Packet,N>& acc, const DataMapper& res, Index row)
+{
+  res.template storePacket<Packet>(row, 0, acc.packet[0]);
+  if (N > 1) {
+    res.template storePacket<Packet>(row, 1, acc.packet[1]);
+  }
+  if (N > 2) {
+    res.template storePacket<Packet>(row, 2, acc.packet[2]);
+  }
+  if (N > 3) {
+    res.template storePacket<Packet>(row, 3, acc.packet[3]);
+  }
+}
+
 #ifndef _ARCH_PWR10
 const static Packet4i mask4[4] = { {  0,  0,  0,  0 }, { -1,  0,  0,  0 }, { -1, -1,  0,  0 }, { -1, -1, -1,  0 } };
 #endif
@@ -1555,7 +1570,7 @@ EIGEN_ALWAYS_INLINE void gemm_unrolled_row_iteration(
   if (rows >= accCols)
   {
     bscale<Packet,accRows>(acc, accZero0, pAlpha, pMask);
-    res.template storePacketBlock<Packet,accRows>(row, 0, acc);
+    bstore<DataMapper, Packet, Index, accRows>(acc, res, row);
   } else {
     bscale<Packet,accRows>(acc, accZero0, pAlpha);
     for(Index j = 0; j < accRows; j++) {
@@ -1660,7 +1675,7 @@ EIGEN_ALWAYS_INLINE void gemm_extra_row(
     } else { \
       bscale<Packet,accRows>(acc, accZero##iter, pAlpha, pMask); \
     } \
-    res.template storePacketBlock<Packet,accRows>(row + iter*accCols, 0, acc); \
+    bstore<DataMapper, Packet, Index, accRows>(acc, res, row + iter*accCols); \
   }
 
 #define MICRO_STORE MICRO_UNROLL(MICRO_STORE_ONE)
@@ -1986,8 +2001,8 @@ EIGEN_ALWAYS_INLINE void gemm_unrolled_complex_row_iteration(
   {
     bscalec<Packet,accRows>(accReal0, accImag0, pAlphaReal, pAlphaImag, taccReal, taccImag, pMask);
     bcouple<Packet, Packetc, accRows>(taccReal, taccImag, tRes, acc0, acc1);
-    res.template storePacketBlock<Packetc,accRows>(row + 0, 0, acc0);
-    res.template storePacketBlock<Packetc,accRows>(row + accColsC, 0, acc1);
+    bstore<DataMapper, Packetc, Index, accRows>(acc0, res, row + 0);
+    bstore<DataMapper, Packetc, Index, accRows>(acc1, res, row + accColsC);
   } else {
     bscalec<Packet,accRows>(accReal0, accImag0, pAlphaReal, pAlphaImag, taccReal, taccImag);
     bcouple<Packet, Packetc, accRows>(taccReal, taccImag, tRes, acc0, acc1);
@@ -1998,7 +2013,7 @@ EIGEN_ALWAYS_INLINE void gemm_unrolled_complex_row_iteration(
         res(row + 0, j) = pfirst<Packetc>(acc0.packet[j]);
       }
     } else {
-      res.template storePacketBlock<Packetc,accRows>(row + 0, 0, acc0);
+      bstore<DataMapper, Packetc, Index, accRows>(acc0, res, row + 0);
       if(remaining_rows > accColsC) {
         for(Index j = 0; j < accRows; j++) {
           res(row + accColsC, j) = pfirst<Packetc>(acc1.packet[j]);
@@ -2109,8 +2124,8 @@ EIGEN_ALWAYS_INLINE void gemm_complex_extra_row(
       bscalec<Packet,accRows>(accReal##iter, accImag##iter, pAlphaReal, pAlphaImag, taccReal, taccImag, pMask); \
     } \
     bcouple<Packet, Packetc, accRows>(taccReal, taccImag, tRes, acc0, acc1); \
-    res.template storePacketBlock<Packetc,accRows>(row + iter*accCols + 0, 0, acc0); \
-    res.template storePacketBlock<Packetc,accRows>(row + iter*accCols + accColsC, 0, acc1); \
+    bstore<DataMapper, Packetc, Index, accRows>(acc0, res, row + iter*accCols + 0); \
+    bstore<DataMapper, Packetc, Index, accRows>(acc1, res, row + iter*accCols + accColsC); \
   }
 
 #define MICRO_COMPLEX_STORE MICRO_COMPLEX_UNROLL(MICRO_COMPLEX_STORE_ONE)

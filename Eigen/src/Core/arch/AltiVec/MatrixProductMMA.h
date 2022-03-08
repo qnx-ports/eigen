@@ -48,7 +48,7 @@ EIGEN_ALWAYS_INLINE void storeAccumulator(Index i, const DataMapper& data, const
   } else {
     bscale<Packet, 4>(tRes, result, alpha, pMask);
   }
-  data.template storePacketBlock<Packet, 4>(i, 0, tRes);
+  bstore<DataMapper, Packet, Index, 4>(tRes, data, i);
 }
 
 template<typename DataMapper, typename Index, typename Packet, typename Packetc, const Index accColsC, const Index accColsC2>
@@ -73,8 +73,8 @@ EIGEN_ALWAYS_INLINE void storeComplexAccumulator(Index i, const DataMapper& data
   PacketBlock<Packetc, 4> acc1, acc2;
   bcouple<Packet, Packetc, 4>(taccReal, taccImag, tRes, acc1, acc2);
 
-  data.template storePacketBlock<Packetc, 4>(i, 0, acc1);
-  data.template storePacketBlock<Packetc, 4>(i + accColsC, 0, acc2);
+  bstore<DataMapper, Packetc, Index, 4>(acc1, data, i);
+  bstore<DataMapper, Packetc, Index, 4>(acc2, data, i + accColsC);
 }
 
 // Defaults to float32, since Eigen still supports C++03 we can't use default template arguments
