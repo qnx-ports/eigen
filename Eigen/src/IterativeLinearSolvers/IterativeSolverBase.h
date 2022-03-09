@@ -79,16 +79,16 @@ public:
   template<typename MatrixDerived>
   void grab(const EigenBase<MatrixDerived> &mat)
   {
-    m_matrix.~Ref<const MatrixType>();
-    ::new (&m_matrix) Ref<const MatrixType>(mat.derived());
+    internal::destroy_at(&m_matrix);
+    internal::construct_at(&m_matrix, mat.derived());
   }
 
   void grab(const Ref<const MatrixType> &mat)
   {
     if(&(mat.derived()) != &m_matrix)
     {
-      m_matrix.~Ref<const MatrixType>();
-      ::new (&m_matrix) Ref<const MatrixType>(mat);
+      internal::destroy_at(&m_matrix);
+      internal::construct_at(&m_matrix, mat);
     }
   }
 
@@ -187,6 +187,9 @@ public:
     init();
     compute(matrix());
   }
+
+
+  IterativeSolverBase(IterativeSolverBase&&) = default;
 
   ~IterativeSolverBase() {}
 
