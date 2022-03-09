@@ -176,6 +176,8 @@ EIGEN_ALWAYS_INLINE Packet ploadRhs(const Scalar* rhs);
 
 #define MICRO_COMPLEX_SRC_PTR_ONE(iter) MICRO_SRC_PTR1(lhs_ptr_real, advanceRows, iter)
 
+#define MICRO_RHS(ptr, N) rhs_##ptr##N
+
 #define MICRO_PREFETCH1(lhs_ptr, iter) \
   if (unroll_factor > iter) { \
     EIGEN_POWER_PREFETCH(lhs_ptr##iter); \
@@ -185,21 +187,21 @@ EIGEN_ALWAYS_INLINE Packet ploadRhs(const Scalar* rhs);
 
 #define MICRO_COMPLEX_PREFETCH_ONE(iter) MICRO_PREFETCH1(lhs_ptr_real, iter)
 
-#define MICRO_PREFETCHN1(rhs_ptr, N) \
-  EIGEN_POWER_PREFETCH(rhs_ptr0); \
+#define MICRO_PREFETCHN1(ptr, N) \
+  EIGEN_POWER_PREFETCH(MICRO_RHS(ptr,0)); \
   if (N == 2 || N == 3) { \
-    EIGEN_POWER_PREFETCH(rhs_ptr1); \
+    EIGEN_POWER_PREFETCH(MICRO_RHS(ptr,1)); \
     if (N == 3) { \
-      EIGEN_POWER_PREFETCH(rhs_ptr2); \
+      EIGEN_POWER_PREFETCH(MICRO_RHS(ptr,2)); \
     } \
   }
 
-#define MICRO_PREFETCHN(N) MICRO_PREFETCHN1(rhs_ptr, N)
+#define MICRO_PREFETCHN(N) MICRO_PREFETCHN1(ptr, N)
 
 #define MICRO_COMPLEX_PREFETCHN(N) \
-  MICRO_PREFETCHN1(rhs_real_ptr); \
+  MICRO_PREFETCHN1(ptr_real, N); \
   if(!RhsIsReal) { \
-    MICRO_PREFETCHN1(rhs_imag_ptr); \
+    MICRO_PREFETCHN1(ptr_imag, N); \
   }
 
 #define MICRO_UPDATE \
