@@ -1853,6 +1853,30 @@ EIGEN_STRONG_INLINE void gemm(const DataMapper& res, const Scalar* blockA, const
     MICRO_ADD(rhs_imag_ptr, N) \
   }
 
+#define MICRO_COMPLEX_BROADCAST1(peel, rhs_ptr, rhsV) \
+  if (MICRO_NORMAL_ROWS) { \
+    pbroadcastN<Packet,accRows>(rhs_ptr0 + (accRows * peel), rhs_ptr0, rhs_ptr0, rhsV##peel[0], rhsV##peel[1], rhsV##peel[2], rhsV##peel[3]); \
+  } else { \
+    pbroadcastN<Packet,accRows>(rhs_ptr0 + peel, rhs_ptr1 + peel, rhs_ptr2 + peel, rhsV##peel[0], rhsV##peel[1], rhsV##peel[2], rhsV##peel[3]); \
+  }
+
+#define MICRO_COMPLEX_BROADCAST(peel) \
+  MICRO_COMPLEX_BROADCAST1(peel, rhs_ptr_real, rhsV) \
+  if (!RhsIsReal) { \
+    MICRO_COMPLEX_BROADCAST1(peel, rhs_ptr_imag, rhsVi) \
+  }
+
+#define MICRO_COMPLEX_BROADCAST_EXTRA1(rhs_ptr, rhsV) \
+  pbroadcastN_old<Packet,accRows>(rhs_ptr0, rhs_ptr1, rhs_ptr2, rhsV[0], rhsV[1], rhsV[2], rhsV[3]);
+
+#define MICRO_COMPLEX_BROADCAST_EXTRA \
+  Packet rhsV[4], rhsVi[4]; \
+  MICRO_COMPLEX_BROADCAST_EXTRA1(rhs_ptr_real, rhsV) \
+  if (!RhsIsReal) { \
+    MICRO_COMPLEX_BROADCAST_EXTRA1(rhs_ptr_imag, rhsVi) \
+  } \
+  MICRO_COMPLEX_ADD_ROWS(1)
+
 #define MICRO_COMPLEX_SRC2_PTR \
   MICRO_SRC2(rhs_rptr, strideB*2, 0) \
   if (!RhsIsReal) { \
@@ -2165,7 +2189,7 @@ EIGEN_ALWAYS_INLINE void gemm_complex_cols(
 {
   const DataMapper res3 = res.getSubMapper(0, col);
 
-  const Scalar* rhs_base = blockB + advanceCols*col*strideB + accRows*offsetB;
+  const Scalar* rhs_base = blockB + advanceCols*col*strideB + ((MICRO_NORMAL_ROWS) ? accRows : 1)*offsetB;
   const Scalar* lhs_base = blockA + accCols*offsetA;
   Index row = 0;
 
@@ -2205,6 +2229,9 @@ EIGEN_ALWAYS_INLINE void gemm_complex_cols(
   }
 }
 
+#define MICRO_COMPLEX_EXTRA_COLS(N) \
+  gemm_complex_cols<Scalar, Packet, Packetc, DataMapper, Index, N, accCols, ConjugateLhs, ConjugateRhs, LhsIsReal, RhsIsReal>(res, blockA, blockB, depth, strideA, offsetA, strideB, offsetB, col, rows, remaining_rows, pAlphaReal, pAlphaImag, pMask);
+
 template<typename Scalar, typename Packet, typename Packetc, typename DataMapper, typename Index, const Index accCols, bool ConjugateLhs, bool ConjugateRhs, bool LhsIsReal, bool RhsIsReal>
 EIGEN_STRONG_INLINE void gemm_complex_extra_cols(
   const DataMapper& res,
@@ -2223,9 +2250,14 @@ EIGEN_STRONG_INLINE void gemm_complex_extra_cols(
   const Packet& pAlphaImag,
   const Packet& pMask)
 {
+//#ifdef NEW_EXTRA_COL
+#if 0
+  MICRO_EXTRA(MICRO_COMPLEX_EXTRA_COLS, cols-col, true)
+#else
   do {
-    gemm_complex_cols<Scalar, Packet, Packetc, DataMapper, Index, 1, accCols, ConjugateLhs, ConjugateRhs, LhsIsReal, RhsIsReal>(res, blockA, blockB, depth, strideA, offsetA, strideB, offsetB, col, rows, remaining_rows, pAlphaReal, pAlphaImag, pMask);
+    MICRO_COMPLEX_EXTRA_COLS(1)
   } while (++col != cols);
+#endif
 }
 
 template<typename LhsScalar, typename RhsScalar, typename Scalarc, typename Scalar, typename Index, typename Packet, typename Packetc, typename RhsPacket, typename DataMapper, const Index accRows, const Index accCols, bool ConjugateLhs, bool ConjugateRhs, bool LhsIsReal, bool RhsIsReal>
