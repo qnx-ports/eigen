@@ -1866,15 +1866,10 @@ EIGEN_STRONG_INLINE void gemm(const DataMapper& res, const Scalar* blockA, const
     MICRO_COMPLEX_BROADCAST1(peel, rhs_ptr_imag, rhsVi) \
   }
 
-#define MICRO_COMPLEX_BROADCAST_EXTRA1(rhs_ptr, rhsV) \
-  pbroadcastN_old<Packet,accRows>(rhs_ptr0, rhs_ptr1, rhs_ptr2, rhsV[0], rhsV[1], rhsV[2], rhsV[3]);
-
 #define MICRO_COMPLEX_BROADCAST_EXTRA \
   Packet rhsV[4], rhsVi[4]; \
-  MICRO_COMPLEX_BROADCAST_EXTRA1(rhs_ptr_real, rhsV) \
-  if (!RhsIsReal) { \
-    MICRO_COMPLEX_BROADCAST_EXTRA1(rhs_ptr_imag, rhsVi) \
-  } \
+  pbroadcastN_old<Packet,accRows>(rhs_ptr_real0, rhs_ptr_real1, rhs_ptr_real2, rhsV[0], rhsV[1], rhsV[2], rhsV[3]); \
+  if(!RhsIsReal) pbroadcastN_old<Packet,accRows>(rhs_ptr_imag0, rhs_ptr_imag1, rhs_ptr_imag2, rhsVi[0], rhsVi[1], rhsVi[2], rhsVi[3]); \
   MICRO_COMPLEX_ADD_ROWS(1)
 
 #define MICRO_COMPLEX_SRC2_PTR \
@@ -1895,13 +1890,16 @@ EIGEN_STRONG_INLINE void gemm(const DataMapper& res, const Scalar* blockA, const
     EIGEN_UNUSED_VARIABLE(rhsVi##peel); \
   }
 
+#define MICRO_COMPLEX_ADD_COLS(size) \
+  lhs_ptr_real += (remaining_rows * size); \
+  if(!LhsIsReal) lhs_ptr_imag += (remaining_rows * size); \
+  else EIGEN_UNUSED_VARIABLE(lhs_ptr_imag);
+
 #define MICRO_COMPLEX_WORK_PEEL_ROW \
   Packet rhsV0[4], rhsV1[4], rhsV2[4], rhsV3[4]; \
   Packet rhsVi0[4], rhsVi1[4], rhsVi2[4], rhsVi3[4]; \
   MICRO_COMPLEX_UNROLL(MICRO_COMPLEX_WORK_PEEL) \
-  lhs_ptr_real += (remaining_rows * PEEL_COMPLEX_ROW); \
-  if(!LhsIsReal) lhs_ptr_imag += (remaining_rows * PEEL_COMPLEX_ROW); \
-  else EIGEN_UNUSED_VARIABLE(lhs_ptr_imag); \
+  MICRO_COMPLEX_ADD_COLS(PEEL_COMPLEX_ROW) \
   rhs_ptr_real += (accRows * PEEL_COMPLEX_ROW); \
   if(!RhsIsReal) rhs_ptr_imag += (accRows * PEEL_COMPLEX_ROW); \
   else EIGEN_UNUSED_VARIABLE(rhs_ptr_imag);
@@ -1928,9 +1926,7 @@ EIGEN_ALWAYS_INLINE void MICRO_COMPLEX_EXTRA_ROW(
   pbroadcastN_old<Packet,accRows>(rhs_ptr_real, rhsV[0], rhsV[1], rhsV[2], rhsV[3]);
   if(!RhsIsReal) pbroadcastN_old<Packet,accRows>(rhs_ptr_imag, rhsVi[0], rhsVi[1], rhsVi[2], rhsVi[3]);
   pgerc<accRows, Scalar, Packet, ConjugateLhs, ConjugateRhs, LhsIsReal, RhsIsReal>(&accReal, &accImag, lhs_ptr_real, lhs_ptr_imag, rhsV, rhsVi);
-  lhs_ptr_real += remaining_rows;
-  if(!LhsIsReal) lhs_ptr_imag += remaining_rows;
-  else EIGEN_UNUSED_VARIABLE(lhs_ptr_imag);
+  MICRO_COMPLEX_ADD_COLS(1)
   rhs_ptr_real += accRows;
   if(!RhsIsReal) rhs_ptr_imag += accRows;
   else EIGEN_UNUSED_VARIABLE(rhs_ptr_imag);
