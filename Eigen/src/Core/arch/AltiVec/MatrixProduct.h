@@ -1409,6 +1409,8 @@ EIGEN_ALWAYS_INLINE Packet ploadRhs(const Scalar* rhs)
 #define MICRO_NORMAL_ROWS \
   accRows == quad_traits<Scalar>::rows || accRows == 1
 
+#define MICRO_NEW_ROWS ((MICRO_NORMAL_ROWS) ? accRows : 1)
+
 #define MICRO_ZERO_PEEL(peel) \
   if ((PEEL_ROW > peel) && (peel != 0)) { \
     bsetzero<Scalar, Packet, accRows>(accZero##peel); \
@@ -1734,7 +1736,7 @@ EIGEN_ALWAYS_INLINE void gemm_cols(
 {
   const DataMapper res3 = res.getSubMapper(0, col);
 
-  const Scalar* rhs_base = blockB + col*strideB + ((MICRO_NORMAL_ROWS) ? accRows : 1)*offsetB;
+  const Scalar* rhs_base = blockB + col*strideB + MICRO_NEW_ROWS*offsetB;
   const Scalar* lhs_base = blockA + accCols*offsetA;
   Index row = 0;
 
@@ -1901,6 +1903,7 @@ EIGEN_STRONG_INLINE void gemm(const DataMapper& res, const Scalar* blockA, const
 #define MICRO_COMPLEX_SRC2_PTR \
   MICRO_SRC2(ptr_real, strideB*advanceCols, 0) \
   if (!RhsIsReal) { \
+    MICRO_RHS(ptr_imag,0) = rhs_base + MICRO_NEW_ROWS*strideB; \
     MICRO_SRC2(ptr_imag, strideB*advanceCols, strideB) \
   } else { \
     EIGEN_UNUSED_VARIABLE(MICRO_RHS(ptr_imag,0)); \
@@ -2192,7 +2195,7 @@ EIGEN_ALWAYS_INLINE void gemm_complex_cols(
 {
   const DataMapper res3 = res.getSubMapper(0, col);
 
-  const Scalar* rhs_base = blockB + advanceCols*col*strideB + ((MICRO_NORMAL_ROWS) ? accRows : 1)*offsetB;
+  const Scalar* rhs_base = blockB + advanceCols*col*strideB + MICRO_NEW_ROWS*offsetB;
   const Scalar* lhs_base = blockA + accCols*offsetA;
   Index row = 0;
 
@@ -2253,8 +2256,7 @@ EIGEN_STRONG_INLINE void gemm_complex_extra_cols(
   const Packet& pAlphaImag,
   const Packet& pMask)
 {
-//#ifdef NEW_EXTRA_COL
-#if 0
+#ifdef NEW_EXTRA_COL
   MICRO_EXTRA(MICRO_COMPLEX_EXTRA_COLS, cols-col, true)
 #else
   do {
