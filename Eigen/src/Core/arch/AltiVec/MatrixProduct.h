@@ -1869,10 +1869,14 @@ EIGEN_STRONG_INLINE void gemm(const DataMapper& res, const Scalar* blockA, const
     EIGEN_UNUSED_VARIABLE(accImag##peel); \
   }
 
-#define MICRO_COMPLEX_ADD_ROWS(N) \
+#define MICRO_COMPLEX_ADD_ROWS(N, used) \
   MICRO_ADD(ptr_real, N) \
   if (!RhsIsReal) { \
     MICRO_ADD(ptr_imag, N) \
+  } else if (used) { \
+    EIGEN_UNUSED_VARIABLE(rhs_ptr_imag0); \
+    EIGEN_UNUSED_VARIABLE(rhs_ptr_imag1); \
+    EIGEN_UNUSED_VARIABLE(rhs_ptr_imag2); \
   }
 
 #define MICRO_COMPLEX_BROADCAST(peel) \
@@ -1888,17 +1892,13 @@ EIGEN_STRONG_INLINE void gemm(const DataMapper& res, const Scalar* blockA, const
   pbroadcastN_old<Packet,accRows>(rhs_ptr_real0, rhs_ptr_real1, rhs_ptr_real2, rhsV[0], rhsV[1], rhsV[2], rhsV[3]); \
   if(!RhsIsReal) { \
     pbroadcastN_old<Packet,accRows>(rhs_ptr_imag0, rhs_ptr_imag1, rhs_ptr_imag2, rhsVi[0], rhsVi[1], rhsVi[2], rhsVi[3]); \
-  } else { \
-    EIGEN_UNUSED_VARIABLE(rhs_ptr_imag0); \
-    EIGEN_UNUSED_VARIABLE(rhs_ptr_imag1); \
-    EIGEN_UNUSED_VARIABLE(rhs_ptr_imag2); \
   } \
-  MICRO_COMPLEX_ADD_ROWS(1)
+  MICRO_COMPLEX_ADD_ROWS(1, true)
 
 #define MICRO_COMPLEX_SRC2_PTR \
-  MICRO_SRC2(ptr_real, strideB*2, 0) \
+  MICRO_SRC2(ptr_real, strideB*advanceCols, 0) \
   if (!RhsIsReal) { \
-    MICRO_SRC2(ptr_imag, strideB*2, strideB) \
+    MICRO_SRC2(ptr_imag, strideB*advanceCols, strideB) \
   } else { \
     EIGEN_UNUSED_VARIABLE(MICRO_RHS(ptr_imag,0)); \
     EIGEN_UNUSED_VARIABLE(MICRO_RHS(ptr_imag,1)); \
@@ -1926,7 +1926,7 @@ EIGEN_STRONG_INLINE void gemm(const DataMapper& res, const Scalar* blockA, const
   Packet rhsVi0[4], rhsVi1[4], rhsVi2[4], rhsVi3[4]; \
   MICRO_COMPLEX_UNROLL(MICRO_COMPLEX_WORK_PEEL) \
   MICRO_COMPLEX_ADD_COLS(PEEL_COMPLEX_ROW) \
-  MICRO_COMPLEX_ADD_ROWS(PEEL_COMPLEX_ROW)
+  MICRO_COMPLEX_ADD_ROWS(PEEL_COMPLEX_ROW, true)
 
 #define MICRO_COMPLEX_ADD_PEEL(peel, sum) \
   if (PEEL_COMPLEX_ROW > peel) { \
@@ -2084,7 +2084,7 @@ EIGEN_ALWAYS_INLINE void gemm_complex_extra_row(
 
 #define MICRO_COMPLEX_UNROLL_TYPE(MICRO_COMPLEX_TYPE, size) \
   MICRO_COMPLEX_TYPE(4, MICRO_COMPLEX_TYPE_PEEL4, MICRO_COMPLEX_WORK_ONE4, MICRO_COMPLEX_LOAD_ONE) \
-  MICRO_COMPLEX_ADD_ROWS(size)
+  MICRO_COMPLEX_ADD_ROWS(size, false)
 
 #define MICRO_COMPLEX_ONE_PEEL4 MICRO_COMPLEX_UNROLL_TYPE(MICRO_COMPLEX_UNROLL_TYPE_PEEL, PEEL_COMPLEX)
 
@@ -2250,7 +2250,8 @@ EIGEN_STRONG_INLINE void gemm_complex_extra_cols(
   const Packet& pAlphaImag,
   const Packet& pMask)
 {
-#ifdef NEW_EXTRA_COL
+//#ifdef NEW_EXTRA_COL
+#if 0
   MICRO_EXTRA(MICRO_COMPLEX_EXTRA_COLS, cols-col, true)
 #else
   do {
