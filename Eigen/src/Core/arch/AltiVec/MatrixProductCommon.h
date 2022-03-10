@@ -142,11 +142,7 @@ EIGEN_ALWAYS_INLINE Packet ploadRhs(const Scalar* rhs);
 #define MICRO_LOAD1(lhs_ptr, iter) \
   if (unroll_factor > iter) { \
     lhsV##iter = ploadLhs<Scalar, Packet>(lhs_ptr##iter); \
-    if (MICRO_NORMAL(iter)) { \
-      lhs_ptr##iter += accCols; \
-    } else { \
-      lhs_ptr##iter += accCols2; \
-    } \
+    lhs_ptr##iter += ((MICRO_NORMAL(iter)) ? accCols : accCols2); \
   } else { \
     EIGEN_UNUSED_VARIABLE(lhsV##iter); \
   }
@@ -163,11 +159,7 @@ EIGEN_ALWAYS_INLINE Packet ploadRhs(const Scalar* rhs);
 
 #define MICRO_SRC_PTR1(lhs_ptr, advRows, iter) \
   if (unroll_factor > iter) { \
-    if (MICRO_NORMAL(iter)) { \
-      lhs_ptr##iter = lhs_base + (row+(iter*accCols))*strideA*advRows; \
-    } else { \
-      lhs_ptr##iter = lhs_base + (row+(iter*accCols))*strideA*advRows - (accCols-accCols2)*offsetA; \
-    } \
+    lhs_ptr##iter = lhs_base + (row+(iter*accCols))*strideA*advRows - ((MICRO_NORMAL(iter)) ? 0 : (accCols-accCols2))*offsetA; \
   } else { \
     EIGEN_UNUSED_VARIABLE(lhs_ptr##iter); \
   }

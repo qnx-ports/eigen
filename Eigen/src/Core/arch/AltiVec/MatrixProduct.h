@@ -1438,9 +1438,12 @@ EIGEN_ALWAYS_INLINE Packet ploadRhs(const Scalar* rhs)
 
 #define MICRO_BROADCAST(peel) MICRO_BROADCAST1(peel, ptr, rhsV)
 
+#define MICRO_BROADCAST_EXTRA1(ptr, rhsV) \
+  pbroadcastN<Packet,accRows>(MICRO_RHS(ptr,0), MICRO_RHS(ptr,1), MICRO_RHS(ptr,2), rhsV[0], rhsV[1], rhsV[2], rhsV[3]);
+
 #define MICRO_BROADCAST_EXTRA \
   Packet rhsV[4]; \
-  pbroadcastN<Packet,accRows>(rhs_ptr0, rhs_ptr1, rhs_ptr2, rhsV[0], rhsV[1], rhsV[2], rhsV[3]); \
+  MICRO_BROADCAST_EXTRA1(ptr, rhsV) \
   MICRO_ADD_ROWS(1)
 
 #define MICRO_SRC2(ptr, N, M) \
@@ -1889,9 +1892,9 @@ EIGEN_STRONG_INLINE void gemm(const DataMapper& res, const Scalar* blockA, const
 
 #define MICRO_COMPLEX_BROADCAST_EXTRA \
   Packet rhsV[4], rhsVi[4]; \
-  pbroadcastN_old<Packet,accRows>(rhs_ptr_real0, rhs_ptr_real1, rhs_ptr_real2, rhsV[0], rhsV[1], rhsV[2], rhsV[3]); \
+  MICRO_BROADCAST_EXTRA1(ptr_real, rhsV) \
   if(!RhsIsReal) { \
-    pbroadcastN_old<Packet,accRows>(rhs_ptr_imag0, rhs_ptr_imag1, rhs_ptr_imag2, rhsVi[0], rhsVi[1], rhsVi[2], rhsVi[3]); \
+    MICRO_BROADCAST_EXTRA1(ptr_imag, rhsVi) \
   } \
   MICRO_COMPLEX_ADD_ROWS(1, true)
 
