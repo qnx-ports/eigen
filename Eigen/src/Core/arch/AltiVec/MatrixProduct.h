@@ -1429,12 +1429,14 @@ EIGEN_ALWAYS_INLINE Packet ploadRhs(const Scalar* rhs)
 
 #define MICRO_ADD_ROWS(N) MICRO_ADD(ptr, N)
 
-#define MICRO_BROADCAST(peel) \
+#define MICRO_BROADCAST1(peel, ptr, rhsV) \
   if (MICRO_NORMAL_ROWS) { \
-    pbroadcastN<Packet,accRows>(rhs_ptr0 + (accRows * peel), rhs_ptr0, rhs_ptr0, rhsV##peel[0], rhsV##peel[1], rhsV##peel[2], rhsV##peel[3]); \
+    pbroadcastN<Packet,accRows>(MICRO_RHS(ptr,0) + (accRows * peel), MICRO_RHS(ptr,0), MICRO_RHS(ptr,0), rhsV##peel[0], rhsV##peel[1], rhsV##peel[2], rhsV##peel[3]); \
   } else { \
-    pbroadcastN<Packet,accRows>(rhs_ptr0 + peel, rhs_ptr1 + peel, rhs_ptr2 + peel, rhsV##peel[0], rhsV##peel[1], rhsV##peel[2], rhsV##peel[3]); \
+    pbroadcastN<Packet,accRows>(MICRO_RHS(ptr,0) + peel, MICRO_RHS(ptr,1) + peel, MICRO_RHS(ptr,2) + peel, rhsV##peel[0], rhsV##peel[1], rhsV##peel[2], rhsV##peel[3]); \
   }
+
+#define MICRO_BROADCAST(peel) MICRO_BROADCAST1(peel, ptr, rhsV)
 
 #define MICRO_BROADCAST_EXTRA \
   Packet rhsV[4]; \
@@ -1483,6 +1485,23 @@ EIGEN_ALWAYS_INLINE Packet ploadRhs(const Scalar* rhs)
 #define MICRO_ADD_PEEL_ROW \
   MICRO_ADD_PEEL(4, 0) MICRO_ADD_PEEL(5, 1) MICRO_ADD_PEEL(6, 2) MICRO_ADD_PEEL(7, 3) \
   MICRO_ADD_PEEL(2, 0) MICRO_ADD_PEEL(3, 1) MICRO_ADD_PEEL(1, 0)
+
+#define MICRO_PREFETCHN1(ptr, N) \
+  EIGEN_POWER_PREFETCH(MICRO_RHS(ptr,0)); \
+  if (N == 2 || N == 3) { \
+    EIGEN_POWER_PREFETCH(MICRO_RHS(ptr,1)); \
+    if (N == 3) { \
+      EIGEN_POWER_PREFETCH(MICRO_RHS(ptr,2)); \
+    } \
+  }
+
+#define MICRO_PREFETCHN(N) MICRO_PREFETCHN1(ptr, N)
+
+#define MICRO_COMPLEX_PREFETCHN(N) \
+  MICRO_PREFETCHN1(ptr_real, N); \
+  if(!RhsIsReal) { \
+    MICRO_PREFETCHN1(ptr_imag, N); \
+  }
 
 template<typename Scalar, typename Packet, typename Index, const Index accRows, const Index remaining_rows>
 EIGEN_ALWAYS_INLINE void MICRO_EXTRA_ROW(
@@ -1856,17 +1875,10 @@ EIGEN_STRONG_INLINE void gemm(const DataMapper& res, const Scalar* blockA, const
     MICRO_ADD(ptr_imag, N) \
   }
 
-#define MICRO_COMPLEX_BROADCAST1(peel, ptr, rhsV) \
-  if (MICRO_NORMAL_ROWS) { \
-    pbroadcastN<Packet,accRows>(MICRO_RHS(ptr,0) + (accRows * peel), MICRO_RHS(ptr,0), MICRO_RHS(ptr,0), rhsV##peel[0], rhsV##peel[1], rhsV##peel[2], rhsV##peel[3]); \
-  } else { \
-    pbroadcastN<Packet,accRows>(MICRO_RHS(ptr,0) + peel, MICRO_RHS(ptr,1) + peel, MICRO_RHS(ptr,2) + peel, rhsV##peel[0], rhsV##peel[1], rhsV##peel[2], rhsV##peel[3]); \
-  }
-
 #define MICRO_COMPLEX_BROADCAST(peel) \
-  MICRO_COMPLEX_BROADCAST1(peel, ptr_real, rhsV) \
+  MICRO_BROADCAST1(peel, ptr_real, rhsV) \
   if (!RhsIsReal) { \
-    MICRO_COMPLEX_BROADCAST1(peel, ptr_imag, rhsVi) \
+    MICRO_BROADCAST1(peel, ptr_imag, rhsVi) \
   } else { \
     EIGEN_UNUSED_VARIABLE(rhsVi##peel); \
   }
