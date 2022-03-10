@@ -11,8 +11,6 @@ namespace Eigen {
 
 namespace internal {
 
-#define NEW_EXTRA_COL
-
 template<typename Scalar, typename Packet, typename DataMapper, typename Index, const Index accRows, const Index accCols>
 EIGEN_ALWAYS_INLINE void gemm_extra_row(
   const DataMapper& res,
@@ -169,8 +167,6 @@ EIGEN_ALWAYS_INLINE Packet ploadRhs(const Scalar* rhs);
 #define MICRO_SRC_PTR_ONE(iter) MICRO_SRC_PTR1(lhs_ptr, 1, iter)
 
 #define MICRO_COMPLEX_SRC_PTR_ONE(iter) MICRO_SRC_PTR1(lhs_ptr_real, advanceRows, iter)
-
-#define MICRO_RHS(ptr, N) rhs_##ptr##N
 
 #define MICRO_PREFETCH1(lhs_ptr, iter) \
   if (unroll_factor > iter) { \

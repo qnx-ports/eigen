@@ -1279,7 +1279,7 @@ EIGEN_ALWAYS_INLINE void bscale(PacketBlock<Packet,N>& acc, PacketBlock<Packet,N
   bscale<Packet, N>(acc, accZ, pAlpha);
 }
 
-template<typename Packet, int N>
+template<typename Packet, int N, bool real>
 EIGEN_ALWAYS_INLINE void pbroadcastN(const __UNPACK_TYPE__(Packet) *ap0,
         const __UNPACK_TYPE__(Packet) *ap1, const __UNPACK_TYPE__(Packet) *ap2,
         Packet& a0, Packet& a1, Packet& a2, Packet& a3)
@@ -1308,23 +1308,23 @@ EIGEN_ALWAYS_INLINE void pbroadcastN(const __UNPACK_TYPE__(Packet) *ap0,
 }
 
 template<> EIGEN_ALWAYS_INLINE void
-pbroadcastN<Packet4f,4>(const float *ap0, const float *ap1, const float *ap2,
-                               Packet4f& a0, Packet4f& a1, Packet4f& a2, Packet4f& a3)
+pbroadcastN<Packet4f,4,true>(const float *ap0, const float *ap1, const float *ap2,
+                             Packet4f& a0, Packet4f& a1, Packet4f& a2, Packet4f& a3)
 {
   pbroadcast4<Packet4f>(ap0, a0, a1, a2, a3);
   EIGEN_UNUSED_VARIABLE(ap1);
   EIGEN_UNUSED_VARIABLE(ap2);
 }
 
-template<typename Packet, int N> EIGEN_ALWAYS_INLINE void
-pbroadcastN_old(const __UNPACK_TYPE__(Packet) *ap0, const __UNPACK_TYPE__(Packet) *ap1,
-    const __UNPACK_TYPE__(Packet) *ap2, Packet& a0, Packet& a1, Packet& a2, Packet& a3)
+template<> EIGEN_ALWAYS_INLINE void
+pbroadcastN<Packet4f,4,false>(const float *ap0, const float *ap1, const float *ap2,
+                              Packet4f& a0, Packet4f& a1, Packet4f& a2, Packet4f& a3)
 {
-  pbroadcastN<Packet,N>(ap0, ap1, ap2, a0, a1, a2, a3);
+  pbroadcastN<Packet4f,4,true>(ap0, ap1, ap2, a0, a1, a2, a3);
 }
 
 template<>
-EIGEN_ALWAYS_INLINE void pbroadcastN_old<Packet2d,4>(const double* ap0, const double *ap1,
+EIGEN_ALWAYS_INLINE void pbroadcastN<Packet2d,4,false>(const double* ap0, const double *ap1,
     const double *ap2, Packet2d& a0, Packet2d& a1, Packet2d& a2, Packet2d& a3)
 {
   a1 = pload<Packet2d>(ap0);
@@ -1411,6 +1411,8 @@ EIGEN_ALWAYS_INLINE Packet ploadRhs(const Scalar* rhs)
 
 #define MICRO_NEW_ROWS ((MICRO_NORMAL_ROWS) ? accRows : 1)
 
+#define MICRO_RHS(ptr, N) rhs_##ptr##N
+
 #define MICRO_ZERO_PEEL(peel) \
   if ((PEEL_ROW > peel) && (peel != 0)) { \
     bsetzero<Scalar, Packet, accRows>(accZero##peel); \
@@ -1431,21 +1433,21 @@ EIGEN_ALWAYS_INLINE Packet ploadRhs(const Scalar* rhs)
 
 #define MICRO_ADD_ROWS(N) MICRO_ADD(ptr, N)
 
-#define MICRO_BROADCAST1(peel, ptr, rhsV) \
+#define MICRO_BROADCAST1(peel, ptr, rhsV, real) \
   if (MICRO_NORMAL_ROWS) { \
-    pbroadcastN<Packet,accRows>(MICRO_RHS(ptr,0) + (accRows * peel), MICRO_RHS(ptr,0), MICRO_RHS(ptr,0), rhsV##peel[0], rhsV##peel[1], rhsV##peel[2], rhsV##peel[3]); \
+    pbroadcastN<Packet,accRows,real>(MICRO_RHS(ptr,0) + (accRows * peel), MICRO_RHS(ptr,0), MICRO_RHS(ptr,0), rhsV##peel[0], rhsV##peel[1], rhsV##peel[2], rhsV##peel[3]); \
   } else { \
-    pbroadcastN<Packet,accRows>(MICRO_RHS(ptr,0) + peel, MICRO_RHS(ptr,1) + peel, MICRO_RHS(ptr,2) + peel, rhsV##peel[0], rhsV##peel[1], rhsV##peel[2], rhsV##peel[3]); \
+    pbroadcastN<Packet,accRows,real>(MICRO_RHS(ptr,0) + peel, MICRO_RHS(ptr,1) + peel, MICRO_RHS(ptr,2) + peel, rhsV##peel[0], rhsV##peel[1], rhsV##peel[2], rhsV##peel[3]); \
   }
 
-#define MICRO_BROADCAST(peel) MICRO_BROADCAST1(peel, ptr, rhsV)
+#define MICRO_BROADCAST(peel) MICRO_BROADCAST1(peel, ptr, rhsV, true)
 
-#define MICRO_BROADCAST_EXTRA1(ptr, rhsV) \
-  pbroadcastN<Packet,accRows>(MICRO_RHS(ptr,0), MICRO_RHS(ptr,1), MICRO_RHS(ptr,2), rhsV[0], rhsV[1], rhsV[2], rhsV[3]);
+#define MICRO_BROADCAST_EXTRA1(ptr, rhsV, real) \
+  pbroadcastN<Packet,accRows,real>(MICRO_RHS(ptr,0), MICRO_RHS(ptr,1), MICRO_RHS(ptr,2), rhsV[0], rhsV[1], rhsV[2], rhsV[3]);
 
 #define MICRO_BROADCAST_EXTRA \
   Packet rhsV[4]; \
-  MICRO_BROADCAST_EXTRA1(ptr, rhsV) \
+  MICRO_BROADCAST_EXTRA1(ptr, rhsV, true) \
   MICRO_ADD_ROWS(1)
 
 #define MICRO_SRC2(ptr, N, M) \
@@ -1791,6 +1793,8 @@ EIGEN_ALWAYS_INLINE void gemm_cols(
   }
 }
 
+#define NEW_EXTRA_COL
+
 #define MICRO_EXTRA_COLS(N) \
   gemm_cols<Scalar, Packet, DataMapper, Index, N, accCols>(res, blockA, blockB, depth, strideA, offsetA, strideB, offsetB, col, rows, remaining_rows, pAlpha, pMask);
 
@@ -1885,18 +1889,18 @@ EIGEN_STRONG_INLINE void gemm(const DataMapper& res, const Scalar* blockA, const
   }
 
 #define MICRO_COMPLEX_BROADCAST(peel) \
-  MICRO_BROADCAST1(peel, ptr_real, rhsV) \
+  MICRO_BROADCAST1(peel, ptr_real, rhsV, false) \
   if (!RhsIsReal) { \
-    MICRO_BROADCAST1(peel, ptr_imag, rhsVi) \
+    MICRO_BROADCAST1(peel, ptr_imag, rhsVi, false) \
   } else { \
     EIGEN_UNUSED_VARIABLE(rhsVi##peel); \
   }
 
 #define MICRO_COMPLEX_BROADCAST_EXTRA \
   Packet rhsV[4], rhsVi[4]; \
-  MICRO_BROADCAST_EXTRA1(ptr_real, rhsV) \
+  MICRO_BROADCAST_EXTRA1(ptr_real, rhsV, false) \
   if(!RhsIsReal) { \
-    MICRO_BROADCAST_EXTRA1(ptr_imag, rhsVi) \
+    MICRO_BROADCAST_EXTRA1(ptr_imag, rhsVi, false) \
   } \
   MICRO_COMPLEX_ADD_ROWS(1, true)
 
