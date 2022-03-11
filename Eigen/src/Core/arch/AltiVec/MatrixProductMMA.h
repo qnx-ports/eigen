@@ -492,7 +492,7 @@ EIGEN_ALWAYS_INLINE void gemmMMA_complex_cols(
   const Scalar* lhs_base = blockA + accCols*offsetA;
   Index row = 0;
 
-#define MAX_COMPLEX_MMA_UNROLL 3
+#define MAX_COMPLEX_MMA_UNROLL 4
   while(row + MAX_COMPLEX_MMA_UNROLL*accCols <= rows) {
     MICRO_COMPLEX_MMA_UNROLL_ITER2(MAX_COMPLEX_MMA_UNROLL, 0);
   }

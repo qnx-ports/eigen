@@ -1742,7 +1742,7 @@ EIGEN_ALWAYS_INLINE void gemm_cols(
   const Scalar* lhs_base = blockA + accCols*offsetA;
   Index row = 0;
 
-#define MAX_UNROLL 6
+#define MAX_UNROLL 7
   while(row + MAX_UNROLL*accCols <= rows) {
     MICRO_UNROLL_ITER2(MAX_UNROLL, 0);
   }
@@ -2203,7 +2203,7 @@ EIGEN_ALWAYS_INLINE void gemm_complex_cols(
   const Scalar* lhs_base = blockA + accCols*offsetA;
   Index row = 0;
 
-#define MAX_COMPLEX_UNROLL 3
+#define MAX_COMPLEX_UNROLL 4
   while(row + MAX_COMPLEX_UNROLL*accCols <= rows) {
     MICRO_COMPLEX_UNROLL_ITER2(MAX_COMPLEX_UNROLL, 0);
   }
