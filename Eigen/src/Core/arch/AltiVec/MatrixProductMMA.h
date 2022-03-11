@@ -217,7 +217,7 @@ EIGEN_ALWAYS_INLINE void gemm_unrolled_MMA_iteration(
   MICRO_MMA_DST_PTR
 
   Index k = 0, depth2 = depth - PEEL_MMA;
-  for(; k < depth2; k += PEEL_MMA)
+  for(; k <= depth2; k += PEEL_MMA)
   {
     EIGEN_POWER_PREFETCH(rhs_ptr);
     MICRO_MMA_PREFETCH
@@ -447,7 +447,7 @@ EIGEN_ALWAYS_INLINE void gemm_complex_unrolled_MMA_iteration(
   MICRO_COMPLEX_MMA_DST_PTR
 
   Index k = 0, depth2 = depth - PEEL_COMPLEX_MMA;
-  for(; k < depth2; k += PEEL_COMPLEX_MMA)
+  for(; k <= depth2; k += PEEL_COMPLEX_MMA)
   {
     EIGEN_POWER_PREFETCH(rhs_ptr_real);
     if(!RhsIsReal) {
