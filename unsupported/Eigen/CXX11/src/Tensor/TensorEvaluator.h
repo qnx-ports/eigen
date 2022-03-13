@@ -43,13 +43,13 @@ struct TensorEvaluator
   // NumDimensions is -1 for variable dim tensors
   static const int NumCoords = internal::traits<Derived>::NumDimensions > 0 ?
                                internal::traits<Derived>::NumDimensions : 0;
+  static constexpr const int Layout = Derived::Layout;
 
   enum {
     IsAligned          = Derived::IsAligned,
     PacketAccess       = (PacketType<CoeffReturnType, Device>::size > 1),
     BlockAccess        = internal::is_arithmetic<std::remove_const_t<Scalar>>::value,
     PreferBlockAccess  = false,
-    Layout             = Derived::Layout,
     CoordAccess        = NumCoords > 0,
     RawAccess          = true
   };
@@ -243,13 +243,13 @@ struct TensorEvaluator<const Derived, Device>
   static const int NumCoords = internal::traits<Derived>::NumDimensions > 0 ?
                                internal::traits<Derived>::NumDimensions : 0;
   static const int PacketSize = PacketType<CoeffReturnType, Device>::size;
+  static constexpr const int Layout = Derived::Layout;
 
   enum {
     IsAligned         = Derived::IsAligned,
     PacketAccess      = (PacketType<CoeffReturnType, Device>::size > 1),
     BlockAccess       = internal::is_arithmetic<ScalarNoConst>::value,
     PreferBlockAccess = false,
-    Layout            = Derived::Layout,
     CoordAccess       = NumCoords > 0,
     RawAccess         = true
   };
