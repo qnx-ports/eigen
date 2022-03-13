@@ -158,43 +158,26 @@ class NNLS {
   /** \internal Searches for the index in Z with the largest value of @c v (\f$argmax v^P\f$) . */
   Index argmax_Z_(const SolutionVectorType &v) {
     const IndicesType &idxs = set_permutation_.indices();
-    Index m_idx = Np_;
-    Scalar m = v(idxs(m_idx));
-    for (Index i = (Np_ + 1); i < A_.cols(); i++) {
-      Index idx = idxs(i);
-      if (m < v(idx)) {
-        m = v(idx);
-        m_idx = i;
-      }
-    }
-    return m_idx;
+    auto numActive = A_.cols() - Np_;
+    eigen_assert(numActive > 0);
+    Index m_idx = -1;
+    v(idxs.tail(numActive)).maxCoeff(&m_idx);
+    return m_idx + Np_;
   }
 
   /** \internal Searches for the largest value in \f$v^Z\f$. */
   Scalar max_Z_(const SolutionVectorType &v) {
     const IndicesType &idxs = set_permutation_.indices();
-    Scalar m = v(idxs(Np_));
-    for (Index i = (Np_ + 1); i < A_.cols(); i++) {
-      Index idx = idxs(i);
-      if (m < v(idx)) {
-        m = v(idx);
-      }
-    }
-    return m;
+    auto numActive = A_.cols() - Np_;
+    eigen_assert(numActive > 0);
+    return v(idxs.tail(numActive)).maxCoeff();
   }
 
   /** \internal Searches for the smallest value in \f$v^P\f$. */
   Scalar min_P_(const SolutionVectorType &v) {
     eigen_assert(Np_ > 0);
     const IndicesType &idxs = set_permutation_.indices();
-    Scalar m = v(idxs(0));
-    for (Index i = 1; i < Np_; i++) {
-      Index idx = idxs(i);
-      if (m > v(idx)) {
-        m = v(idx);
-      }
-    }
-    return m;
+    return v(idxs.tail(Np_)).minCoeff();
   }
 
   /** \internal Adds the given index @c idx to the set P and updates the QR decomposition of \f$A^P\f$. */
