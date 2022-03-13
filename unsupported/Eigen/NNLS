@@ -157,7 +157,7 @@ class NNLS {
  private:
   /** \internal Searches for the index in Z with the largest value of @c v (\f$argmax v^P\f$) . */
   Index argmax_Z_(const SolutionVectorType &v) {
-    const IndicesType &idxs = set_permutation.indices();
+    const IndicesType &idxs = set_permutation_.indices();
     Index m_idx = Np_;
     Scalar m = v(idxs(m_idx));
     for (Index i = (Np_ + 1); i < A_.cols(); i++) {
@@ -172,7 +172,7 @@ class NNLS {
 
   /** \internal Searches for the largest value in \f$v^Z\f$. */
   Scalar max_Z_(const SolutionVectorType &v) {
-    const IndicesType &idxs = set_permutation.indices();
+    const IndicesType &idxs = set_permutation_.indices();
     Scalar m = v(idxs(Np_));
     for (Index i = (Np_ + 1); i < A_.cols(); i++) {
       Index idx = idxs(i);
@@ -186,7 +186,7 @@ class NNLS {
   /** \internal Searches for the smallest value in \f$v^P\f$. */
   Scalar min_P_(const SolutionVectorType &v) {
     eigen_assert(Np_ > 0);
-    const IndicesType &idxs = set_permutation.indices();
+    const IndicesType &idxs = set_permutation_.indices();
     Scalar m = v(idxs(0));
     for (Index i = 1; i < Np_; i++) {
       Index idx = idxs(i);
@@ -234,7 +234,7 @@ class NNLS {
   SolutionVectorType Atb_;
   /** \internal Holds the current permutation matrix partitioning the active and inactive sets.
    * The first @c Np_ columns form the inactive set P and the rest the active set Z. */
-  PermutationType set_permutation;
+  PermutationType set_permutation_;
   /** \internal QR decomposition to solve the (inactive) sub system (together with @c qrCoeffs_). */
   MatrixType QR_;
   /** \internal QR decomposition to solve the (inactive) sub system (together with @c QR_). */
@@ -324,7 +324,7 @@ NNLS<MatrixType> &NNLS<MatrixType>::compute(const EigenBase<MatrixDerived> &A) {
   w_.resize(A_.cols());
   y_.resize(A_.cols());
   Atb_.resize(A_.cols());
-  set_permutation.resize(A_.cols());
+  set_permutation_.resize(A_.cols());
   QR_.resize(A_.rows(), A_.cols());
   qrCoeffs_.resize(A_.cols());
   tempRowVector_.resize(A_.cols());
@@ -343,7 +343,7 @@ const typename NNLS<MatrixType>::SolutionVectorType &NNLS<MatrixType>::solve(con
   // Together with Np_, P separates the space of coefficients into a active (Z) and inactive (P)
   // set. The first Np_ elements form the inactive set P and the remaining elements form the
   // active set Z.
-  set_permutation.setIdentity();
+  set_permutation_.setIdentity();
   Np_ = 0;
 
   // Precompute A^T*b
@@ -377,7 +377,7 @@ const typename NNLS<MatrixType>::SolutionVectorType &NNLS<MatrixType>::solve(con
       }
 
       // Solve least-squares problem in P only,
-      // this step is rather trivial as addToset_permutation & removeFromset_permutation
+      // this step is rather trivial as addToset_permutation_ & removeFromset_permutation_
       // updates the QR decomposition of A^P.
       solveLS_P_(b);
       ++iterations_;  // The solve is expensive, so that is what we count as an iteration.
@@ -387,7 +387,7 @@ const typename NNLS<MatrixType>::SolutionVectorType &NNLS<MatrixType>::solve(con
       Scalar alpha = NumTraits<Scalar>::highest();
       Index remIdx = -1;
       for (Index i = 0; i < Np_; i++) {
-        Index idx = set_permutation.indices()(i);
+        Index idx = set_permutation_.indices()(i);
         if (y_(idx) < 0) {
           // t should always be in [0,1].
           Scalar t = -x_(idx) / (y_(idx) - x_(idx));
@@ -408,7 +408,7 @@ const typename NNLS<MatrixType>::SolutionVectorType &NNLS<MatrixType>::solve(con
 
       // Infeasible solution -> interpolate to feasible one
       for (Index i = 0; i < Np_; i++) {
-        Index idx = set_permutation.indices()(i);
+        Index idx = set_permutation_.indices()(i);
         x_(idx) += alpha * (y_(idx) - x_(idx));
       }
 
@@ -421,7 +421,7 @@ const typename NNLS<MatrixType>::SolutionVectorType &NNLS<MatrixType>::solve(con
 template <typename MatrixType>
 void NNLS<MatrixType>::addToP_(Index idx) {
   // Update permutation matrix:
-  IndicesType &idxs = set_permutation.indices();
+  IndicesType &idxs = set_permutation_.indices();
 
   std::swap(idxs(idx), idxs(Np_));
   Np_++;
@@ -433,11 +433,11 @@ void NNLS<MatrixType>::addToP_(Index idx) {
 template <typename MatrixType>
 void NNLS<MatrixType>::removeFromP_(Index idx) {
   // swap index with last inactive one & reduce number of inactive columns
-  std::swap(set_permutation.indices()(idx), set_permutation.indices()(Np_ - 1));
+  std::swap(set_permutation_.indices()(idx), set_permutation_.indices()(Np_ - 1));
   Np_--;
   // Update QR decomposition starting from the removed index up to the end [idx, ..., Np_]
   for (Index i = idx; i < Np_; i++) {
-    Index col = set_permutation.indices()(i);
+    Index col = set_permutation_.indices()(i);
     internal::nnls_householder_qr_inplace_update(QR_, qrCoeffs_, A_.col(col), i, tempRowVector_.data());
   }
 }
@@ -461,7 +461,7 @@ void NNLS<MatrixType>::solveLS_P_(const RhsVectorType &b) {
   tempColVector_.middleRows(Np_, y_.size() - Np_).setZero();
 
   // Back permute y into original column order of A
-  y_.noalias() = set_permutation * tempColVector_.head(y_.size());
+  y_.noalias() = set_permutation_ * tempColVector_.head(y_.size());
 }
 
 }  // namespace Eigen
