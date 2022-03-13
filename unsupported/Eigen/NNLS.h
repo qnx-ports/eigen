@@ -15,13 +15,14 @@
  *
  * \f[ \min \left\Vert Ax-b\right\Vert_2^2\quad s.t.\, x\ge 0\,.\f]
  *
- * The algorithm solves the constrained least-squares problem above by
- * iteratively improving an estimate of which constraints are active (elements of \f$x\f$ equal to zero)
+ * The algorithm solves the constrained least-squares problem above by iteratively improving
+ * an estimate of which constraints are active (elements of \f$x\f$ equal to zero)
  * and which constraints are passive (elements of \f$x\f$ greater than zero).
- * Each iteration, an unconstrained least-squares problem solves for the components of \f$x\f$
- * in the (estimated) passive set and the sets are updated.
+ * Each iteration, an unconstrained least-squares problem solves for the 
+ * components of \f$x\f$ in the (estimated) passive set and the sets are updated.
  * The unconstrained LS problem minimizes \f$\left\Vert A^Px^P-b\right\Vert_2^2\f$,
- * where \f$A^P\f$ is a matrix formed by selecting all columns of A which are in the passive set \f$P\f$.
+ * where \f$A^P\f$ is a matrix formed by selecting all columns of A which are 
+ * in the passive set \f$P\f$.
  *
  */
 
@@ -46,19 +47,20 @@ namespace Eigen {
  *
  * \f[ \min \left\Vert Ax-b\right\Vert_2^2\quad s.t.\, x\ge 0 \f]
  *
- * The algorithm solves the constrained least-squares problem above by
- * iteratively improving an estimate of which constraints are active (elements of \f$x\f$ equal to zero)
+ * The algorithm solves the constrained least-squares problem above by iteratively improving
+ * an estimate of which constraints are active (elements of \f$x\f$ equal to zero)
  * and which constraints are passive (elements of \f$x\f$ greater than zero).
- * Each iteration, an unconstrained least-squares problem solves for the components of \f$x\f$
- * in the (estimated) passive set and the sets are updated.
+ * Each iteration, an unconstrained least-squares problem solves for 
+ * the components of \f$x\f$ in the (estimated) passive set and the sets are updated.
  * The unconstrained LS problem minimizes \f$\left\Vert A^Px^P-b\right\Vert_2^2\f$,
- * where \f$A^P\f$ is a matrix formed by selecting all columns of A which are in the passive set \f$P\f$.
+ * where \f$A^P\f$ is a matrix formed by selecting all columns of A which are 
+ * in the passive set \f$P\f$.
  *
- * See <a href="https://en.wikipedia.org/wiki/Non-negative_least_squares">the wikipedia page on non-negative least
- * squares</a> for more background information.
+ * See <a href="https://en.wikipedia.org/wiki/Non-negative_least_squares">the 
+ * wikipedia page on non-negative least squares</a> for more background information.
  *
- * \note Please note that it is possible to construct an NNLS problem for which the algorithm does
- *       not converge. In practice these cases are extremely rare.
+ * \note Please note that it is possible to construct an NNLS problem for which the 
+ *       algorithm does not converge. In practice these cases are extremely rare.
  */
 template <class MatrixType_>
 class NNLS {
