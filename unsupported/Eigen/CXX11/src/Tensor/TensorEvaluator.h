@@ -43,7 +43,7 @@ struct TensorEvaluator
   // NumDimensions is -1 for variable dim tensors
   static const int NumCoords = internal::traits<Derived>::NumDimensions > 0 ?
                                internal::traits<Derived>::NumDimensions : 0;
-  static constexpr const int Layout = Derived::Layout;
+  static constexpr int Layout = Derived::Layout;
 
   enum {
     IsAligned          = Derived::IsAligned,
@@ -243,7 +243,7 @@ struct TensorEvaluator<const Derived, Device>
   static const int NumCoords = internal::traits<Derived>::NumDimensions > 0 ?
                                internal::traits<Derived>::NumDimensions : 0;
   static const int PacketSize = PacketType<CoeffReturnType, Device>::size;
-  static constexpr const int Layout = Derived::Layout;
+  static constexpr int Layout = Derived::Layout;
 
   enum {
     IsAligned         = Derived::IsAligned,
