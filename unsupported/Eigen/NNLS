@@ -18,9 +18,9 @@
  * The algorithm solves the constrained least-squares problem above by iteratively improving
  * an estimate of which constraints are active (elements of \f$x\f$ equal to zero)
  * and which constraints are inactive (elements of \f$x\f$ greater than zero).
- * Each iteration, an unconstrained least-squares problem solves for the
+ * Each iteration, an unconstrained linear least-squares problem solves for the
  * components of \f$x\f$ in the (estimated) inactive set and the sets are updated.
- * The unconstrained least-squares problem minimizes \f$\left\Vert A^Nx^N-b\right\Vert_2^2\f$,
+ * The unconstrained problem minimizes \f$\left\Vert A^Nx^N-b\right\Vert_2^2\f$,
  * where \f$A^N\f$ is a matrix formed by selecting all columns of A which are
  * in the inactive set \f$N\f$.
  *
@@ -50,9 +50,9 @@ namespace Eigen {
  * The algorithm solves the constrained least-squares problem above by iteratively improving
  * an estimate of which constraints are active (elements of \f$x\f$ equal to zero)
  * and which constraints are inactive (elements of \f$x\f$ greater than zero).
- * Each iteration, an unconstrained least-squares problem solves for
- * the components of \f$x\f$ in the (estimated) inactive set and the sets are updated.
- * The unconstrained least-squares problem minimizes \f$\left\Vert A^Nx^N-b\right\Vert_2^2\f$,
+ * Each iteration, an unconstrained linear least-squares problem solves for the
+ * components of \f$x\f$ in the (estimated) inactive set and the sets are updated.
+ * The unconstrained problem minimizes \f$\left\Vert A^Nx^N-b\right\Vert_2^2\f$,
  * where \f$A^N\f$ is a matrix formed by selecting all columns of A which are
  * in the inactive set \f$N\f$.
  *
@@ -336,13 +336,14 @@ const typename NNLS<MatrixType>::SolutionVectorType &NNLS<MatrixType>::solve(con
       // Solve least-squares problem in inactive set only,
       // this step is rather trivial as moveToInactiveSet_ & moveToActiveSet_
       // updates the QR decomposition of inactive columns A^N.
+      // solveInactiveSet_ puts the solution in y_
       solveInactiveSet_(b);
       ++iterations_;  // The solve is expensive, so that is what we count as an iteration.
 
       // Check feasability...
       bool feasible = true;
       Scalar alpha = NumTraits<Scalar>::highest();
-      Index remIdx = -1;
+      Index remIdx = -1;  // Which variable became infeasible first.
       for (Index i = 0; i < numInactive_; i++) {
         Index idx = index_sets_[i];
         if (y_(idx) < 0) {
@@ -404,17 +405,17 @@ void NNLS<MatrixType>::solveInactiveSet_(const RhsVectorType &b) {
 
   tempRhsVector_ = b;
 
-  // tmp(0:Np) := Q'*b
-  // tmp(Np:end) := useless stuff we would rather not compute at all.
+  // tmp(0:numInactive_-1) := Q'*b
+  // tmp(numInactive_:end) := useless stuff we would rather not compute at all.
   tempRhsVector_.applyOnTheLeft(
       householderSequence(QR_.leftCols(numInactive_), qrCoeffs_.head(numInactive_)).transpose());
 
-  // tmp(0:Np) := inv(R) * Q' * b = the least-squares solution for the inactive variables.
+  // tmp(0:numInactive_-1) := inv(R) * Q' * b = the least-squares solution for the inactive variables.
   QR_.topLeftCorner(numInactive_, numInactive_)          //
       .template triangularView<Upper>()                  //
       .solveInPlace(tempRhsVector_.head(numInactive_));  //
 
-  // tmp(Np:A.rows()) := 0 = the value for the constrained variables.
+  // tmp(numInactive_:A.rows()) := 0 = the value for the constrained variables.
   tempRhsVector_.middleRows(numInactive_, y_.size() - numInactive_).setZero();
 
   // Back permute y into original column order of A
