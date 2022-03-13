@@ -17,12 +17,12 @@
  *
  * The algorithm solves the constrained least-squares problem above by iteratively improving
  * an estimate of which constraints are active (elements of \f$x\f$ equal to zero)
- * and which constraints are passive (elements of \f$x\f$ greater than zero).
- * Each iteration, an unconstrained least-squares problem solves for the 
- * components of \f$x\f$ in the (estimated) passive set and the sets are updated.
+ * and which constraints are inactive (elements of \f$x\f$ greater than zero).
+ * Each iteration, an unconstrained least-squares problem solves for the
+ * components of \f$x\f$ in the (estimated) inactive set and the sets are updated.
  * The unconstrained LS problem minimizes \f$\left\Vert A^Px^P-b\right\Vert_2^2\f$,
- * where \f$A^P\f$ is a matrix formed by selecting all columns of A which are 
- * in the passive set \f$P\f$.
+ * where \f$A^P\f$ is a matrix formed by selecting all columns of A which are
+ * in the inactive set \f$P\f$.
  *
  */
 
@@ -49,17 +49,17 @@ namespace Eigen {
  *
  * The algorithm solves the constrained least-squares problem above by iteratively improving
  * an estimate of which constraints are active (elements of \f$x\f$ equal to zero)
- * and which constraints are passive (elements of \f$x\f$ greater than zero).
- * Each iteration, an unconstrained least-squares problem solves for 
- * the components of \f$x\f$ in the (estimated) passive set and the sets are updated.
+ * and which constraints are inactive (elements of \f$x\f$ greater than zero).
+ * Each iteration, an unconstrained least-squares problem solves for
+ * the components of \f$x\f$ in the (estimated) inactive set and the sets are updated.
  * The unconstrained LS problem minimizes \f$\left\Vert A^Px^P-b\right\Vert_2^2\f$,
- * where \f$A^P\f$ is a matrix formed by selecting all columns of A which are 
- * in the passive set \f$P\f$.
+ * where \f$A^P\f$ is a matrix formed by selecting all columns of A which are
+ * in the inactive set \f$P\f$.
  *
- * See <a href="https://en.wikipedia.org/wiki/Non-negative_least_squares">the 
+ * See <a href="https://en.wikipedia.org/wiki/Non-negative_least_squares">the
  * wikipedia page on non-negative least squares</a> for more background information.
  *
- * \note Please note that it is possible to construct an NNLS problem for which the 
+ * \note Please note that it is possible to construct an NNLS problem for which the
  *       algorithm does not converge. In practice these cases are extremely rare.
  */
 template <class MatrixType_>
@@ -216,7 +216,7 @@ class NNLS {
   Index iterations_;
   /** \internal Holds success/fail of the last solve. */
   ComputationInfo info_;
-  /** \internal Size of the P (passive) set. */
+  /** \internal Size of the P (inactive) set. */
   Index Np_;
   /** \internal Accuracy of the algorithm w.r.t the optimality of the solution (gradient). */
   Scalar tolerance_;
@@ -232,12 +232,12 @@ class NNLS {
   SolutionVectorType y_;
   /** \internal Precomputed product \f$A^Tb\f$. */
   SolutionVectorType Atb_;
-  /** \internal Holds the current permutation matrix partitioning the active and passive sets.
-   * The first @c Np_ columns form the passive set P and the rest the active set Z. */
+  /** \internal Holds the current permutation matrix partitioning the active and inactive sets.
+   * The first @c Np_ columns form the inactive set P and the rest the active set Z. */
   PermutationType set_permutation;
-  /** \internal QR decomposition to solve the (passive) sub system (together with @c qrCoeffs_). */
+  /** \internal QR decomposition to solve the (inactive) sub system (together with @c qrCoeffs_). */
   MatrixType QR_;
-  /** \internal QR decomposition to solve the (passive) sub system (together with @c QR_). */
+  /** \internal QR decomposition to solve the (inactive) sub system (together with @c QR_). */
   SolutionVectorType qrCoeffs_;
   /** \internal Some workspace for QR decomposition. */
   SolutionVectorType tempRowVector_;
@@ -340,8 +340,8 @@ const typename NNLS<MatrixType>::SolutionVectorType &NNLS<MatrixType>::solve(con
   info_ = ComputationInfo::NumericalIssue;
   x_.setZero();
 
-  // Together with Np_, P separates the space of coefficients into a active (Z) and passive (P)
-  // set. The first Np_ elements form the passive set P and the remaining elements form the
+  // Together with Np_, P separates the space of coefficients into a active (Z) and inactive (P)
+  // set. The first Np_ elements form the inactive set P and the remaining elements form the
   // active set Z.
   set_permutation.setIdentity();
   Np_ = 0;
@@ -431,7 +431,7 @@ void NNLS<MatrixType>::addToP_(Index idx) {
 
 template <typename MatrixType>
 void NNLS<MatrixType>::removeFromP_(Index idx) {
-  // swap index with last passive one & reduce number of passive columns
+  // swap index with last inactive one & reduce number of inactive columns
   std::swap(set_permutation.indices()(idx), set_permutation.indices()(Np_ - 1));
   Np_--;
   // Update QR decomposition starting from the removed index up to the end [idx, ..., Np_]
@@ -451,7 +451,7 @@ void NNLS<MatrixType>::solveLS_P_(const RhsVectorType &b) {
   // tmp(Np:end) := useless stuff we would rather not compute at all.
   tempColVector_.applyOnTheLeft(householderSequence(QR_.leftCols(Np_), qrCoeffs_.head(Np_)).transpose());
 
-  // tmp(0:Np) := inv(R) * Q' * b = the least-squares solution for the passive variables.
+  // tmp(0:Np) := inv(R) * Q' * b = the least-squares solution for the inactive variables.
   QR_.topLeftCorner(Np_, Np_)                   //
       .template triangularView<Upper>()         //
       .solveInPlace(tempColVector_.head(Np_));  //
