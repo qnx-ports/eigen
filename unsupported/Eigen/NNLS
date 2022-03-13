@@ -370,7 +370,7 @@ const typename NNLS<MatrixType>::SolutionVectorType &NNLS<MatrixType>::solve(con
         x_(idx) += alpha * (y_(idx) - x_(idx));
       }
 
-      // Remove these indices from the active set and update QR decomposition
+      // Remove these indices from the inactive set and update QR decomposition
       moveToActiveSet_(remIdx);
     }
   }
