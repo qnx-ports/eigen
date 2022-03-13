@@ -197,8 +197,8 @@ class NNLS {
   /** \internal QR decomposition to solve the (inactive) sub system (together with @c QR_). */
   SolutionVectorType qrCoeffs_;
   /** \internal Some workspace for QR decomposition. */
-  SolutionVectorType tempRowVector_;
-  RhsVectorType tempColVector_;
+  SolutionVectorType tempSolutionVector_;
+  RhsVectorType tempRhsVector_;
 };
 
 /* ********************************************************************************************
@@ -279,8 +279,8 @@ NNLS<MatrixType> &NNLS<MatrixType>::compute(const EigenBase<MatrixDerived> &A) {
   index_sets_.resize(A_.cols());
   QR_.resize(A_.rows(), A_.cols());
   qrCoeffs_.resize(A_.cols());
-  tempRowVector_.resize(A_.cols());
-  tempColVector_.resize(A_.rows());
+  tempSolutionVector_.resize(A_.cols());
+  tempRhsVector_.resize(A_.rows());
 
   return *this;
 }
@@ -383,7 +383,7 @@ void NNLS<MatrixType>::moveToInactiveSet_(Index idx) {
 
   // Perform rank-1 update of the QR decomposition stored in QR_ & qrCoeff_
   internal::nnls_householder_qr_inplace_update(QR_, qrCoeffs_, A_.col(index_sets_(numInactive_ - 1)), numInactive_ - 1,
-                                               tempRowVector_.data());
+                                               tempSolutionVector_.data());
 }
 
 template <typename MatrixType>
@@ -394,7 +394,7 @@ void NNLS<MatrixType>::moveToActiveSet_(Index idx) {
   // Update QR decomposition starting from the removed index up to the end [idx, ..., numInactive_]
   for (Index i = idx; i < numInactive_; i++) {
     Index col = index_sets_(i);
-    internal::nnls_householder_qr_inplace_update(QR_, qrCoeffs_, A_.col(col), i, tempRowVector_.data());
+    internal::nnls_householder_qr_inplace_update(QR_, qrCoeffs_, A_.col(col), i, tempSolutionVector_.data());
   }
 }
 
@@ -402,23 +402,23 @@ template <typename MatrixType>
 void NNLS<MatrixType>::solveInactiveSet_(const RhsVectorType &b) {
   eigen_assert(numInactive_ > 0);
 
-  tempColVector_ = b;
+  tempRhsVector_ = b;
 
   // tmp(0:Np) := Q'*b
   // tmp(Np:end) := useless stuff we would rather not compute at all.
-  tempColVector_.applyOnTheLeft(
+  tempRhsVector_.applyOnTheLeft(
       householderSequence(QR_.leftCols(numInactive_), qrCoeffs_.head(numInactive_)).transpose());
 
   // tmp(0:Np) := inv(R) * Q' * b = the least-squares solution for the inactive variables.
   QR_.topLeftCorner(numInactive_, numInactive_)          //
       .template triangularView<Upper>()                  //
-      .solveInPlace(tempColVector_.head(numInactive_));  //
+      .solveInPlace(tempRhsVector_.head(numInactive_));  //
 
   // tmp(Np:A.rows()) := 0 = the value for the constrained variables.
-  tempColVector_.middleRows(numInactive_, y_.size() - numInactive_).setZero();
+  tempRhsVector_.middleRows(numInactive_, y_.size() - numInactive_).setZero();
 
   // Back permute y into original column order of A
-  y_.noalias() = index_sets_.asPermutation() * tempColVector_.head(y_.size());
+  y_.noalias() = index_sets_.asPermutation() * tempRhsVector_.head(y_.size());
 }
 
 }  // namespace Eigen
