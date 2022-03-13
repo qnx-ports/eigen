@@ -348,8 +348,8 @@ static void test_nnls_special_case_solves_in_zero_iterations() {
 
 static void test_nnls_special_case_solves_in_n_iterations() {
   // The particular NNLS algorithm that is implemented starts with all variables
-  // in the active set and then adds one variable to the passive set each iteration.
-  // This test builds a system where all variables are passive at the solution,
+  // in the active set and then adds one variable to the inactive set each iteration.
+  // This test builds a system where all variables are inactive at the solution,
   // so it should take 'n' iterations to get there.
   //
   // If the implementation changes to another algorithm that does not have this property,
