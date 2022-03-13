@@ -20,7 +20,7 @@
  * and which constraints are inactive (elements of \f$x\f$ greater than zero).
  * Each iteration, an unconstrained least-squares problem solves for the
  * components of \f$x\f$ in the (estimated) inactive set and the sets are updated.
- * The unconstrained LS problem minimizes \f$\left\Vert A^Px^P-b\right\Vert_2^2\f$,
+ * The unconstrained least-squares problem minimizes \f$\left\Vert A^Px^P-b\right\Vert_2^2\f$,
  * where \f$A^P\f$ is a matrix formed by selecting all columns of A which are
  * in the inactive set \f$P\f$.
  *
@@ -52,7 +52,7 @@ namespace Eigen {
  * and which constraints are inactive (elements of \f$x\f$ greater than zero).
  * Each iteration, an unconstrained least-squares problem solves for
  * the components of \f$x\f$ in the (estimated) inactive set and the sets are updated.
- * The unconstrained LS problem minimizes \f$\left\Vert A^Px^P-b\right\Vert_2^2\f$,
+ * The unconstrained least-squares problem minimizes \f$\left\Vert A^Px^P-b\right\Vert_2^2\f$,
  * where \f$A^P\f$ is a matrix formed by selecting all columns of A which are
  * in the inactive set \f$P\f$.
  *
@@ -203,7 +203,7 @@ class NNLS {
   /** \internal Removes the given index idx from the set P and updates the QR decomposition of \f$A^P\f$. */
   void removeFromP_(Index idx);
 
-  /** \internal Solves the LS problem \f$\left\Vert y-A^Px\right\Vert_2^2\f$. */
+  /** \internal Solves the least-squares problem \f$\left\Vert y-A^Px\right\Vert_2^2\f$. */
   void solveLS_P_(const RhsVectorType &b);
 
  private:
@@ -376,7 +376,8 @@ const typename NNLS<MatrixType>::SolutionVectorType &NNLS<MatrixType>::solve(con
         return x_;
       }
 
-      // Solve LS problem in P only, this step is rather trivial as addToset_permutation & removeFromset_permutation
+      // Solve least-squares problem in P only,
+      // this step is rather trivial as addToset_permutation & removeFromset_permutation
       // updates the QR decomposition of A^P.
       solveLS_P_(b);
       ++iterations_;  // The solve is expensive, so that is what we count as an iteration.
