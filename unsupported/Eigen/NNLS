@@ -156,13 +156,13 @@ class NNLS {
 
  private:
   /** \internal Adds the given index @c idx to the set P and updates the QR decomposition of \f$A^P\f$. */
-  void addToP_(Index idx);
+  void moveToInactiveSet_(Index idx);
 
   /** \internal Removes the given index idx from the set P and updates the QR decomposition of \f$A^P\f$. */
-  void removeFromP_(Index idx);
+  void moveToActiveSet_(Index idx);
 
   /** \internal Solves the least-squares problem \f$\left\Vert y-A^Px\right\Vert_2^2\f$. */
-  void solveLS_P_(const RhsVectorType &b);
+  void solveInactiveSet_(const RhsVectorType &b);
 
  private:
   typedef Matrix<Scalar, ColsAtCompileTime, ColsAtCompileTime> MatrixAtAType;
@@ -175,7 +175,7 @@ class NNLS {
   /** \internal Holds success/fail of the last solve. */
   ComputationInfo info_;
   /** \internal Size of the P (inactive) set. */
-  Index Np_;
+  Index numInactive_;
   /** \internal Accuracy of the algorithm w.r.t the optimality of the solution (gradient). */
   Scalar tolerance_;
   /** \internal The system matrix, a copy of the one given to the constructor. */
@@ -184,14 +184,14 @@ class NNLS {
   MatrixAtAType AtA_;
   /** \internal Will hold the solution. */
   SolutionVectorType x_;
-  /** \internal Will hold the current gradient. */
+  /** \internal Will hold the current gradient.\f$A^Tb - A^TAx\f$ */
   SolutionVectorType w_;
   /** \internal Will hold the partial solution. */
   SolutionVectorType y_;
   /** \internal Precomputed product \f$A^Tb\f$. */
   SolutionVectorType Atb_;
   /** \internal Holds the current permutation matrix partitioning the active and inactive sets.
-   * The first @c Np_ columns form the inactive set P and the rest the active set Z. */
+   * The first @c numInactive_ columns form the inactive set P and the rest the active set Z. */
   PermutationType set_permutation_;
   /** \internal QR decomposition to solve the (inactive) sub system (together with @c qrCoeffs_). */
   MatrixType QR_;
@@ -257,7 +257,7 @@ NNLS<MatrixType>::NNLS()
     : max_iter_(-1),
       iterations_(0),
       info_(ComputationInfo::InvalidInput),
-      Np_(0),
+      numInactive_(0),
       tolerance_(NumTraits<Scalar>::dummy_precision()) {}
 
 template <typename MatrixType>
@@ -274,7 +274,7 @@ NNLS<MatrixType> &NNLS<MatrixType>::compute(const EigenBase<MatrixDerived> &A) {
   // max_iter_: unchanged
   iterations_ = 0;
   info_ = ComputationInfo::Success;
-  Np_ = 0;
+  numInactive_ = 0;
   // tolerance: unchanged
   A_ = A.derived();
   AtA_.noalias() = A_.transpose() * A_;
@@ -298,12 +298,12 @@ const typename NNLS<MatrixType>::SolutionVectorType &NNLS<MatrixType>::solve(con
   info_ = ComputationInfo::NumericalIssue;
   x_.setZero();
 
-  // Together with Np_, P separates the space of coefficients into a active (Z) and inactive (P)
-  // set. The first Np_ elements form the inactive set P and the remaining elements form the
+  // set_permutation_ separates the space of coefficients into a active (Z) and inactive (P) sets.
+  // The first numInactive_ elements form the inactive set P and the remaining elements form the
   // active set Z.
   set_permutation_.setIdentity();
   const IndicesType &index_sets = set_permutation_.indices();
-  Np_ = 0;
+  numInactive_ = 0;
 
   // Precompute A^T*b
   Atb_.noalias() = A_.transpose() * b;
@@ -313,7 +313,7 @@ const typename NNLS<MatrixType>::SolutionVectorType &NNLS<MatrixType>::solve(con
   // OUTER LOOP
   while (true) {
     // Early exit if all variables are inactive, which breaks 'maxCoeff' below.
-    if (A_.cols() == Np_) {
+    if (A_.cols() == numInactive_) {
       info_ = ComputationInfo::Success;
       return x_;
     }
@@ -323,17 +323,17 @@ const typename NNLS<MatrixType>::SolutionVectorType &NNLS<MatrixType>::solve(con
     // Else, we add that variable to the inactive set.
     w_.noalias() = Atb_ - AtA_ * x_;  // Update the gradient
 
-    const Index numActive = set_permutation_.cols() - Np_;
+    const Index numActive = set_permutation_.cols() - numInactive_;
     Index argmaxGradient = -1;
     const Scalar maxGradient = w_(index_sets.tail(numActive)).maxCoeff(&argmaxGradient);
-    argmaxGradient += Np_;  // beacause tail() we skipped the first Np_ elements
+    argmaxGradient += numInactive_;  // beacause tail() we skipped the first numInactive_ elements
 
     if (maxGradient < tolerance_) {
       info_ = ComputationInfo::Success;
       return x_;
     }
 
-    addToP_(argmaxGradient);
+    moveToInactiveSet_(argmaxGradient);
 
     // INNER LOOP
     while (true) {
@@ -344,16 +344,16 @@ const typename NNLS<MatrixType>::SolutionVectorType &NNLS<MatrixType>::solve(con
       }
 
       // Solve least-squares problem in P only,
-      // this step is rather trivial as addToset_permutation_ & removeFromset_permutation_
+      // this step is rather trivial as moveToInactiveSet_ & moveToActiveSet_
       // updates the QR decomposition of A^P.
-      solveLS_P_(b);
+      solveInactiveSet_(b);
       ++iterations_;  // The solve is expensive, so that is what we count as an iteration.
 
       // Check feasability...
       bool feasible = true;
       Scalar alpha = NumTraits<Scalar>::highest();
       Index remIdx = -1;
-      for (Index i = 0; i < Np_; i++) {
+      for (Index i = 0; i < numInactive_; i++) {
         Index idx = set_permutation_.indices()(i);
         if (y_(idx) < 0) {
           // t should always be in [0,1].
@@ -374,58 +374,60 @@ const typename NNLS<MatrixType>::SolutionVectorType &NNLS<MatrixType>::solve(con
       }
 
       // Infeasible solution -> interpolate to feasible one
-      for (Index i = 0; i < Np_; i++) {
+      for (Index i = 0; i < numInactive_; i++) {
         Index idx = set_permutation_.indices()(i);
         x_(idx) += alpha * (y_(idx) - x_(idx));
       }
 
       // Remove these indices from P and update QR decomposition
-      removeFromP_(remIdx);
+      moveToActiveSet_(remIdx);
     }
   }
 }
 
 template <typename MatrixType>
-void NNLS<MatrixType>::addToP_(Index idx) {
+void NNLS<MatrixType>::moveToInactiveSet_(Index idx) {
   // Update permutation matrix:
   IndicesType &idxs = set_permutation_.indices();
 
-  std::swap(idxs(idx), idxs(Np_));
-  Np_++;
+  std::swap(idxs(idx), idxs(numInactive_));
+  numInactive_++;
 
   // Perform rank-1 update of the QR decomposition stored in QR_ & qrCoeff_
-  internal::nnls_householder_qr_inplace_update(QR_, qrCoeffs_, A_.col(idxs(Np_ - 1)), Np_ - 1, tempRowVector_.data());
+  internal::nnls_householder_qr_inplace_update(QR_, qrCoeffs_, A_.col(idxs(numInactive_ - 1)), numInactive_ - 1,
+                                               tempRowVector_.data());
 }
 
 template <typename MatrixType>
-void NNLS<MatrixType>::removeFromP_(Index idx) {
+void NNLS<MatrixType>::moveToActiveSet_(Index idx) {
   // swap index with last inactive one & reduce number of inactive columns
-  std::swap(set_permutation_.indices()(idx), set_permutation_.indices()(Np_ - 1));
-  Np_--;
-  // Update QR decomposition starting from the removed index up to the end [idx, ..., Np_]
-  for (Index i = idx; i < Np_; i++) {
+  std::swap(set_permutation_.indices()(idx), set_permutation_.indices()(numInactive_ - 1));
+  numInactive_--;
+  // Update QR decomposition starting from the removed index up to the end [idx, ..., numInactive_]
+  for (Index i = idx; i < numInactive_; i++) {
     Index col = set_permutation_.indices()(i);
     internal::nnls_householder_qr_inplace_update(QR_, qrCoeffs_, A_.col(col), i, tempRowVector_.data());
   }
 }
 
 template <typename MatrixType>
-void NNLS<MatrixType>::solveLS_P_(const RhsVectorType &b) {
-  eigen_assert(Np_ > 0);
+void NNLS<MatrixType>::solveInactiveSet_(const RhsVectorType &b) {
+  eigen_assert(numInactive_ > 0);
 
   tempColVector_ = b;
 
   // tmp(0:Np) := Q'*b
   // tmp(Np:end) := useless stuff we would rather not compute at all.
-  tempColVector_.applyOnTheLeft(householderSequence(QR_.leftCols(Np_), qrCoeffs_.head(Np_)).transpose());
+  tempColVector_.applyOnTheLeft(
+      householderSequence(QR_.leftCols(numInactive_), qrCoeffs_.head(numInactive_)).transpose());
 
   // tmp(0:Np) := inv(R) * Q' * b = the least-squares solution for the inactive variables.
-  QR_.topLeftCorner(Np_, Np_)                   //
-      .template triangularView<Upper>()         //
-      .solveInPlace(tempColVector_.head(Np_));  //
+  QR_.topLeftCorner(numInactive_, numInactive_)          //
+      .template triangularView<Upper>()                  //
+      .solveInPlace(tempColVector_.head(numInactive_));  //
 
   // tmp(Np:A.rows()) := 0 = the value for the constrained variables.
-  tempColVector_.middleRows(Np_, y_.size() - Np_).setZero();
+  tempColVector_.middleRows(numInactive_, y_.size() - numInactive_).setZero();
 
   // Back permute y into original column order of A
   y_.noalias() = set_permutation_ * tempColVector_.head(y_.size());
