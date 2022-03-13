@@ -155,14 +155,6 @@ class NNLS {
   ComputationInfo info() const { return info_; }
 
  private:
-  /** \internal Searches for the largest value in \f$v^Z\f$. */
-  Scalar max_Z_(const SolutionVectorType &v) {
-    const IndicesType &idxs = set_permutation_.indices();
-    auto numActive = A_.cols() - Np_;
-    eigen_assert(numActive > 0);
-    return v(idxs.tail(numActive)).maxCoeff();
-  }
-
   /** \internal Adds the given index @c idx to the set P and updates the QR decomposition of \f$A^P\f$. */
   void addToP_(Index idx);
 
@@ -320,25 +312,28 @@ const typename NNLS<MatrixType>::SolutionVectorType &NNLS<MatrixType>::solve(con
 
   // OUTER LOOP
   while (true) {
-    // Update the gradient
-    w_.noalias() = Atb_ - AtA_ * x_;
-
-    // Check if system is solved:
-    if ((A_.cols() == Np_) || ((max_Z_(w_) - tolerance_) < 0)) {
+    // Early exit if all variables are inactive, which breaks 'maxCoeff' below.
+    if (A_.cols() == Np_) {
       info_ = ComputationInfo::Success;
       return x_;
     }
 
-    // We need a heuristic to choose the next parameter for the system update.
-    // We choose the one with largest gradient.
-    // Other heuristics are possible, but unimplemented.
-    // Here is where those other options would go.
-    {
-      const Index numActive = set_permutation_.cols() - Np_;
-      Index maxActive;
-      w_(index_sets.tail(numActive)).maxCoeff(&maxActive);
-      addToP_(maxActive + Np_);
+    // Find the maximum element of the gradient in the active set.
+    // If it is small or negative, then we have converged.
+    // Else, we add that variable to the inactive set.
+    w_.noalias() = Atb_ - AtA_ * x_;  // Update the gradient
+
+    const Index numActive = set_permutation_.cols() - Np_;
+    Index argmaxGradient = -1;
+    const Scalar maxGradient = w_(index_sets.tail(numActive)).maxCoeff(&argmaxGradient);
+    argmaxGradient += Np_;  // beacause tail() we skipped the first Np_ elements
+
+    if (maxGradient < tolerance_) {
+      info_ = ComputationInfo::Success;
+      return x_;
     }
+
+    addToP_(argmaxGradient);
 
     // INNER LOOP
     while (true) {
