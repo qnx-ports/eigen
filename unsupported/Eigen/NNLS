@@ -163,13 +163,6 @@ class NNLS {
     return v(idxs.tail(numActive)).maxCoeff();
   }
 
-  /** \internal Searches for the smallest value in \f$v^P\f$. */
-  Scalar min_P_(const SolutionVectorType &v) {
-    eigen_assert(Np_ > 0);
-    const IndicesType &idxs = set_permutation_.indices();
-    return v(idxs.tail(Np_)).minCoeff();
-  }
-
   /** \internal Adds the given index @c idx to the set P and updates the QR decomposition of \f$A^P\f$. */
   void addToP_(Index idx);
 
