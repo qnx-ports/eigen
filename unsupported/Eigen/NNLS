@@ -343,7 +343,7 @@ const typename NNLS<MatrixType>::SolutionVectorType &NNLS<MatrixType>::solve(con
       // Check feasability...
       bool feasible = true;
       Scalar alpha = NumTraits<Scalar>::highest();
-      Index remIdx = -1;  // Which variable became infeasible first.
+      Index infeasibleIdx = -1;  // Which variable became infeasible first.
       for (Index i = 0; i < numInactive_; i++) {
         Index idx = index_sets_[i];
         if (y_(idx) < 0) {
@@ -351,12 +351,12 @@ const typename NNLS<MatrixType>::SolutionVectorType &NNLS<MatrixType>::solve(con
           Scalar t = -x_(idx) / (y_(idx) - x_(idx));
           if (alpha > t) {
             alpha = t;
-            remIdx = i;
+            infeasibleIdx = i;
             feasible = false;
           }
         }
       }
-      eigen_assert(feasible || 0 <= remIdx);
+      eigen_assert(feasible || 0 <= infeasibleIdx);
 
       // If solution is feasible, exit to outer loop
       if (feasible) {
@@ -371,7 +371,7 @@ const typename NNLS<MatrixType>::SolutionVectorType &NNLS<MatrixType>::solve(con
       }
 
       // Remove these indices from the inactive set and update QR decomposition
-      moveToActiveSet_(remIdx);
+      moveToActiveSet_(infeasibleIdx);
     }
   }
 }
