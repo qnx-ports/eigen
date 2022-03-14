@@ -145,24 +145,10 @@ EIGEN_ALWAYS_INLINE void ploadRhsMMA(const double* rhs, __vector_pair& rhsV)
 #endif
 }
 
-#if EIGEN_COMP_LLVM
-EIGEN_ALWAYS_INLINE void ploadLhsMMA(const void* lhs, __vector_pair& lhsV)
+EIGEN_ALWAYS_INLINE void ploadLhsMMA(const double* lhs, __vector_pair& lhsV)
 {
-  ploadRhsMMA(reinterpret_cast<const double*>(lhs), lhsV);
+  ploadRhsMMA(lhs, lhsV);
 }
-#else
-EIGEN_ALWAYS_INLINE void ploadLhsMMA(const float* lhs, PacketBlock<Packet4f,2>& lhsV)
-{
-  lhsV.packet[0] = ploadLhs<Packet4f>(lhs);
-  lhsV.packet[1] = ploadLhs<Packet4f>(lhs + (sizeof(Packet4f) / sizeof(float)));
-}
-
-EIGEN_ALWAYS_INLINE void ploadLhsMMA(const double* lhs, PacketBlock<Packet2d,2>& lhsV)
-{
-  lhsV.packet[0] = ploadLhs<Packet2d>(lhs);
-  lhsV.packet[1] = ploadLhs<Packet2d>(lhs + (sizeof(Packet2d) / sizeof(double)));
-}
-#endif
 
 #define VECTOR_LOADS_LHS
 
@@ -187,24 +173,15 @@ EIGEN_ALWAYS_INLINE void ploadLhsMMA(const double* lhs, PacketBlock<Packet2d,2>&
     pgerMMA<Packet, type, false>(&accZero##iter, rhsV##peel, lhsV2##iter.packet[peel & 1]); \
   }
 
-#if EIGEN_COMP_LLVM
 #define MICRO_MMA_TEMP_VAR \
   __vector_pair plhsV0, plhsV1, plhsV2, plhsV3, plhsV4, plhsV5, plhsV6, plhsV7;
 
 #define MICRO_MMA_LOAD_TWOB(iter, lhs_ptr) \
-  ploadLhsMMA(reinterpret_cast<const void *>(lhs_ptr##iter), plhsV##iter); \
+  ploadLhsMMA(reinterpret_cast<const double*>(lhs_ptr##iter), plhsV##iter); \
   __builtin_vsx_disassemble_pair(reinterpret_cast<void*>(&lhsV2##iter.packet), &plhsV##iter);
 
 #define MICRO_MMA_TEMP_UNDEF(iter) \
   EIGEN_UNUSED_VARIABLE(plhsV##iter)
-#else
-#define MICRO_MMA_TEMP_VAR 
-
-#define MICRO_MMA_LOAD_TWOB(iter, lhs_ptr) \
-  ploadLhsMMA(lhs_ptr##iter, lhsV2##iter);
-
-#define MICRO_MMA_TEMP_UNDEF(iter) 
-#endif
 
 #define MICRO_MMA_LOAD1_TWO(iter, lhs_ptr) \
   if (unroll_factor > iter) { \
