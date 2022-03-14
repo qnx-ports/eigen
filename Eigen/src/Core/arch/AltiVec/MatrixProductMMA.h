@@ -19,6 +19,9 @@
 #if !__has_builtin(__builtin_vsx_assemble_pair)
 #define __builtin_vsx_assemble_pair __builtin_mma_assemble_pair
 #endif
+#if !__has_builtin(__builtin_vsx_disassemble_pair)
+#define __builtin_vsx_disassemble_pair __builtin_mma_disassemble_pair
+#endif
 #endif
 
 #include "../../InternalHeaderCheck.h"
@@ -118,23 +121,50 @@ EIGEN_ALWAYS_INLINE void pgercMMA(__vector_quad* accReal, __vector_quad* accImag
 }
 
 // This is necessary because ploadRhs for double returns a pair of vectors when MMA is enabled.
+template<typename Packet>
+EIGEN_ALWAYS_INLINE Packet ploadRhs(const __UNPACK_TYPE__(Packet)* rhs)
+{
+  return ploadu<Packet>(rhs);
+}
+
 template<typename Scalar, typename Packet>
 EIGEN_ALWAYS_INLINE void ploadRhsMMA(const Scalar* rhs, Packet& rhsV)
 {
-  rhsV = ploadRhs<Scalar, Packet>(rhs);
+  rhsV = ploadRhs<Packet>(rhs);
 } 
 
 template<>
-EIGEN_ALWAYS_INLINE void ploadRhsMMA<double, __vector_pair>(const double* rhs, __vector_pair& rhsV)
+EIGEN_ALWAYS_INLINE void ploadRhsMMA(const double* rhs, __vector_pair& rhsV)
 {
 #if EIGEN_COMP_LLVM
   __builtin_vsx_assemble_pair(&rhsV,
-    reinterpret_cast<__vector unsigned char>(ploadRhs<double, Packet2d>(rhs + (sizeof(Packet2d) / sizeof(double)))),
-    reinterpret_cast<__vector unsigned char>(ploadRhs<double, Packet2d>(rhs)));
+    reinterpret_cast<__vector unsigned char>(ploadRhs<Packet2d>(rhs + (sizeof(Packet2d) / sizeof(double)))),
+    reinterpret_cast<__vector unsigned char>(ploadRhs<Packet2d>(rhs)));
 #else
   __asm__ ("lxvp %x0,%1" : "=wa" (rhsV) : "Y" (*rhs));
 #endif
 }
+
+#if EIGEN_COMP_LLVM
+EIGEN_ALWAYS_INLINE void ploadLhsMMA(const void* lhs, __vector_pair& lhsV)
+{
+  ploadRhsMMA(reinterpret_cast<const double*>(lhs), lhsV);
+}
+#else
+EIGEN_ALWAYS_INLINE void ploadLhsMMA(const float* lhs, PacketBlock<Packet4f,2>& lhsV)
+{
+  lhsV.packet[0] = ploadLhs<Packet4f>(lhs);
+  lhsV.packet[1] = ploadLhs<Packet4f>(lhs + (sizeof(Packet4f) / sizeof(float)));
+}
+
+EIGEN_ALWAYS_INLINE void ploadLhsMMA(const double* lhs, PacketBlock<Packet2d,2>& lhsV)
+{
+  lhsV.packet[0] = ploadLhs<Packet2d>(lhs);
+  lhsV.packet[1] = ploadLhs<Packet2d>(lhs + (sizeof(Packet2d) / sizeof(double)));
+}
+#endif
+
+#define VECTOR_LOADS_LHS
 
 // PEEL_MMA loop factor.
 #define PEEL_MMA 7
@@ -142,38 +172,115 @@ EIGEN_ALWAYS_INLINE void ploadRhsMMA<double, __vector_pair>(const double* rhs, _
 #define MICRO_MMA_UNROLL(func) \
   func(0) func(1) func(2) func(3) func(4) func(5) func(6) func(7)
 
+#define MICRO_MMA_WORK(func, type, peel) \
+  func(0,type,peel) func(1,type,peel) func(2,type,peel) func(3,type,peel) \
+  func(4,type,peel) func(5,type,peel) func(6,type,peel) func(7,type,peel)
+
 #define MICRO_MMA_WORK_ONE(iter, type, peel) \
   if (unroll_factor > iter) { \
     pgerMMA<Packet, type, false>(&accZero##iter, rhsV##peel, lhsV##iter); \
   }
 
-#define MICRO_MMA_TYPE_PEEL(func, func2, type, peel) \
+#ifdef VECTOR_LOADS_LHS
+#define MICRO_MMA_WORK_TWO(iter, type, peel) \
+  if (unroll_factor > iter) { \
+    pgerMMA<Packet, type, false>(&accZero##iter, rhsV##peel, lhsV2##iter.packet[peel & 1]); \
+  }
+
+#if EIGEN_COMP_LLVM
+#define MICRO_MMA_TEMP_VAR \
+  __vector_pair plhsV0, plhsV1, plhsV2, plhsV3, plhsV4, plhsV5, plhsV6, plhsV7;
+
+#define MICRO_MMA_LOAD_TWOB(iter, lhs_ptr) \
+  ploadLhsMMA(reinterpret_cast<const void *>(lhs_ptr##iter), plhsV##iter); \
+  __builtin_vsx_disassemble_pair(reinterpret_cast<void*>(&lhsV2##iter.packet), &plhsV##iter);
+
+#define MICRO_MMA_TEMP_UNDEF(iter) \
+  EIGEN_UNUSED_VARIABLE(plhsV##iter)
+#else
+#define MICRO_MMA_TEMP_VAR 
+
+#define MICRO_MMA_LOAD_TWOB(iter, lhs_ptr) \
+  ploadLhsMMA(lhs_ptr##iter, lhsV2##iter);
+
+#define MICRO_MMA_TEMP_UNDEF(iter) 
+#endif
+
+#define MICRO_MMA_LOAD1_TWO(iter, lhs_ptr) \
+  if (unroll_factor > iter) { \
+    if (MICRO_NORMAL(iter)) { \
+      MICRO_MMA_LOAD_TWOB(iter, lhs_ptr) \
+      lhs_ptr##iter += accCols*2; \
+    } else { \
+      lhsV2##iter.packet[0] = ploadLhs<Packet>(lhs_ptr##iter); \
+      lhsV2##iter.packet[1] = ploadLhs<Packet>(lhs_ptr##iter + accCols2); \
+      lhs_ptr##iter += accCols2*2; \
+      MICRO_MMA_TEMP_UNDEF(iter) \
+    } \
+  } else { \
+    EIGEN_UNUSED_VARIABLE(lhsV2##iter); \
+    MICRO_MMA_TEMP_UNDEF(iter) \
+  }
+
+#define MICRO_MMA_LOAD_TWO(iter) MICRO_MMA_LOAD1_TWO(iter, lhs_ptr)
+#endif
+
+#define MICRO_MMA_TYPE_PEEL(funcw, funcl, type, peel) \
   if (PEEL_MMA > peel) { \
     Packet lhsV0, lhsV1, lhsV2, lhsV3, lhsV4, lhsV5, lhsV6, lhsV7; \
-    ploadRhsMMA<Scalar, type>(rhs_ptr + (accRows * peel), rhsV##peel); \
-    MICRO_MMA_UNROLL(func2) \
-    func(0,type,peel) func(1,type,peel) func(2,type,peel) func(3,type,peel) \
-    func(4,type,peel) func(5,type,peel) func(6,type,peel) func(7,type,peel) \
+    ploadRhsMMA(rhs_ptr + (accRows * peel), rhsV##peel); \
+    MICRO_MMA_UNROLL(funcl) \
+    MICRO_MMA_WORK(funcw, type, peel) \
   } else { \
     EIGEN_UNUSED_VARIABLE(rhsV##peel); \
   }
 
-#define MICRO_MMA_UNROLL_TYPE_PEEL(func, func2, type) \
+#ifndef VECTOR_LOADS_LHS
+#define MICRO_MMA_UNROLL_TYPE_PEEL(funcw, funcl, type) \
   type rhsV0, rhsV1, rhsV2, rhsV3, rhsV4, rhsV5, rhsV6, rhsV7; \
-  MICRO_MMA_TYPE_PEEL(func,func2,type,0) MICRO_MMA_TYPE_PEEL(func,func2,type,1) \
-  MICRO_MMA_TYPE_PEEL(func,func2,type,2) MICRO_MMA_TYPE_PEEL(func,func2,type,3) \
-  MICRO_MMA_TYPE_PEEL(func,func2,type,4) MICRO_MMA_TYPE_PEEL(func,func2,type,5) \
-  MICRO_MMA_TYPE_PEEL(func,func2,type,6) MICRO_MMA_TYPE_PEEL(func,func2,type,7)
+  MICRO_MMA_TYPE_PEEL(funcw,funcl,type,0) MICRO_MMA_TYPE_PEEL(funcw,funcl,type,1) \
+  MICRO_MMA_TYPE_PEEL(funcw,funcl,type,2) MICRO_MMA_TYPE_PEEL(funcw,funcl,type,3) \
+  MICRO_MMA_TYPE_PEEL(funcw,funcl,type,4) MICRO_MMA_TYPE_PEEL(funcw,funcl,type,5) \
+  MICRO_MMA_TYPE_PEEL(funcw,funcl,type,6) MICRO_MMA_TYPE_PEEL(funcw,funcl,type,7)
+#else
+#define MICRO_MMA_TYPE_PEEL2(funcw1, funcl1, funcw2, funcl2, type, peel1, peel2) \
+  if (PEEL_MMA > peel2) { \
+    PacketBlock<Packet,2> lhsV20, lhsV21, lhsV22, lhsV23, lhsV24, lhsV25, lhsV26, lhsV27; \
+    MICRO_MMA_TEMP_VAR \
+    ploadRhsMMA(rhs_ptr + (accRows * peel1), rhsV##peel1); \
+    ploadRhsMMA(rhs_ptr + (accRows * peel2), rhsV##peel2); \
+    MICRO_MMA_UNROLL(funcl2) \
+    MICRO_MMA_WORK(funcw2, type, peel1) \
+    MICRO_MMA_WORK(funcw2, type, peel2) \
+  } else { \
+    MICRO_MMA_TYPE_PEEL(funcw1, funcl1, type, peel1) \
+  }
 
-#define MICRO_MMA_UNROLL_TYPE_ONE(func, func2, type) \
+#define MICRO_MMA_UNROLL_TYPE_PEEL2(funcw1, funcl1, funcw2, funcl2, type) \
+  type rhsV0, rhsV1, rhsV2, rhsV3, rhsV4, rhsV5, rhsV6, rhsV7; \
+  MICRO_MMA_TYPE_PEEL2(funcw1,funcl1,funcw2,funcl2,type,0,1) \
+  MICRO_MMA_TYPE_PEEL2(funcw1,funcl1,funcw2,funcl2,type,2,3) \
+  MICRO_MMA_TYPE_PEEL2(funcw1,funcl1,funcw2,funcl2,type,4,5) \
+  MICRO_MMA_TYPE_PEEL2(funcw1,funcl1,funcw2,funcl2,type,6,7)
+#endif
+
+#define MICRO_MMA_UNROLL_TYPE_ONE(funcw, funcl, type) \
   type rhsV0; \
-  MICRO_MMA_TYPE_PEEL(func,func2,type,0)
+  MICRO_MMA_TYPE_PEEL(funcw,funcl,type,0)
 
 #define MICRO_MMA_UNROLL_TYPE(MICRO_MMA_TYPE, size) \
   MICRO_MMA_TYPE(MICRO_MMA_WORK_ONE, MICRO_LOAD_ONE, RhsPacket) \
   rhs_ptr += (accRows * size);
 
+#ifndef VECTOR_LOADS_LHS
 #define MICRO_MMA_ONE_PEEL MICRO_MMA_UNROLL_TYPE(MICRO_MMA_UNROLL_TYPE_PEEL, PEEL_MMA)
+#else
+#define MICRO_MMA_UNROLL_TYPE2(MICRO_MMA_TYPE, size) \
+ MICRO_MMA_TYPE(MICRO_MMA_WORK_ONE, MICRO_LOAD_ONE, MICRO_MMA_WORK_TWO, MICRO_MMA_LOAD_TWO, RhsPacket) \
+  rhs_ptr += (accRows * size);
+
+#define MICRO_MMA_ONE_PEEL MICRO_MMA_UNROLL_TYPE2(MICRO_MMA_UNROLL_TYPE_PEEL2, PEEL_MMA)
+#endif
 
 #define MICRO_MMA_ONE MICRO_MMA_UNROLL_TYPE(MICRO_MMA_UNROLL_TYPE_ONE, 1)
 
@@ -362,9 +469,9 @@ void gemmMMA(const DataMapper& res, const Scalar* blockA, const Scalar* blockB, 
   if (PEEL_COMPLEX_MMA > peel) { \
     Packet lhsV0, lhsV1, lhsV2, lhsV3; \
     Packet lhsVi0, lhsVi1, lhsVi2, lhsVi3; \
-    ploadRhsMMA<Scalar, type>(rhs_ptr_real + (accRows * peel), rhsV##peel); \
+    ploadRhsMMA(rhs_ptr_real + (accRows * peel), rhsV##peel); \
     if(!RhsIsReal) { \
-      ploadRhsMMA<Scalar, type>(rhs_ptr_imag + (accRows * peel), rhsVi##peel); \
+      ploadRhsMMA(rhs_ptr_imag + (accRows * peel), rhsVi##peel); \
     } else { \
       EIGEN_UNUSED_VARIABLE(rhsVi##peel); \
     } \

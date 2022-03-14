@@ -1072,16 +1072,16 @@ EIGEN_ALWAYS_INLINE void pgerc_common(PacketBlock<Packet,N>* accReal, PacketBloc
 template<int N, typename Scalar, typename Packet, bool ConjugateLhs, bool ConjugateRhs, bool LhsIsReal, bool RhsIsReal>
 EIGEN_ALWAYS_INLINE void pgerc(PacketBlock<Packet,N>* accReal, PacketBlock<Packet,N>* accImag, const Scalar* lhs_ptr, const Scalar* lhs_ptr_imag, const Packet* rhsV, const Packet* rhsVi)
 {
-  Packet lhsV = ploadLhs<Scalar, Packet>(lhs_ptr);
+  Packet lhsV = ploadLhs<Packet>(lhs_ptr);
   Packet lhsVi;
-  if(!LhsIsReal) lhsVi = ploadLhs<Scalar, Packet>(lhs_ptr_imag);
+  if(!LhsIsReal) lhsVi = ploadLhs<Packet>(lhs_ptr_imag);
   else EIGEN_UNUSED_VARIABLE(lhs_ptr_imag);
 
   pgerc_common<N, Packet, ConjugateLhs, ConjugateRhs, LhsIsReal, RhsIsReal>(accReal, accImag, lhsV, lhsVi, rhsV, rhsVi);
 }
 
-template<typename Scalar, typename Packet>
-EIGEN_ALWAYS_INLINE Packet ploadLhs(const Scalar* lhs)
+template<typename Packet>
+EIGEN_ALWAYS_INLINE Packet ploadLhs(const __UNPACK_TYPE__(Packet)* lhs)
 {
   return ploadu<Packet>(lhs);
 }
@@ -1390,13 +1390,6 @@ EIGEN_ALWAYS_INLINE void bcouple(PacketBlock<Packet,N>& taccReal, PacketBlock<Pa
   if (N > 3) {
     acc2.packet[3] = padd<Packetc>(tRes.packet[3+N], acc2.packet[3]);
   }
-}
-
-// This is necessary because ploadRhs for double returns a pair of vectors when MMA is enabled.
-template<typename Scalar, typename Packet>
-EIGEN_ALWAYS_INLINE Packet ploadRhs(const Scalar* rhs)
-{
-  return ploadu<Packet>(rhs);
 }
 
 // PEEL loop factor.

@@ -80,8 +80,8 @@ EIGEN_STRONG_INLINE void gemm_complex_extra_cols(
   const Packet& pAlphaImag,
   const Packet& pMask);
 
-template<typename Scalar, typename Packet>
-EIGEN_ALWAYS_INLINE Packet ploadLhs(const Scalar* lhs);
+template<typename Packet>
+EIGEN_ALWAYS_INLINE Packet ploadLhs(const __UNPACK_TYPE__(Packet)* lhs);
 
 template<typename DataMapper, typename Packet, typename Index, const Index accCols, int StorageOrder, bool Complex, int N>
 EIGEN_ALWAYS_INLINE void bload(PacketBlock<Packet,N*(Complex?2:1)>& acc, const DataMapper& res, Index row, Index col);
@@ -103,9 +103,6 @@ EIGEN_ALWAYS_INLINE void bscalec(PacketBlock<Packet,N>& aReal, PacketBlock<Packe
 
 template<typename Packet, typename Packetc, int N>
 EIGEN_ALWAYS_INLINE void bcouple(PacketBlock<Packet,N>& taccReal, PacketBlock<Packet,N>& taccImag, PacketBlock<Packetc,N*2>& tRes, PacketBlock<Packetc, N>& acc1, PacketBlock<Packetc, N>& acc2);
-
-template<typename Scalar, typename Packet>
-EIGEN_ALWAYS_INLINE Packet ploadRhs(const Scalar* rhs);
 
 #define NEW_EXTRA
 
@@ -141,7 +138,7 @@ EIGEN_ALWAYS_INLINE Packet ploadRhs(const Scalar* rhs);
 
 #define MICRO_LOAD1(lhs_ptr, iter) \
   if (unroll_factor > iter) { \
-    lhsV##iter = ploadLhs<Scalar, Packet>(lhs_ptr##iter); \
+    lhsV##iter = ploadLhs<Packet>(lhs_ptr##iter); \
     lhs_ptr##iter += MICRO_NORMAL_COLS(iter, accCols, accCols2); \
   } else { \
     EIGEN_UNUSED_VARIABLE(lhsV##iter); \
@@ -151,7 +148,7 @@ EIGEN_ALWAYS_INLINE Packet ploadRhs(const Scalar* rhs);
 
 #define MICRO_COMPLEX_LOAD_ONE(iter) \
   if (!LhsIsReal && (unroll_factor > iter)) { \
-    lhsVi##iter = ploadLhs<Scalar, Packet>(lhs_ptr_real##iter + MICRO_NORMAL_COLS(iter, imag_delta, imag_delta2)); \
+    lhsVi##iter = ploadLhs<Packet>(lhs_ptr_real##iter + MICRO_NORMAL_COLS(iter, imag_delta, imag_delta2)); \
   } else { \
     EIGEN_UNUSED_VARIABLE(lhsVi##iter); \
   } \
