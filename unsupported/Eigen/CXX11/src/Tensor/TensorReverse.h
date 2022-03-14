@@ -99,12 +99,12 @@ struct TensorEvaluator<const TensorReverseOp<ReverseDimensions, ArgType>, Device
   typedef StorageMemory<CoeffReturnType, Device> Storage;
   typedef typename Storage::Type EvaluatorPointerType;
 
+  static constexpr int Layout = TensorEvaluator<ArgType, Device>::Layout;
   enum {
     IsAligned         = false,
     PacketAccess      = TensorEvaluator<ArgType, Device>::PacketAccess,
     BlockAccess       = NumDims > 0,
     PreferBlockAccess = true,
-    Layout            = TensorEvaluator<ArgType, Device>::Layout,
     CoordAccess       = false,  // to be implemented
     RawAccess         = false
   };
@@ -417,12 +417,12 @@ struct TensorEvaluator<TensorReverseOp<ReverseDimensions, ArgType>, Device>
   static const int NumDims = internal::array_size<ReverseDimensions>::value;
   typedef DSizes<Index, NumDims> Dimensions;
 
+  static constexpr int Layout = TensorEvaluator<ArgType, Device>::Layout;
   enum {
     IsAligned = false,
     PacketAccess = TensorEvaluator<ArgType, Device>::PacketAccess,
     BlockAccess = false,
     PreferBlockAccess = false,
-    Layout = TensorEvaluator<ArgType, Device>::Layout,
     CoordAccess = false,  // to be implemented
     RawAccess = false
   };

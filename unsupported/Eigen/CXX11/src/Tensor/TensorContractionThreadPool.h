@@ -32,9 +32,7 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
   typedef typename XprType::CoeffReturnType CoeffReturnType;
   typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
 
-  enum {
-    Layout = TensorEvaluator<LeftArgType, Device>::Layout,
-  };
+  static constexpr int Layout = TensorEvaluator<LeftArgType, Device>::Layout;
 
   // Most of the code is assuming that both input tensors are ColMajor. If the
   // inputs are RowMajor, we will "cheat" by swapping the LHS and RHS:

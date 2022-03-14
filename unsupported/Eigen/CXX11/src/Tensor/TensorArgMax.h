@@ -92,10 +92,10 @@ struct TensorEvaluator<const TensorIndexPairOp<ArgType>, Device>
     PacketAccess = /*TensorEvaluator<ArgType, Device>::PacketAccess*/ false,
     BlockAccess = false,
     PreferBlockAccess = TensorEvaluator<ArgType, Device>::PreferBlockAccess,
-    Layout = TensorEvaluator<ArgType, Device>::Layout,
     CoordAccess = false,  // to be implemented
     RawAccess = false
   };
+  static constexpr int Layout = TensorEvaluator<ArgType, Device>::Layout;
 
   //===- Tensor block evaluation strategy (see TensorBlock.h) -------------===//
   typedef internal::TensorBlockNotImplemented TensorBlock;
@@ -233,11 +233,10 @@ struct TensorEvaluator<const TensorPairReducerOp<ReduceOp, Dims, ArgType>, Devic
     PacketAccess      = /*TensorEvaluator<ArgType, Device>::PacketAccess*/ false,
     BlockAccess       = false,
     PreferBlockAccess = TensorEvaluator<ArgType, Device>::PreferBlockAccess,
-    Layout            = TensorEvaluator<const TensorReductionOp<ReduceOp, Dims, const TensorIndexPairOp<ArgType> >, Device>::Layout,
     CoordAccess       = false,  // to be implemented
     RawAccess         = false
   };
-
+  static constexpr int Layout = TensorEvaluator<const TensorReductionOp<ReduceOp, Dims, const TensorIndexPairOp<ArgType>>, Device>::Layout;
   //===- Tensor block evaluation strategy (see TensorBlock.h) -------------===//
   typedef internal::TensorBlockNotImplemented TensorBlock;
   //===--------------------------------------------------------------------===//

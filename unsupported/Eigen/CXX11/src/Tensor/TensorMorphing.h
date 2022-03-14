@@ -114,6 +114,7 @@ struct TensorEvaluator<const TensorReshapingOp<NewDimensions, ArgType>, Device>
       : Runtime;
   // clang-format on
 
+  static constexpr int Layout = TensorEvaluator<ArgType, Device>::Layout;
   enum {
     IsAligned         = TensorEvaluator<ArgType, Device>::IsAligned,
     PacketAccess      = TensorEvaluator<ArgType, Device>::PacketAccess,
@@ -123,7 +124,6 @@ struct TensorEvaluator<const TensorReshapingOp<NewDimensions, ArgType>, Device>
     BlockAccess       = TensorEvaluator<ArgType, Device>::RawAccess &&
                         NumInputDims > 0 && NumOutputDims > 0,
     PreferBlockAccess = false,
-    Layout            = TensorEvaluator<ArgType, Device>::Layout,
     CoordAccess       = false,  // to be implemented
     RawAccess         = TensorEvaluator<ArgType, Device>::RawAccess
   };
@@ -243,12 +243,12 @@ template<typename NewDimensions, typename ArgType, typename Device>
   typedef TensorReshapingOp<NewDimensions, ArgType> XprType;
   typedef NewDimensions Dimensions;
 
+  static constexpr int Layout = TensorEvaluator<ArgType, Device>::Layout;
   enum {
     IsAligned         = TensorEvaluator<ArgType, Device>::IsAligned,
     PacketAccess      = TensorEvaluator<ArgType, Device>::PacketAccess,
     BlockAccess       = TensorEvaluator<ArgType, Device>::RawAccess,
     PreferBlockAccess = false,
-    Layout            = TensorEvaluator<ArgType, Device>::Layout,
     CoordAccess       = false,  // to be implemented
     RawAccess         = TensorEvaluator<ArgType, Device>::RawAccess
   };
@@ -417,6 +417,7 @@ struct TensorEvaluator<const TensorSlicingOp<StartIndices, Sizes, ArgType>, Devi
   typedef StorageMemory<std::remove_const_t<CoeffReturnType>, Device> ConstCastStorage;
   typedef typename Storage::Type EvaluatorPointerType;
 
+  static constexpr int Layout = TensorEvaluator<ArgType, Device>::Layout;
   enum {
     // Alignment can't be guaranteed at compile time since it depends on the
     // slice offsets and sizes.
@@ -426,7 +427,6 @@ struct TensorEvaluator<const TensorSlicingOp<StartIndices, Sizes, ArgType>, Devi
                         // FIXME: Temporary workaround for bug in slicing of bool tensors.
                         !internal::is_same<std::remove_const_t<Scalar>, bool>::value,
     PreferBlockAccess = true,
-    Layout            = TensorEvaluator<ArgType, Device>::Layout,
     CoordAccess       = false,
     RawAccess         = false
   };
@@ -712,12 +712,12 @@ struct TensorEvaluator<TensorSlicingOp<StartIndices, Sizes, ArgType>, Device>
   typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
   typedef Sizes Dimensions;
 
+  static constexpr int Layout = TensorEvaluator<ArgType, Device>::Layout;
   enum {
     IsAligned         = false,
     PacketAccess      = TensorEvaluator<ArgType, Device>::PacketAccess,
     BlockAccess       = TensorEvaluator<ArgType, Device>::BlockAccess,
     PreferBlockAccess = true,
-    Layout            = TensorEvaluator<ArgType, Device>::Layout,
     CoordAccess       = false,
     RawAccess         = (NumDims == 1) & TensorEvaluator<ArgType, Device>::RawAccess
   };
@@ -882,6 +882,7 @@ struct TensorEvaluator<const TensorStridingSlicingOp<StartIndices, StopIndices, 
   typedef typename Storage::Type EvaluatorPointerType;
   typedef Strides Dimensions;
 
+  static constexpr int Layout = TensorEvaluator<ArgType, Device>::Layout;
   enum {
     // Alignment can't be guaranteed at compile time since it depends on the
     // slice offsets and sizes.
@@ -889,7 +890,6 @@ struct TensorEvaluator<const TensorStridingSlicingOp<StartIndices, StopIndices, 
     PacketAccess = false,
     BlockAccess = false,
     PreferBlockAccess = TensorEvaluator<ArgType, Device>::PreferBlockAccess,
-    Layout = TensorEvaluator<ArgType, Device>::Layout,
     RawAccess = false
   };
 
@@ -1060,13 +1060,13 @@ struct TensorEvaluator<TensorStridingSlicingOp<StartIndices, StopIndices, Stride
   typedef TensorEvaluator<const TensorStridingSlicingOp<StartIndices, StopIndices, Strides, ArgType>, Device> Base;
   typedef TensorStridingSlicingOp<StartIndices, StopIndices, Strides, ArgType> XprType;
   static const int NumDims = internal::array_size<Strides>::value;
+  static constexpr int Layout = TensorEvaluator<ArgType, Device>::Layout;
 
   enum {
     IsAligned = false,
     PacketAccess = false,
     BlockAccess = false,
     PreferBlockAccess = TensorEvaluator<ArgType, Device>::PreferBlockAccess,
-    Layout = TensorEvaluator<ArgType, Device>::Layout,
     CoordAccess = TensorEvaluator<ArgType, Device>::CoordAccess,
     RawAccess = false
   };

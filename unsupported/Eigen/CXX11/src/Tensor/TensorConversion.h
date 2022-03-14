@@ -333,10 +333,10 @@ struct TensorEvaluator<const TensorConversionOp<TargetType, ArgType>, Device>
     #endif
     BlockAccess       = TensorEvaluator<ArgType, Device>::BlockAccess,
     PreferBlockAccess = TensorEvaluator<ArgType, Device>::PreferBlockAccess,
-    Layout            = TensorEvaluator<ArgType, Device>::Layout,
     RawAccess         = false
   };
 
+  static constexpr int Layout = TensorEvaluator<ArgType, Device>::Layout;
   static const int NumDims = internal::array_size<Dimensions>::value;
 
   //===- Tensor block evaluation strategy (see TensorBlock.h) -------------===//

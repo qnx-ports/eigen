@@ -106,6 +106,7 @@ struct TensorEvaluator<const TensorConcatenationOp<Axis, LeftArgType, RightArgTy
   typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
   typedef StorageMemory<CoeffReturnType, Device> Storage;
   typedef typename Storage::Type EvaluatorPointerType;
+  static constexpr int Layout = TensorEvaluator<LeftArgType, Device>::Layout;
   enum {
     IsAligned         = false,
     PacketAccess      = TensorEvaluator<LeftArgType, Device>::PacketAccess &&
@@ -113,7 +114,6 @@ struct TensorEvaluator<const TensorConcatenationOp<Axis, LeftArgType, RightArgTy
     BlockAccess       = false,
     PreferBlockAccess = TensorEvaluator<LeftArgType, Device>::PreferBlockAccess ||
                         TensorEvaluator<RightArgType, Device>::PreferBlockAccess,
-    Layout            = TensorEvaluator<LeftArgType, Device>::Layout,
     RawAccess         = false
   };
 
@@ -305,6 +305,7 @@ template<typename Axis, typename LeftArgType, typename RightArgType, typename De
   typedef TensorEvaluator<const TensorConcatenationOp<Axis, LeftArgType, RightArgType>, Device> Base;
   typedef TensorConcatenationOp<Axis, LeftArgType, RightArgType> XprType;
   typedef typename Base::Dimensions Dimensions;
+  static constexpr int Layout = TensorEvaluator<LeftArgType, Device>::Layout;
   enum {
     IsAligned         = false,
     PacketAccess      = TensorEvaluator<LeftArgType, Device>::PacketAccess &&
@@ -312,7 +313,6 @@ template<typename Axis, typename LeftArgType, typename RightArgType, typename De
     BlockAccess       = false,
     PreferBlockAccess = TensorEvaluator<LeftArgType, Device>::PreferBlockAccess ||
                         TensorEvaluator<RightArgType, Device>::PreferBlockAccess,
-    Layout            = TensorEvaluator<LeftArgType, Device>::Layout,
     RawAccess         = false
   };
 

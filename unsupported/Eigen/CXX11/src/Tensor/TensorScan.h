@@ -390,12 +390,12 @@ struct TensorEvaluator<const TensorScanOp<Op, ArgType>, Device> {
   typedef StorageMemory<Scalar, Device> Storage;
   typedef typename Storage::Type EvaluatorPointerType;
 
+  static constexpr int Layout = TensorEvaluator<ArgType, Device>::Layout;
   enum {
     IsAligned = false,
     PacketAccess = (PacketType<CoeffReturnType, Device>::size > 1),
     BlockAccess = false,
     PreferBlockAccess = false,
-    Layout = TensorEvaluator<ArgType, Device>::Layout,
     CoordAccess = false,
     RawAccess = true
   };

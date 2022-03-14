@@ -99,12 +99,12 @@ struct TensorEvaluator<const TensorShufflingOp<Shuffle, ArgType>, Device>
   typedef StorageMemory<CoeffReturnType, Device> Storage;
   typedef typename Storage::Type EvaluatorPointerType;
 
+  static constexpr int Layout = TensorEvaluator<ArgType, Device>::Layout;
   enum {
     IsAligned         = false,
     PacketAccess      = (PacketType<CoeffReturnType, Device>::size > 1),
     BlockAccess       = TensorEvaluator<ArgType, Device>::RawAccess,
     PreferBlockAccess = true,
-    Layout            = TensorEvaluator<ArgType, Device>::Layout,
     CoordAccess       = false,  // to be implemented
     RawAccess         = false
   };
@@ -370,13 +370,13 @@ struct TensorEvaluator<TensorShufflingOp<Shuffle, ArgType>, Device>
   typedef typename XprType::CoeffReturnType CoeffReturnType;
   typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
   static const int PacketSize = PacketType<CoeffReturnType, Device>::size;
+  static constexpr int Layout = TensorEvaluator<ArgType, Device>::Layout;
 
   enum {
     IsAligned         = false,
     PacketAccess      = (PacketType<CoeffReturnType, Device>::size > 1),
     BlockAccess       = TensorEvaluator<ArgType, Device>::RawAccess,
     PreferBlockAccess = true,
-    Layout            = TensorEvaluator<ArgType, Device>::Layout,
     RawAccess         = false
   };
 

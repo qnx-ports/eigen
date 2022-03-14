@@ -122,10 +122,10 @@ struct TensorEvaluator<const TensorForcedEvalOp<ArgType_>, Device>
     PacketAccess      = (PacketType<CoeffReturnType, Device>::size > 1),
     BlockAccess       = internal::is_arithmetic<CoeffReturnType>::value,
     PreferBlockAccess = false,
-    Layout            = TensorEvaluator<ArgType, Device>::Layout,
     RawAccess         = true
   };
 
+  static constexpr int Layout = TensorEvaluator<ArgType, Device>::Layout;
   static const int NumDims = internal::traits<ArgType>::NumDimensions;
 
   //===- Tensor block evaluation strategy (see TensorBlock.h) -------------===//

@@ -114,11 +114,11 @@ struct TensorEvaluator<const TensorEvalToOp<ArgType, MakePointer_>, Device>
     PacketAccess      = TensorEvaluator<ArgType, Device>::PacketAccess,
     BlockAccess       = true,
     PreferBlockAccess = false,
-    Layout            = TensorEvaluator<ArgType, Device>::Layout,
     CoordAccess       = false,  // to be implemented
     RawAccess         = true
   };
 
+  static constexpr int Layout = TensorEvaluator<ArgType, Device>::Layout;
   static const int NumDims = internal::traits<ArgType>::NumDimensions;
 
   //===- Tensor block evaluation strategy (see TensorBlock.h) -------------===//

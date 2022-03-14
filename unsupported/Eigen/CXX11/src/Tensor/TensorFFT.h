@@ -129,15 +129,15 @@ struct TensorEvaluator<const TensorFFTOp<FFT, ArgType, FFTResultType, FFTDir>, D
   typedef OutputScalar CoeffReturnType;
   typedef typename PacketType<OutputScalar, Device>::type PacketReturnType;
   static const int PacketSize = internal::unpacket_traits<PacketReturnType>::size;
-    typedef StorageMemory<CoeffReturnType, Device> Storage;
+  typedef StorageMemory<CoeffReturnType, Device> Storage;
   typedef typename Storage::Type EvaluatorPointerType;
 
+  static constexpr int Layout = TensorEvaluator<ArgType, Device>::Layout;
   enum {
     IsAligned = false,
     PacketAccess = true,
     BlockAccess = false,
     PreferBlockAccess = false,
-    Layout = TensorEvaluator<ArgType, Device>::Layout,
     CoordAccess = false,
     RawAccess = false
   };

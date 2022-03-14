@@ -104,6 +104,7 @@ struct TensorEvaluator<const TensorAssignOp<LeftArgType, RightArgType>, Device>
 
   static const int PacketSize = PacketType<CoeffReturnType, Device>::size;
   static const int NumDims = XprType::NumDims;
+  static constexpr int Layout = TensorEvaluator<LeftArgType, Device>::Layout;
 
   enum {
     IsAligned         = int(TensorEvaluator<LeftArgType, Device>::IsAligned) &
@@ -114,7 +115,6 @@ struct TensorEvaluator<const TensorAssignOp<LeftArgType, RightArgType>, Device>
                         int(TensorEvaluator<RightArgType, Device>::BlockAccess),
     PreferBlockAccess = int(TensorEvaluator<LeftArgType, Device>::PreferBlockAccess) |
                         int(TensorEvaluator<RightArgType, Device>::PreferBlockAccess),
-    Layout            = TensorEvaluator<LeftArgType, Device>::Layout,
     RawAccess         = TensorEvaluator<LeftArgType, Device>::RawAccess
   };
 

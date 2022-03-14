@@ -127,21 +127,21 @@ struct TensorEvaluator<const TensorChippingOp<DimId, ArgType>, Device>
   static const int PacketSize = PacketType<CoeffReturnType, Device>::size;
   typedef StorageMemory<CoeffReturnType, Device> Storage;
   typedef typename Storage::Type EvaluatorPointerType;
+  static constexpr int Layout = TensorEvaluator<ArgType, Device>::Layout;
 
   enum {
     // Alignment can't be guaranteed at compile time since it depends on the
     // slice offsets.
     IsAligned         = false,
-    Layout            = TensorEvaluator<ArgType, Device>::Layout,
     PacketAccess      = TensorEvaluator<ArgType, Device>::PacketAccess,
     BlockAccess       = TensorEvaluator<ArgType, Device>::BlockAccess,
     // Chipping of outer-most dimension is a trivial operation, because we can
     // read and write directly from the underlying tensor using single offset.
-    IsOuterChipping   = (static_cast<int>(Layout) == ColMajor && DimId == NumInputDims - 1) ||
-                        (static_cast<int>(Layout) == RowMajor && DimId == 0),
+    IsOuterChipping   = (Layout == ColMajor && DimId == NumInputDims - 1) ||
+                        (Layout == RowMajor && DimId == 0),
     // Chipping inner-most dimension.
-    IsInnerChipping   = (static_cast<int>(Layout) == ColMajor && DimId == 0) ||
-                        (static_cast<int>(Layout) == RowMajor && DimId == NumInputDims - 1),
+    IsInnerChipping   = (Layout == ColMajor && DimId == 0) ||
+                        (Layout == RowMajor && DimId == NumInputDims - 1),
     // Prefer block access if the underlying expression prefers it, otherwise
     // only if chipping is not trivial.
     PreferBlockAccess = TensorEvaluator<ArgType, Device>::PreferBlockAccess ||

@@ -1306,11 +1306,11 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
     TripleDim(const StorageIndex M_, const StorageIndex N_, const StorageIndex K_) : M(M_), N(N_), K(K_) {}
   };
   enum {
-    Layout = TensorEvaluator<LeftArgType, Device>::Layout,
     PacketAccess = (PacketType<CoeffReturnType, Device>::size > 1),
     BlockAccess = false,
   };
 
+  static constexpr int Layout = TensorEvaluator<LeftArgType, Device>::Layout;
   static EIGEN_CONSTEXPR int LDims = Base::LDims;
   static EIGEN_CONSTEXPR int RDims = Base::RDims;
   static EIGEN_CONSTEXPR int ContractDims = Base::ContractDims;

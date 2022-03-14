@@ -371,6 +371,7 @@ struct TensorEvaluator<const TensorCwiseNullaryOp<NullaryOp, ArgType>, Device>
   typedef StorageMemory<CoeffReturnType, Device> Storage;
   typedef typename Storage::Type EvaluatorPointerType;
 
+  static constexpr int Layout = TensorEvaluator<ArgType, Device>::Layout;
   enum {
     IsAligned = true,
     PacketAccess = internal::functor_traits<NullaryOp>::PacketAccess
@@ -380,7 +381,6 @@ struct TensorEvaluator<const TensorCwiseNullaryOp<NullaryOp, ArgType>, Device>
     ,
     BlockAccess = false,
     PreferBlockAccess = false,
-    Layout = TensorEvaluator<ArgType, Device>::Layout,
     CoordAccess = false,  // to be implemented
     RawAccess = false
   };
@@ -444,13 +444,13 @@ struct TensorEvaluator<const TensorCwiseUnaryOp<UnaryOp, ArgType>, Device>
 {
   typedef TensorCwiseUnaryOp<UnaryOp, ArgType> XprType;
 
+  static constexpr int Layout = TensorEvaluator<ArgType, Device>::Layout;
   enum {
     IsAligned          = TensorEvaluator<ArgType, Device>::IsAligned,
     PacketAccess       = int(TensorEvaluator<ArgType, Device>::PacketAccess) &
                          int(internal::functor_traits<UnaryOp>::PacketAccess),
     BlockAccess        = TensorEvaluator<ArgType, Device>::BlockAccess,
     PreferBlockAccess  = TensorEvaluator<ArgType, Device>::PreferBlockAccess,
-    Layout             = TensorEvaluator<ArgType, Device>::Layout,
     CoordAccess        = false,  // to be implemented
     RawAccess          = false
   };
@@ -556,6 +556,7 @@ struct TensorEvaluator<const TensorCwiseBinaryOp<BinaryOp, LeftArgType, RightArg
 {
   typedef TensorCwiseBinaryOp<BinaryOp, LeftArgType, RightArgType> XprType;
 
+  static constexpr int Layout = TensorEvaluator<LeftArgType, Device>::Layout;
   enum {
     IsAligned         = int(TensorEvaluator<LeftArgType, Device>::IsAligned) &
                         int(TensorEvaluator<RightArgType, Device>::IsAligned),
@@ -566,7 +567,6 @@ struct TensorEvaluator<const TensorCwiseBinaryOp<BinaryOp, LeftArgType, RightArg
                         int(TensorEvaluator<RightArgType, Device>::BlockAccess),
     PreferBlockAccess = int(TensorEvaluator<LeftArgType, Device>::PreferBlockAccess) |
                         int(TensorEvaluator<RightArgType, Device>::PreferBlockAccess),
-    Layout            = TensorEvaluator<LeftArgType, Device>::Layout,
     CoordAccess       = false,  // to be implemented
     RawAccess         = false
   };
@@ -694,6 +694,7 @@ struct TensorEvaluator<const TensorCwiseTernaryOp<TernaryOp, Arg1Type, Arg2Type,
 {
   typedef TensorCwiseTernaryOp<TernaryOp, Arg1Type, Arg2Type, Arg3Type> XprType;
 
+  static constexpr int Layout = TensorEvaluator<Arg1Type, Device>::Layout;
   enum {
     IsAligned = TensorEvaluator<Arg1Type, Device>::IsAligned & TensorEvaluator<Arg2Type, Device>::IsAligned & TensorEvaluator<Arg3Type, Device>::IsAligned,
     PacketAccess      = TensorEvaluator<Arg1Type, Device>::PacketAccess &&
@@ -704,7 +705,6 @@ struct TensorEvaluator<const TensorCwiseTernaryOp<TernaryOp, Arg1Type, Arg2Type,
     PreferBlockAccess = TensorEvaluator<Arg1Type, Device>::PreferBlockAccess ||
                         TensorEvaluator<Arg2Type, Device>::PreferBlockAccess ||
                         TensorEvaluator<Arg3Type, Device>::PreferBlockAccess,
-    Layout            = TensorEvaluator<Arg1Type, Device>::Layout,
     CoordAccess       = false,  // to be implemented
     RawAccess         = false
   };
@@ -812,6 +812,7 @@ struct TensorEvaluator<const TensorSelectOp<IfArgType, ThenArgType, ElseArgType>
   typedef TensorSelectOp<IfArgType, ThenArgType, ElseArgType> XprType;
   typedef typename XprType::Scalar Scalar;
 
+    static constexpr int Layout = TensorEvaluator<IfArgType, Device>::Layout;
   enum {
     IsAligned         = TensorEvaluator<ThenArgType, Device>::IsAligned &
                         TensorEvaluator<ElseArgType, Device>::IsAligned,
@@ -824,7 +825,6 @@ struct TensorEvaluator<const TensorSelectOp<IfArgType, ThenArgType, ElseArgType>
     PreferBlockAccess = TensorEvaluator<IfArgType, Device>::PreferBlockAccess ||
                         TensorEvaluator<ThenArgType, Device>::PreferBlockAccess ||
                         TensorEvaluator<ElseArgType, Device>::PreferBlockAccess,
-    Layout            = TensorEvaluator<IfArgType, Device>::Layout,
     CoordAccess       = false,  // to be implemented
     RawAccess         = false
   };

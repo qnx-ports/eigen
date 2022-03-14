@@ -308,12 +308,12 @@ struct TensorEvaluator<const TensorConvolutionOp<Indices, InputArgType, KernelAr
   typedef StorageMemory<Scalar, Device> Storage;
   typedef typename Storage::Type EvaluatorPointerType;
 
+  static constexpr int Layout = TensorEvaluator<InputArgType, Device>::Layout;
   enum {
     IsAligned = int(TensorEvaluator<InputArgType, Device>::IsAligned) & int(TensorEvaluator<KernelArgType, Device>::IsAligned),
     PacketAccess = int(TensorEvaluator<InputArgType, Device>::PacketAccess) & int(TensorEvaluator<KernelArgType, Device>::PacketAccess),
     BlockAccess = false,
     PreferBlockAccess = false,
-    Layout = TensorEvaluator<InputArgType, Device>::Layout,
     CoordAccess = false,  // to be implemented
     RawAccess = false
   };
@@ -785,12 +785,12 @@ struct TensorEvaluator<const TensorConvolutionOp<Indices, InputArgType, KernelAr
   typedef DSizes<Index, NumDims> Dimensions;
   typedef typename TensorEvaluator<KernelArgType, GpuDevice>::Dimensions KernelDimensions;
 
+  static constexpr int Layout = TensorEvaluator<InputArgType, GpuDevice>::Layout;
   enum {
     IsAligned = TensorEvaluator<InputArgType, GpuDevice>::IsAligned & TensorEvaluator<KernelArgType, GpuDevice>::IsAligned,
     PacketAccess = false,
     BlockAccess = false,
     PreferBlockAccess = false,
-    Layout = TensorEvaluator<InputArgType, GpuDevice>::Layout,
     CoordAccess = false,  // to be implemented
     RawAccess = false
   };

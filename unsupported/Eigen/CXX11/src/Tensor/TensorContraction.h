@@ -380,12 +380,12 @@ struct TensorContractionEvaluatorBase : internal::no_assignment_operator
   typedef StorageMemory<Scalar, Device> Storage;
   typedef typename Storage::Type EvaluatorPointerType;
 
+  static constexpr int Layout = TensorEvaluator<LeftArgType, Device>::Layout;
   enum {
     IsAligned         = true,
     PacketAccess      = (PacketType<CoeffReturnType, Device>::size > 1),
     BlockAccess       = false,
     PreferBlockAccess = false,
-    Layout            = TensorEvaluator<LeftArgType, Device>::Layout,
     CoordAccess       = false,  // to be implemented
     RawAccess         = true
   };
@@ -983,18 +983,14 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
   typedef typename XprType::CoeffReturnType CoeffReturnType;
   typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
 
-  enum {
-    Layout = TensorEvaluator<LeftArgType, Device>::Layout
-  };
+  static constexpr int Layout = TensorEvaluator<LeftArgType, Device>::Layout;
 
   // Most of the code is assuming that both input tensors are ColMajor. If the
   // inputs are RowMajor, we will "cheat" by swapping the LHS and RHS:
   // If we want to compute A * B = C, where A is LHS and B is RHS, the code
   // will pretend B is LHS and A is RHS.
-  typedef std::conditional_t<
-    static_cast<int>(Layout) == static_cast<int>(ColMajor), LeftArgType, RightArgType> EvalLeftArgType;
-  typedef std::conditional_t<
-    static_cast<int>(Layout) == static_cast<int>(ColMajor), RightArgType, LeftArgType> EvalRightArgType;
+  typedef std::conditional_t<Layout == static_cast<int>(ColMajor), LeftArgType, RightArgType> EvalLeftArgType;
+  typedef std::conditional_t<Layout == static_cast<int>(ColMajor), RightArgType, LeftArgType> EvalRightArgType;
 
   static const int LDims =
       internal::array_size<typename TensorEvaluator<EvalLeftArgType, Device>::Dimensions>::value;

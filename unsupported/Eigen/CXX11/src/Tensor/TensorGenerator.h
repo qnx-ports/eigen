@@ -92,12 +92,12 @@ struct TensorEvaluator<const TensorGeneratorOp<Generator, ArgType>, Device>
   typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
   typedef StorageMemory<CoeffReturnType, Device> Storage;
   typedef typename Storage::Type EvaluatorPointerType;
+  static constexpr int Layout = TensorEvaluator<ArgType, Device>::Layout;
   enum {
     IsAligned         = false,
     PacketAccess      = (PacketType<CoeffReturnType, Device>::size > 1),
     BlockAccess       = true,
     PreferBlockAccess = true,
-    Layout            = TensorEvaluator<ArgType, Device>::Layout,
     CoordAccess       = false,  // to be implemented
     RawAccess         = false
   };

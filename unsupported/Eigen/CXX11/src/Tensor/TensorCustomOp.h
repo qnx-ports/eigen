@@ -94,12 +94,12 @@ struct TensorEvaluator<const TensorCustomUnaryOp<CustomUnaryFunc, XprType>, Devi
   typedef StorageMemory<CoeffReturnType, Device> Storage;
   typedef typename Storage::Type EvaluatorPointerType;
 
+  static constexpr int Layout = TensorEvaluator<XprType, Device>::Layout;
   enum {
     IsAligned = false,
     PacketAccess = (PacketType<CoeffReturnType, Device>::size > 1),
     BlockAccess = false,
     PreferBlockAccess = false,
-    Layout = TensorEvaluator<XprType, Device>::Layout,
     CoordAccess = false,  // to be implemented
     RawAccess = false
   };
@@ -267,12 +267,12 @@ struct TensorEvaluator<const TensorCustomBinaryOp<CustomBinaryFunc, LhsXprType, 
   typedef StorageMemory<CoeffReturnType, Device> Storage;
   typedef typename Storage::Type EvaluatorPointerType;
 
+  static constexpr int Layout = TensorEvaluator<LhsXprType, Device>::Layout;
   enum {
     IsAligned = false,
     PacketAccess = (PacketType<CoeffReturnType, Device>::size > 1),
     BlockAccess = false,
     PreferBlockAccess = false,
-    Layout = TensorEvaluator<LhsXprType, Device>::Layout,
     CoordAccess = false,  // to be implemented
     RawAccess = false
   };

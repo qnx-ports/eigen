@@ -97,12 +97,12 @@ struct TensorEvaluator<const TensorStridingOp<Strides, ArgType>, Device>
   typedef StorageMemory<CoeffReturnType, Device> Storage;
   typedef typename Storage::Type EvaluatorPointerType;
 
+  static constexpr int Layout = TensorEvaluator<ArgType, Device>::Layout;
   enum {
     IsAligned = /*TensorEvaluator<ArgType, Device>::IsAligned*/false,
     PacketAccess = TensorEvaluator<ArgType, Device>::PacketAccess,
     BlockAccess = false,
     PreferBlockAccess = TensorEvaluator<ArgType, Device>::PreferBlockAccess,
-    Layout = TensorEvaluator<ArgType, Device>::Layout,
     CoordAccess = false,  // to be implemented
     RawAccess = false
   };
@@ -270,11 +270,11 @@ struct TensorEvaluator<TensorStridingOp<Strides, ArgType>, Device>
   static const int NumDims = internal::array_size<typename TensorEvaluator<ArgType, Device>::Dimensions>::value;
   //  typedef DSizes<Index, NumDims> Dimensions;
 
+  static constexpr int Layout = TensorEvaluator<ArgType, Device>::Layout;
   enum {
     IsAligned = /*TensorEvaluator<ArgType, Device>::IsAligned*/false,
     PacketAccess = TensorEvaluator<ArgType, Device>::PacketAccess,
     PreferBlockAccess = false,
-    Layout = TensorEvaluator<ArgType, Device>::Layout,
     CoordAccess = false,  // to be implemented
     RawAccess = false
   };

@@ -101,12 +101,12 @@ struct TensorEvaluator<const TensorLayoutSwapOp<ArgType>, Device>
   static const int NumDims = internal::array_size<typename TensorEvaluator<ArgType, Device>::Dimensions>::value;
   typedef DSizes<Index, NumDims> Dimensions;
 
+  static constexpr int Layout = (TensorEvaluator<ArgType, Device>::Layout == static_cast<int>(ColMajor)) ? RowMajor : ColMajor;
   enum {
     IsAligned = TensorEvaluator<ArgType, Device>::IsAligned,
     PacketAccess = TensorEvaluator<ArgType, Device>::PacketAccess,
     BlockAccess = false,
     PreferBlockAccess = TensorEvaluator<ArgType, Device>::PreferBlockAccess,
-    Layout = (static_cast<int>(TensorEvaluator<ArgType, Device>::Layout) == static_cast<int>(ColMajor)) ? RowMajor : ColMajor,
     CoordAccess = false,  // to be implemented
     RawAccess = TensorEvaluator<ArgType, Device>::RawAccess
   };
@@ -180,12 +180,12 @@ template<typename ArgType, typename Device>
   typedef TensorEvaluator<const TensorLayoutSwapOp<ArgType>, Device> Base;
   typedef TensorLayoutSwapOp<ArgType> XprType;
 
+  static constexpr int Layout = (TensorEvaluator<ArgType, Device>::Layout == static_cast<int>(ColMajor)) ? RowMajor : ColMajor;
   enum {
     IsAligned = TensorEvaluator<ArgType, Device>::IsAligned,
     PacketAccess = TensorEvaluator<ArgType, Device>::PacketAccess,
     BlockAccess = false,
     PreferBlockAccess = TensorEvaluator<ArgType, Device>::PreferBlockAccess,
-    Layout = (static_cast<int>(TensorEvaluator<ArgType, Device>::Layout) == static_cast<int>(ColMajor)) ? RowMajor : ColMajor,
     CoordAccess = false  // to be implemented
   };
 

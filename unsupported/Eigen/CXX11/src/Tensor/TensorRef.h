@@ -140,12 +140,12 @@ template<typename PlainObjectType> class TensorRef : public TensorBase<TensorRef
     static const Index NumIndices = PlainObjectType::NumIndices;
     typedef typename PlainObjectType::Dimensions Dimensions;
 
+    static constexpr int Layout = PlainObjectType::Layout;
     enum {
       IsAligned = false,
       PacketAccess = false,
       BlockAccess = false,
       PreferBlockAccess = false,
-      Layout = PlainObjectType::Layout,
       CoordAccess = false,  // to be implemented
       RawAccess = false
     };
@@ -296,12 +296,12 @@ struct TensorEvaluator<const TensorRef<Derived>, Device>
   typedef StorageMemory<CoeffReturnType, Device> Storage;
   typedef typename Storage::Type EvaluatorPointerType;
 
+  static constexpr int Layout = TensorRef<Derived>::Layout;
   enum {
     IsAligned = false,
     PacketAccess = false,
     BlockAccess = false,
     PreferBlockAccess = false,
-    Layout = TensorRef<Derived>::Layout,
     CoordAccess = false,  // to be implemented
     RawAccess = false
   };

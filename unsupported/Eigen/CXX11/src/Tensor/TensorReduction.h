@@ -582,12 +582,12 @@ static const bool RunningOnGPU = false;
   static constexpr bool RunningOnSycl = false;
 #endif
 
+  static constexpr int Layout = TensorEvaluator<ArgType, Device>::Layout;
   enum {
     IsAligned = false,
     PacketAccess = Self::InputPacketAccess && ReducerTraits::PacketAccess,
     BlockAccess = false,
     PreferBlockAccess = true,
-    Layout = TensorEvaluator<ArgType, Device>::Layout,
     CoordAccess = false,  // to be implemented
     RawAccess = false
   };

@@ -118,9 +118,9 @@ struct TensorEvaluator<const TensorBroadcastingOp<Broadcast, ArgType>, Device>
     PacketAccess      = TensorEvaluator<ArgType, Device>::PacketAccess,
     BlockAccess       = TensorEvaluator<ArgType, Device>::BlockAccess,
     PreferBlockAccess = true,
-    Layout            = TensorEvaluator<ArgType, Device>::Layout,
     RawAccess         = false
   };
+  static constexpr int Layout = TensorEvaluator<ArgType, Device>::Layout;
 
   typedef std::remove_const_t<Scalar> ScalarNoConst;
 
