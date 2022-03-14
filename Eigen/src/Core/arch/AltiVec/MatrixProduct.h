@@ -28,6 +28,16 @@
 #endif
 #endif
 
+// GCC 10 and below do not officially support power10
+//   https://gcc.gnu.org/onlinedocs/gcc-10.3.0/gcc/RS_002f6000-and-PowerPC-Options.html#RS_002f6000-and-PowerPC-Options
+// On *some* systems, the compiler seems to report that all builtins exist, but
+// the assembler fails with
+//   Error: invalid machine `power10'
+//   Error: unrecognized opcode: `xxsetaccz' ...
+#if EIGEN_COMP_GNUC_STRICT && !EIGEN_GNUC_AT_LEAST(11, 0)
+#define EIGEN_ALTIVEC_DISABLE_MMA
+#endif
+
 #ifdef __has_builtin
 #if __has_builtin(__builtin_mma_assemble_acc)
   #define ALTIVEC_MMA_SUPPORT
