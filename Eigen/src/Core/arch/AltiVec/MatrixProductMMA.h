@@ -173,30 +173,21 @@ EIGEN_ALWAYS_INLINE void ploadLhsMMA(const double* lhs, __vector_pair& lhsV)
     pgerMMA<Packet, type, false>(&accZero##iter, rhsV##peel, lhsV2##iter.packet[peel & 1]); \
   }
 
-#define MICRO_MMA_TEMP_VAR \
-  __vector_pair plhsV0, plhsV1, plhsV2, plhsV3, plhsV4, plhsV5, plhsV6, plhsV7;
-
-#define MICRO_MMA_LOAD_TWOB(iter, lhs_ptr) \
-  ploadLhsMMA(reinterpret_cast<const double*>(lhs_ptr##iter), plhsV##iter); \
-  __builtin_vsx_disassemble_pair(reinterpret_cast<void*>(&lhsV2##iter.packet), &plhsV##iter);
-
-#define MICRO_MMA_TEMP_UNDEF(iter) \
-  EIGEN_UNUSED_VARIABLE(plhsV##iter)
-
 #define MICRO_MMA_LOAD1_TWO(iter, lhs_ptr) \
   if (unroll_factor > iter) { \
     if (MICRO_NORMAL(iter)) { \
-      MICRO_MMA_LOAD_TWOB(iter, lhs_ptr) \
+      ploadLhsMMA(reinterpret_cast<const double*>(lhs_ptr##iter), plhsV##iter); \
+      __builtin_vsx_disassemble_pair(reinterpret_cast<void*>(&lhsV2##iter.packet), &plhsV##iter); \
       lhs_ptr##iter += accCols*2; \
     } else { \
       lhsV2##iter.packet[0] = ploadLhs<Packet>(lhs_ptr##iter); \
       lhsV2##iter.packet[1] = ploadLhs<Packet>(lhs_ptr##iter + accCols2); \
       lhs_ptr##iter += accCols2*2; \
-      MICRO_MMA_TEMP_UNDEF(iter) \
+      EIGEN_UNUSED_VARIABLE(plhsV##iter) \
     } \
   } else { \
     EIGEN_UNUSED_VARIABLE(lhsV2##iter); \
-    MICRO_MMA_TEMP_UNDEF(iter) \
+    EIGEN_UNUSED_VARIABLE(plhsV##iter) \
   }
 
 #define MICRO_MMA_LOAD_TWO(iter) MICRO_MMA_LOAD1_TWO(iter, lhs_ptr)
@@ -223,7 +214,7 @@ EIGEN_ALWAYS_INLINE void ploadLhsMMA(const double* lhs, __vector_pair& lhsV)
 #define MICRO_MMA_TYPE_PEEL2(funcw1, funcl1, funcw2, funcl2, type, peel1, peel2) \
   if (PEEL_MMA > peel2) { \
     PacketBlock<Packet,2> lhsV20, lhsV21, lhsV22, lhsV23, lhsV24, lhsV25, lhsV26, lhsV27; \
-    MICRO_MMA_TEMP_VAR \
+    __vector_pair plhsV0, plhsV1, plhsV2, plhsV3, plhsV4, plhsV5, plhsV6, plhsV7; \
     ploadRhsMMA(rhs_ptr + (accRows * peel1), rhsV##peel1); \
     ploadRhsMMA(rhs_ptr + (accRows * peel2), rhsV##peel2); \
     MICRO_MMA_UNROLL(funcl2) \
