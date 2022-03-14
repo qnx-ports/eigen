@@ -405,21 +405,23 @@ void NNLS<MatrixType>::solveInactiveSet_(const RhsVectorType &b) {
 
   tempRhsVector_ = b;
 
-  // tmp(0:numInactive_-1) := Q'*b
-  // tmp(numInactive_:end) := useless stuff we would rather not compute at all.
+  // tmpRHS(0:numInactive_-1) := Q'*b
+  // tmpRHS(numInactive_:end) := useless stuff we would rather not compute at all.
   tempRhsVector_.applyOnTheLeft(
       householderSequence(QR_.leftCols(numInactive_), qrCoeffs_.head(numInactive_)).transpose());
 
-  // tmp(0:numInactive_-1) := inv(R) * Q' * b = the least-squares solution for the inactive variables.
-  QR_.topLeftCorner(numInactive_, numInactive_)          //
-      .template triangularView<Upper>()                  //
-      .solveInPlace(tempRhsVector_.head(numInactive_));  //
+  // tempSol(0:numInactive_-1) := inv(R) * Q' * b
+  //  = the least-squares solution for the inactive variables.
+  tempSolutionVector_.head(numInactive_) =            //
+      QR_.topLeftCorner(numInactive_, numInactive_)   //
+          .template triangularView<Upper>()           //
+          .solve(tempRhsVector_.head(numInactive_));  //
 
-  // tmp(numInactive_:A.rows()) := 0 = the value for the constrained variables.
-  tempRhsVector_.middleRows(numInactive_, y_.size() - numInactive_).setZero();
+  // tempSol(numInactive_:end) := 0 = the value for the constrained variables.
+  tempSolutionVector_.tail(y_.size() - numInactive_).setZero();
 
-  // Back permute y into original column order of A
-  y_.noalias() = index_sets_.asPermutation() * tempRhsVector_.head(y_.size());
+  // Back permute into original column order of A
+  y_.noalias() = index_sets_.asPermutation() * tempSolutionVector_.head(y_.size());
 }
 
 }  // namespace Eigen
