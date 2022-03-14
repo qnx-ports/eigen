@@ -1238,28 +1238,34 @@ EIGEN_ALWAYS_INLINE void bstore(PacketBlock<Packet,N>& acc, const DataMapper& re
   }
 }
 
-#ifndef _ARCH_PWR10
+#ifdef _ARCH_PWR10
+#define USE_NEW_P10 (EIGEN_COMP_LLVM || (__GNUC__ >= 11))
+#else
+#define USE_NEW_P10 0
+#endif
+
+#if !USE_NEW_P10
 const static Packet4i mask4[4] = { {  0,  0,  0,  0 }, { -1,  0,  0,  0 }, { -1, -1,  0,  0 }, { -1, -1, -1,  0 } };
 #endif
 
 template<typename Packet, typename Index>
 EIGEN_ALWAYS_INLINE Packet bmask(const Index remaining_rows)
 {
-#ifdef _ARCH_PWR10
+#if USE_NEW_P10
 #ifdef _BIG_ENDIAN
   return Packet(vec_reve(vec_genwm((1 << remaining_rows) - 1)));
 #else
   return Packet(vec_genwm((1 << remaining_rows) - 1));
 #endif
 #else
-  return mask4[remaining_rows];
+  return Packet(mask4[remaining_rows]);
 #endif
 }
 
 template<>
 EIGEN_ALWAYS_INLINE Packet2d bmask<Packet2d,Index>(const Index remaining_rows)
 {
-#ifdef _ARCH_PWR10
+#if USE_NEW_P10
 #ifdef _BIG_ENDIAN
   return Packet2d(vec_reve(vec_gendm(remaining_rows)));
 #else
