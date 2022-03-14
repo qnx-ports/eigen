@@ -365,8 +365,9 @@ const typename NNLS<MatrixType>::SolutionVectorType &NNLS<MatrixType>::solve(con
       }
 
       // Infeasible solution -> interpolate to feasible one
-      for (const Index idx : index_sets_.head(numInactive_)) {
-        x_[idx] += alpha * (y_[idx] - x_[idx]);
+      for (Index i = 0; i < numInactive_; i++) {
+        Index idx = index_sets_[i];
+        x_(idx) += alpha * (y_(idx) - x_(idx));
       }
 
       // Remove these indices from the inactive set and update QR decomposition
