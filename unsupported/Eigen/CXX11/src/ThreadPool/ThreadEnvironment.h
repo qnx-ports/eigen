@@ -25,6 +25,7 @@ struct StlThreadEnvironment {
    public:
     EnvThread(std::function<void()> f) : thr_(std::move(f)) {}
     ~EnvThread() { thr_.join(); }
+    auto get_handle() { return thr_.native_handle(); }
     // This function is called when the threadpool is cancelled.
     void OnCancel() { }
 
