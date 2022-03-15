@@ -18,7 +18,7 @@
 #include "MatrixProductCommon.h"
 
 // Check for MMA builtin support. 
-#if !defined(EIGEN_ALTIVEC_MMA_SUPPORT) && defined(__has_builtin)
+#if !defined(EIGEN_ALTIVEC_DISABLE_MMA) && defined(__has_builtin)
 #if __has_builtin(__builtin_mma_assemble_acc)
   #define EIGEN_ALTIVEC_MMA_SUPPORT
 #endif
