@@ -15,6 +15,8 @@
 #define EIGEN_ALTIVEC_USE_CUSTOM_PACK    1
 #endif
 
+#if 1
+
 #define TEST_VERBOSE   // Report timings and gemm type, MMA, rows, depth and cols
 
 #ifdef TEST_VERBOSE
@@ -1561,7 +1563,7 @@ EIGEN_ALWAYS_INLINE void gemm_unrolled_row_iteration(
   }
 
   bload<DataMapper, Packet, Index, 0, ColMajor, false, accRows>(acc, res, row, 0);
-  if (rows >= accCols)
+  if ((accRows == 1) || (rows >= accCols))
   {
     bscale<Packet,accRows>(acc, accZero0, pAlpha, pMask);
     bstore<DataMapper, Packet, Index, accRows>(acc, res, row);
@@ -2013,12 +2015,14 @@ EIGEN_ALWAYS_INLINE void gemm_unrolled_complex_row_iteration(
   }
 
   bload<DataMapper, Packetc, Index, accColsC, ColMajor, true, accRows>(tRes, res, row, 0);
-  if (rows >= accCols)
+  if ((accRows == 1) || (rows >= accCols))
   {
     bscalec<Packet,accRows>(accReal0, accImag0, pAlphaReal, pAlphaImag, taccReal, taccImag, pMask);
     bcouple<Packet, Packetc, accRows>(taccReal, taccImag, tRes, acc0, acc1);
     bstore<DataMapper, Packetc, Index, accRows>(acc0, res, row + 0);
-    bstore<DataMapper, Packetc, Index, accRows>(acc1, res, row + accColsC);
+    if(remaining_rows > accColsC) {
+      bstore<DataMapper, Packetc, Index, accRows>(acc1, res, row + accColsC);
+    }
   } else {
     bscalec<Packet,accRows>(accReal0, accImag0, pAlphaReal, pAlphaImag, taccReal, taccImag);
     bcouple<Packet, Packetc, accRows>(taccReal, taccImag, tRes, acc0, acc1);
@@ -2846,5 +2850,7 @@ void gebp_kernel<double, std::complex<double>, Index, DataMapper, mr, nr, Conjug
 } // end namespace internal
 
 } // end namespace Eigen
+
+#endif
 
 #endif // EIGEN_MATRIX_PRODUCT_ALTIVEC_H
