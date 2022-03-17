@@ -1973,10 +1973,8 @@ EIGEN_ALWAYS_INLINE void gemm_unrolled_complex_row_iteration(
   Index offsetA,
   Index strideB,
   Index row,
-  Index rows,
   const Packet& pAlphaReal,
-  const Packet& pAlphaImag,
-  const Packet& pMask)
+  const Packet& pAlphaImag)
 {
   const Scalar* rhs_ptr_real0 = rhs_base, * rhs_ptr_real1 = NULL, * rhs_ptr_real2 = NULL;
   const Scalar* rhs_ptr_imag0 = NULL, * rhs_ptr_imag1 = NULL, * rhs_ptr_imag2 = NULL;
@@ -2015,36 +2013,26 @@ EIGEN_ALWAYS_INLINE void gemm_unrolled_complex_row_iteration(
   }
 
   bload<DataMapper, Packetc, Index, accColsC, ColMajor, true, accRows>(tRes, res, row, 0);
-  if ((accRows == 1) || (rows >= accCols))
+  bscalec<Packet,accRows>(accReal0, accImag0, pAlphaReal, pAlphaImag, taccReal, taccImag);
+  bcouple<Packet, Packetc, accRows>(taccReal, taccImag, tRes, acc0, acc1);
+
+  if (remaining_rows == 1)
   {
-    bscalec<Packet,accRows>(accReal0, accImag0, pAlphaReal, pAlphaImag, taccReal, taccImag, pMask);
-    bcouple<Packet, Packetc, accRows>(taccReal, taccImag, tRes, acc0, acc1);
-    bstore<DataMapper, Packetc, Index, accRows>(acc0, res, row + 0);
-    if(remaining_rows > accColsC) {
-      bstore<DataMapper, Packetc, Index, accRows>(acc1, res, row + accColsC);
+    for(Index j = 0; j < accRows; j++) {
+      res(row + 0, j) = pfirst<Packetc>(acc0.packet[j]);
     }
   } else {
-    bscalec<Packet,accRows>(accReal0, accImag0, pAlphaReal, pAlphaImag, taccReal, taccImag);
-    bcouple<Packet, Packetc, accRows>(taccReal, taccImag, tRes, acc0, acc1);
-
-    if ((sizeof(Scalar) == sizeof(float)) && (remaining_rows == 1))
-    {
+    bstore<DataMapper, Packetc, Index, accRows>(acc0, res, row + 0);
+    if(remaining_rows > accColsC) {
       for(Index j = 0; j < accRows; j++) {
-        res(row + 0, j) = pfirst<Packetc>(acc0.packet[j]);
-      }
-    } else {
-      bstore<DataMapper, Packetc, Index, accRows>(acc0, res, row + 0);
-      if(remaining_rows > accColsC) {
-        for(Index j = 0; j < accRows; j++) {
-          res(row + accColsC, j) = pfirst<Packetc>(acc1.packet[j]);
-        }
+        res(row + accColsC, j) = pfirst<Packetc>(acc1.packet[j]);
       }
     }
   }
 }
 
 #define MICRO_COMPLEX_EXTRA_ROWS(N) \
-  gemm_unrolled_complex_row_iteration<Scalar, Packet, Packetc, DataMapper, Index, accRows, accCols, ConjugateLhs, ConjugateRhs, LhsIsReal, RhsIsReal, N>(res, lhs_base, rhs_base, depth, strideA, offsetA, strideB, row, rows, pAlphaReal, pAlphaImag, pMask);
+  gemm_unrolled_complex_row_iteration<Scalar, Packet, Packetc, DataMapper, Index, accRows, accCols, ConjugateLhs, ConjugateRhs, LhsIsReal, RhsIsReal, N>(res, lhs_base, rhs_base, depth, strideA, offsetA, strideB, row, pAlphaReal, pAlphaImag);
 
 template<typename Scalar, typename Packet, typename Packetc, typename DataMapper, typename Index, const Index accRows, const Index accCols, bool ConjugateLhs, bool ConjugateRhs, bool LhsIsReal, bool RhsIsReal>
 EIGEN_ALWAYS_INLINE void gemm_complex_extra_row(
@@ -2056,11 +2044,9 @@ EIGEN_ALWAYS_INLINE void gemm_complex_extra_row(
   Index offsetA,
   Index strideB,
   Index row,
-  Index rows,
   Index remaining_rows,
   const Packet& pAlphaReal,
-  const Packet& pAlphaImag,
-  const Packet& pMask)
+  const Packet& pAlphaImag)
 {
   MICRO_EXTRA(MICRO_COMPLEX_EXTRA_ROWS, remaining_rows, false)
 }
@@ -2238,7 +2224,7 @@ EIGEN_ALWAYS_INLINE void gemm_complex_cols(
 
   if(remaining_rows > 0)
   {
-    gemm_complex_extra_row<Scalar, Packet, Packetc, DataMapper, Index, accRows, accCols, ConjugateLhs, ConjugateRhs, LhsIsReal, RhsIsReal>(res3, blockA, rhs_base, depth, strideA, offsetA, strideB, row, rows, remaining_rows, pAlphaReal, pAlphaImag, pMask);
+    gemm_complex_extra_row<Scalar, Packet, Packetc, DataMapper, Index, accRows, accCols, ConjugateLhs, ConjugateRhs, LhsIsReal, RhsIsReal>(res3, blockA, rhs_base, depth, strideA, offsetA, strideB, row, remaining_rows, pAlphaReal, pAlphaImag);
   }
 }
 

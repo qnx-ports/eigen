@@ -56,11 +56,9 @@ EIGEN_ALWAYS_INLINE void gemm_complex_extra_row(
   Index offsetA,
   Index strideB,
   Index row,
-  Index rows,
   Index remaining_rows,
   const Packet& pAlphaReal,
-  const Packet& pAlphaImag,
-  const Packet& pMask);
+  const Packet& pAlphaImag);
 
 template<typename Scalar, typename Packet, typename Packetc, typename DataMapper, typename Index, const Index accCols, bool ConjugateLhs, bool ConjugateRhs, bool LhsIsReal, bool RhsIsReal>
 EIGEN_STRONG_INLINE void gemm_complex_extra_cols(
