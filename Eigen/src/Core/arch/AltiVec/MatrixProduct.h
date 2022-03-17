@@ -1902,6 +1902,8 @@ EIGEN_STRONG_INLINE void gemm(const DataMapper& res, const Scalar* blockA, const
   MICRO_BROADCAST_EXTRA1(ptr_real, rhsV, false) \
   if(!RhsIsReal) { \
     MICRO_BROADCAST_EXTRA1(ptr_imag, rhsVi, false) \
+  } else { \
+    EIGEN_UNUSED_VARIABLE(rhsVi); \
   } \
   MICRO_COMPLEX_ADD_ROWS(1, true)
 
