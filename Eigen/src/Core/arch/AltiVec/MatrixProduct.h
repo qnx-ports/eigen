@@ -1163,11 +1163,15 @@ EIGEN_ALWAYS_INLINE void band(PacketBlock<Packet,N>& acc, const Packet& pMask)
   }
 }
 
-template<typename Packet, int N>
+template<typename Packet, int N, bool mask>
 EIGEN_ALWAYS_INLINE void bscalec(PacketBlock<Packet,N>& aReal, PacketBlock<Packet,N>& aImag, const Packet& bReal, const Packet& bImag, PacketBlock<Packet,N>& cReal, PacketBlock<Packet,N>& cImag, const Packet& pMask)
 {
-  band<Packet, N>(aReal, pMask);
-  band<Packet, N>(aImag, pMask);
+  if (mask) {
+    band<Packet, N>(aReal, pMask);
+    band<Packet, N>(aImag, pMask);
+  } else {
+    EIGEN_UNUSED_VARIABLE(pMask);
+  }
 
   bscalec<Packet,N>(aReal, aImag, bReal, bImag, cReal, cImag);
 }
@@ -2019,7 +2023,7 @@ EIGEN_ALWAYS_INLINE void gemm_unrolled_complex_row_iteration(
   bload<DataMapper, Packetc, Index, accColsC, ColMajor, true, accRows>(tRes, res, row, 0);
   if ((accRows == 1) || (rows >= accCols))
   {
-    bscalec<Packet,accRows>(accReal0, accImag0, pAlphaReal, pAlphaImag, taccReal, taccImag, pMask);
+    bscalec<Packet,accRows,(sizeof(Scalar) == sizeof(float))>(accReal0, accImag0, pAlphaReal, pAlphaImag, taccReal, taccImag, pMask);
     bcouple<Packet, Packetc, accRows>(taccReal, taccImag, tRes, acc0, acc1);
     bstore<DataMapper, Packetc, Index, accRows>(acc0, res, row + 0);
     if(remaining_rows > accColsC) {
