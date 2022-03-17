@@ -27,24 +27,35 @@
 
 #include "MatrixProductCommon.h"
 
-// Since LLVM doesn't support dynamic dispatching, force either always MMA or VSX
-#if EIGEN_COMP_LLVM
-#if !defined(EIGEN_ALTIVEC_DISABLE_MMA) && !defined(EIGEN_ALTIVEC_MMA_ONLY)
-#ifdef __MMA__
-#define EIGEN_ALTIVEC_MMA_ONLY
-#else
-#define EIGEN_ALTIVEC_DISABLE_MMA
-#endif
-#endif
+#if !defined(EIGEN_ALTIVEC_DISABLE_MMA)
+#define EIGEN_ALTIVEC_DISABLE_MMA 0
 #endif
 
-#ifdef __has_builtin
+// Check for MMA builtin support. 
+#if !EIGEN_ALTIVEC_DISABLE_MMA && defined(__has_builtin)
 #if __has_builtin(__builtin_mma_assemble_acc)
-  #define ALTIVEC_MMA_SUPPORT
+  #define EIGEN_ALTIVEC_MMA_SUPPORT
 #endif
 #endif
 
-#if defined(ALTIVEC_MMA_SUPPORT) && !defined(EIGEN_ALTIVEC_DISABLE_MMA)
+// Check if and how we should actually use MMA if supported.
+#if defined(EIGEN_ALTIVEC_MMA_SUPPORT)
+
+#if !defined(EIGEN_ALTIVEC_ENABLE_MMA_DYNAMIC_DISPATCH)
+#define EIGEN_ALTIVEC_ENABLE_MMA_DYNAMIC_DISPATCH 0
+#endif
+
+// Check if we want to enable dynamic dispatch. Not supported by LLVM.
+#if EIGEN_ALTIVEC_ENABLE_MMA_DYNAMIC_DISPATCH && !EIGEN_COMP_LLVM
+#define EIGEN_ALTIVEC_MMA_DYNAMIC_DISPATCH 1
+// Otherwise, use MMA by default if available.
+#elif defined(__MMA__)
+#define EIGEN_ALTIVEC_MMA_ONLY 1
+#endif
+
+#endif // EIGEN_ALTIVEC_MMA_SUPPORT
+
+#if defined(EIGEN_ALTIVEC_MMA_ONLY) || defined(EIGEN_ALTIVEC_MMA_DYNAMIC_DISPATCH)
   #include "MatrixProductMMA.h"
 #endif
 
@@ -2572,10 +2583,10 @@ void gebp_kernel<float, float, Index, DataMapper, mr, nr, ConjugateLhs, Conjugat
     const Index accCols = quad_traits<float>::size;
     void (*gemm_function)(const DataMapper&, const float*, const float*, Index, Index, Index, float, Index, Index, Index, Index);
 
-    #ifdef EIGEN_ALTIVEC_MMA_ONLY
+    #if defined(EIGEN_ALTIVEC_MMA_ONLY)
       //generate with MMA only
       gemm_function = &Eigen::internal::gemmMMA<float, Index, Packet, RhsPacket, DataMapper, accRows, accCols>;
-    #elif defined(ALTIVEC_MMA_SUPPORT) && !defined(EIGEN_ALTIVEC_DISABLE_MMA)
+    #elif defined(EIGEN_ALTIVEC_MMA_DYNAMIC_DISPATCH)
       if (__builtin_cpu_supports ("arch_3_1") && __builtin_cpu_supports ("mma")){
         gemm_function = &Eigen::internal::gemmMMA<float, Index, Packet, RhsPacket, DataMapper, accRows, accCols>;
       }
@@ -2585,7 +2596,7 @@ void gebp_kernel<float, float, Index, DataMapper, mr, nr, ConjugateLhs, Conjugat
     #else
       gemm_function = &Eigen::internal::gemm<float, Index, Packet, RhsPacket, DataMapper, accRows, accCols>;
     #endif
-      gemm_function(res, blockA, blockB, rows, depth, cols, alpha, strideA, strideB, offsetA, offsetB);
+    gemm_function(res, blockA, blockB, rows, depth, cols, alpha, strideA, strideB, offsetA, offsetB);
   }
 
 template<typename Index, typename DataMapper, int mr, int nr, bool ConjugateLhs, bool ConjugateRhs>
@@ -2611,20 +2622,20 @@ void gebp_kernel<std::complex<float>, std::complex<float>, Index, DataMapper, mr
     void (*gemm_function)(const DataMapper&, const std::complex<float>*, const std::complex<float>*,
           Index, Index, Index, std::complex<float>, Index, Index, Index, Index);
 
-    #ifdef EIGEN_ALTIVEC_MMA_ONLY
-       //generate with MMA only
-       gemm_function = &Eigen::internal::gemm_complexMMA<std::complex<float>, std::complex<float>, std::complex<float>, float, Index, Packet, Packetc, RhsPacket, DataMapper, accRows, accCols, ConjugateLhs, ConjugateRhs, false, false>;
-     #elif defined(ALTIVEC_MMA_SUPPORT) && !defined(EIGEN_ALTIVEC_DISABLE_MMA)
-       if (__builtin_cpu_supports ("arch_3_1") && __builtin_cpu_supports ("mma")){
-         gemm_function = &Eigen::internal::gemm_complexMMA<std::complex<float>, std::complex<float>, std::complex<float>, float, Index, Packet, Packetc, RhsPacket, DataMapper, accRows, accCols, ConjugateLhs, ConjugateRhs, false, false>;
-       }
-       else{
-         gemm_function = &Eigen::internal::gemm_complex<std::complex<float>, std::complex<float>, std::complex<float>, float, Index, Packet, Packetc, RhsPacket, DataMapper, accRows, accCols, ConjugateLhs, ConjugateRhs, false, false>;
-       }
-     #else
-       gemm_function = &Eigen::internal::gemm_complex<std::complex<float>, std::complex<float>, std::complex<float>, float, Index, Packet, Packetc, RhsPacket, DataMapper, accRows, accCols, ConjugateLhs, ConjugateRhs, false, false>;
-     #endif
-      gemm_function(res, blockA, blockB, rows, depth, cols, alpha, strideA, strideB, offsetA, offsetB);
+    #if defined(EIGEN_ALTIVEC_MMA_ONLY)
+      //generate with MMA only
+      gemm_function = &Eigen::internal::gemm_complexMMA<std::complex<float>, std::complex<float>, std::complex<float>, float, Index, Packet, Packetc, RhsPacket, DataMapper, accRows, accCols, ConjugateLhs, ConjugateRhs, false, false>;
+    #elif defined(EIGEN_ALTIVEC_MMA_DYNAMIC_DISPATCH)
+      if (__builtin_cpu_supports ("arch_3_1") && __builtin_cpu_supports ("mma")){
+        gemm_function = &Eigen::internal::gemm_complexMMA<std::complex<float>, std::complex<float>, std::complex<float>, float, Index, Packet, Packetc, RhsPacket, DataMapper, accRows, accCols, ConjugateLhs, ConjugateRhs, false, false>;
+      }
+      else{
+        gemm_function = &Eigen::internal::gemm_complex<std::complex<float>, std::complex<float>, std::complex<float>, float, Index, Packet, Packetc, RhsPacket, DataMapper, accRows, accCols, ConjugateLhs, ConjugateRhs, false, false>;
+      }
+    #else
+      gemm_function = &Eigen::internal::gemm_complex<std::complex<float>, std::complex<float>, std::complex<float>, float, Index, Packet, Packetc, RhsPacket, DataMapper, accRows, accCols, ConjugateLhs, ConjugateRhs, false, false>;
+    #endif
+    gemm_function(res, blockA, blockB, rows, depth, cols, alpha, strideA, strideB, offsetA, offsetB);
   }
 
 template<typename Index, typename DataMapper, int mr, int nr, bool ConjugateLhs, bool ConjugateRhs>
@@ -2649,20 +2660,20 @@ void gebp_kernel<float, std::complex<float>, Index, DataMapper, mr, nr, Conjugat
     const Index accCols = quad_traits<float>::size;
     void (*gemm_function)(const DataMapper&, const float*, const std::complex<float>*,
           Index, Index, Index, std::complex<float>, Index, Index, Index, Index);
-    #ifdef EIGEN_ALTIVEC_MMA_ONLY
-       //generate with MMA only
-       gemm_function = &Eigen::internal::gemm_complexMMA<float, std::complex<float>, std::complex<float>, float, Index, Packet, Packetc, RhsPacket, DataMapper, accRows, accCols, ConjugateLhs, ConjugateRhs, true, false>;
-     #elif defined(ALTIVEC_MMA_SUPPORT) && !defined(EIGEN_ALTIVEC_DISABLE_MMA)
-       if (__builtin_cpu_supports ("arch_3_1") && __builtin_cpu_supports ("mma")){
-         gemm_function = &Eigen::internal::gemm_complexMMA<float, std::complex<float>, std::complex<float>, float, Index, Packet, Packetc, RhsPacket, DataMapper, accRows, accCols, ConjugateLhs, ConjugateRhs, true, false>;
-       }
-       else{
-         gemm_function = &Eigen::internal::gemm_complex<float, std::complex<float>, std::complex<float>, float, Index, Packet, Packetc, RhsPacket, DataMapper, accRows, accCols, ConjugateLhs, ConjugateRhs, true, false>;
-       }
-     #else
-       gemm_function = &Eigen::internal::gemm_complex<float, std::complex<float>, std::complex<float>, float, Index, Packet, Packetc, RhsPacket, DataMapper, accRows, accCols, ConjugateLhs, ConjugateRhs, true, false>;
-     #endif
-       gemm_function(res, blockA, blockB, rows, depth, cols, alpha, strideA, strideB, offsetA, offsetB);
+    #if defined(EIGEN_ALTIVEC_MMA_ONLY)
+      //generate with MMA only
+      gemm_function = &Eigen::internal::gemm_complexMMA<float, std::complex<float>, std::complex<float>, float, Index, Packet, Packetc, RhsPacket, DataMapper, accRows, accCols, ConjugateLhs, ConjugateRhs, true, false>;
+    #elif defined(EIGEN_ALTIVEC_MMA_DYNAMIC_DISPATCH)
+      if (__builtin_cpu_supports ("arch_3_1") && __builtin_cpu_supports ("mma")){
+        gemm_function = &Eigen::internal::gemm_complexMMA<float, std::complex<float>, std::complex<float>, float, Index, Packet, Packetc, RhsPacket, DataMapper, accRows, accCols, ConjugateLhs, ConjugateRhs, true, false>;
+      }
+      else{
+        gemm_function = &Eigen::internal::gemm_complex<float, std::complex<float>, std::complex<float>, float, Index, Packet, Packetc, RhsPacket, DataMapper, accRows, accCols, ConjugateLhs, ConjugateRhs, true, false>;
+      }
+    #else
+      gemm_function = &Eigen::internal::gemm_complex<float, std::complex<float>, std::complex<float>, float, Index, Packet, Packetc, RhsPacket, DataMapper, accRows, accCols, ConjugateLhs, ConjugateRhs, true, false>;
+    #endif
+    gemm_function(res, blockA, blockB, rows, depth, cols, alpha, strideA, strideB, offsetA, offsetB);
   }
 
 template<typename Index, typename DataMapper, int mr, int nr, bool ConjugateLhs, bool ConjugateRhs>
@@ -2687,20 +2698,20 @@ void gebp_kernel<std::complex<float>, float, Index, DataMapper, mr, nr, Conjugat
     const Index accCols = quad_traits<float>::size;
     void (*gemm_function)(const DataMapper&, const std::complex<float>*, const float*,
           Index, Index, Index, std::complex<float>, Index, Index, Index, Index);
-    #ifdef EIGEN_ALTIVEC_MMA_ONLY
-       //generate with MMA only
-       gemm_function = &Eigen::internal::gemm_complexMMA<std::complex<float>, float, std::complex<float>, float, Index, Packet, Packetc, RhsPacket, DataMapper, accRows, accCols, ConjugateLhs, ConjugateRhs, false, true>;
-     #elif defined(ALTIVEC_MMA_SUPPORT) && !defined(EIGEN_ALTIVEC_DISABLE_MMA)
-       if (__builtin_cpu_supports ("arch_3_1") && __builtin_cpu_supports ("mma")){
-         gemm_function = &Eigen::internal::gemm_complexMMA<std::complex<float>, float, std::complex<float>, float, Index, Packet, Packetc, RhsPacket, DataMapper, accRows, accCols, ConjugateLhs, ConjugateRhs, false, true>;
-       }
-       else{
-         gemm_function = &Eigen::internal::gemm_complex<std::complex<float>, float, std::complex<float>, float, Index, Packet, Packetc, RhsPacket, DataMapper, accRows, accCols, ConjugateLhs, ConjugateRhs, false, true>;
-       }
-     #else
-       gemm_function = &Eigen::internal::gemm_complex<std::complex<float>, float, std::complex<float>, float, Index, Packet, Packetc, RhsPacket, DataMapper, accRows, accCols, ConjugateLhs, ConjugateRhs, false, true>;
-     #endif
-       gemm_function(res, blockA, blockB, rows, depth, cols, alpha, strideA, strideB, offsetA, offsetB);
+    #if defined(EIGEN_ALTIVEC_MMA_ONLY)
+      //generate with MMA only
+      gemm_function = &Eigen::internal::gemm_complexMMA<std::complex<float>, float, std::complex<float>, float, Index, Packet, Packetc, RhsPacket, DataMapper, accRows, accCols, ConjugateLhs, ConjugateRhs, false, true>;
+    #elif defined(EIGEN_ALTIVEC_MMA_DYNAMIC_DISPATCH)
+      if (__builtin_cpu_supports ("arch_3_1") && __builtin_cpu_supports ("mma")){
+        gemm_function = &Eigen::internal::gemm_complexMMA<std::complex<float>, float, std::complex<float>, float, Index, Packet, Packetc, RhsPacket, DataMapper, accRows, accCols, ConjugateLhs, ConjugateRhs, false, true>;
+      }
+      else{
+        gemm_function = &Eigen::internal::gemm_complex<std::complex<float>, float, std::complex<float>, float, Index, Packet, Packetc, RhsPacket, DataMapper, accRows, accCols, ConjugateLhs, ConjugateRhs, false, true>;
+      }
+    #else
+      gemm_function = &Eigen::internal::gemm_complex<std::complex<float>, float, std::complex<float>, float, Index, Packet, Packetc, RhsPacket, DataMapper, accRows, accCols, ConjugateLhs, ConjugateRhs, false, true>;
+    #endif
+    gemm_function(res, blockA, blockB, rows, depth, cols, alpha, strideA, strideB, offsetA, offsetB);
   }
 
 template<typename Index, typename DataMapper, int mr, int nr, bool ConjugateLhs, bool ConjugateRhs>
@@ -2724,10 +2735,10 @@ void gebp_kernel<double, double, Index, DataMapper, mr, nr, ConjugateLhs, Conjug
     const Index accCols = quad_traits<double>::size;
     void (*gemm_function)(const DataMapper&, const double*, const double*, Index, Index, Index, double, Index, Index, Index, Index);
 
-    #ifdef EIGEN_ALTIVEC_MMA_ONLY
+    #if defined(EIGEN_ALTIVEC_MMA_ONLY)
       //generate with MMA only
       gemm_function = &Eigen::internal::gemmMMA<double, Index, Packet, RhsPacket, DataMapper, accRows, accCols>;
-    #elif defined(ALTIVEC_MMA_SUPPORT) && !defined(EIGEN_ALTIVEC_DISABLE_MMA)
+    #elif defined(EIGEN_ALTIVEC_MMA_DYNAMIC_DISPATCH)
       if (__builtin_cpu_supports ("arch_3_1") && __builtin_cpu_supports ("mma")){
         gemm_function = &Eigen::internal::gemmMMA<double, Index, Packet, RhsPacket, DataMapper, accRows, accCols>;
       }
@@ -2737,7 +2748,7 @@ void gebp_kernel<double, double, Index, DataMapper, mr, nr, ConjugateLhs, Conjug
     #else
       gemm_function = &Eigen::internal::gemm<double, Index, Packet, RhsPacket, DataMapper, accRows, accCols>;
     #endif
-      gemm_function(res, blockA, blockB, rows, depth, cols, alpha, strideA, strideB, offsetA, offsetB);
+    gemm_function(res, blockA, blockB, rows, depth, cols, alpha, strideA, strideB, offsetA, offsetB);
   }
 
 template<typename Index, typename DataMapper, int mr, int nr, bool ConjugateLhs, bool ConjugateRhs>
@@ -2762,20 +2773,20 @@ void gebp_kernel<std::complex<double>, std::complex<double>, Index, DataMapper, 
     const Index accCols = quad_traits<double>::size;
     void (*gemm_function)(const DataMapper&, const std::complex<double>*, const std::complex<double>*,
           Index, Index, Index, std::complex<double>, Index, Index, Index, Index);
-    #ifdef EIGEN_ALTIVEC_MMA_ONLY
-       //generate with MMA only
-       gemm_function = &Eigen::internal::gemm_complexMMA<std::complex<double>, std::complex<double>, std::complex<double>, double, Index, Packet, Packetc, RhsPacket, DataMapper, accRows, accCols, ConjugateLhs, ConjugateRhs, false, false>;
-     #elif defined(ALTIVEC_MMA_SUPPORT) && !defined(EIGEN_ALTIVEC_DISABLE_MMA)
-       if (__builtin_cpu_supports ("arch_3_1") && __builtin_cpu_supports ("mma")){
-         gemm_function = &Eigen::internal::gemm_complexMMA<std::complex<double>, std::complex<double>, std::complex<double>, double, Index, Packet, Packetc, RhsPacket, DataMapper, accRows, accCols, ConjugateLhs, ConjugateRhs, false, false>;
-       }
-       else{
-         gemm_function = &Eigen::internal::gemm_complex<std::complex<double>, std::complex<double>, std::complex<double>, double, Index, Packet, Packetc, RhsPacket, DataMapper, accRows, accCols, ConjugateLhs, ConjugateRhs, false, false>;
-       }
-     #else
-       gemm_function = &Eigen::internal::gemm_complex<std::complex<double>, std::complex<double>, std::complex<double>, double, Index, Packet, Packetc, RhsPacket, DataMapper, accRows, accCols, ConjugateLhs, ConjugateRhs, false, false>;
-     #endif
-       gemm_function(res, blockA, blockB, rows, depth, cols, alpha, strideA, strideB, offsetA, offsetB);
+    #if defined(EIGEN_ALTIVEC_MMA_ONLY)
+      //generate with MMA only
+      gemm_function = &Eigen::internal::gemm_complexMMA<std::complex<double>, std::complex<double>, std::complex<double>, double, Index, Packet, Packetc, RhsPacket, DataMapper, accRows, accCols, ConjugateLhs, ConjugateRhs, false, false>;
+    #elif defined(EIGEN_ALTIVEC_MMA_DYNAMIC_DISPATCH)
+      if (__builtin_cpu_supports ("arch_3_1") && __builtin_cpu_supports ("mma")){
+        gemm_function = &Eigen::internal::gemm_complexMMA<std::complex<double>, std::complex<double>, std::complex<double>, double, Index, Packet, Packetc, RhsPacket, DataMapper, accRows, accCols, ConjugateLhs, ConjugateRhs, false, false>;
+      }
+      else{
+        gemm_function = &Eigen::internal::gemm_complex<std::complex<double>, std::complex<double>, std::complex<double>, double, Index, Packet, Packetc, RhsPacket, DataMapper, accRows, accCols, ConjugateLhs, ConjugateRhs, false, false>;
+      }
+    #else
+      gemm_function = &Eigen::internal::gemm_complex<std::complex<double>, std::complex<double>, std::complex<double>, double, Index, Packet, Packetc, RhsPacket, DataMapper, accRows, accCols, ConjugateLhs, ConjugateRhs, false, false>;
+    #endif
+    gemm_function(res, blockA, blockB, rows, depth, cols, alpha, strideA, strideB, offsetA, offsetB);
   }
 
 template<typename Index, typename DataMapper, int mr, int nr, bool ConjugateLhs, bool ConjugateRhs>
@@ -2800,20 +2811,20 @@ void gebp_kernel<std::complex<double>, double, Index, DataMapper, mr, nr, Conjug
     const Index accCols = quad_traits<double>::size;
     void (*gemm_function)(const DataMapper&, const std::complex<double>*, const double*,
           Index, Index, Index, std::complex<double>, Index, Index, Index, Index);
-    #ifdef EIGEN_ALTIVEC_MMA_ONLY
-       //generate with MMA only
-       gemm_function = &Eigen::internal::gemm_complexMMA<std::complex<double>, double, std::complex<double>, double, Index, Packet, Packetc, RhsPacket, DataMapper, accRows, accCols, ConjugateLhs, ConjugateRhs, false, true>;
-     #elif defined(ALTIVEC_MMA_SUPPORT) && !defined(EIGEN_ALTIVEC_DISABLE_MMA)
-       if (__builtin_cpu_supports ("arch_3_1") && __builtin_cpu_supports ("mma")){
-         gemm_function = &Eigen::internal::gemm_complexMMA<std::complex<double>, double, std::complex<double>, double, Index, Packet, Packetc, RhsPacket, DataMapper, accRows, accCols, ConjugateLhs, ConjugateRhs, false, true>;
-       }
-       else{
-         gemm_function = &Eigen::internal::gemm_complex<std::complex<double>, double, std::complex<double>, double, Index, Packet, Packetc, RhsPacket, DataMapper, accRows, accCols, ConjugateLhs, ConjugateRhs, false, true>;
-       }
-     #else
-       gemm_function = &Eigen::internal::gemm_complex<std::complex<double>, double, std::complex<double>, double, Index, Packet, Packetc, RhsPacket, DataMapper, accRows, accCols, ConjugateLhs, ConjugateRhs, false, true>;
-     #endif
-       gemm_function(res, blockA, blockB, rows, depth, cols, alpha, strideA, strideB, offsetA, offsetB);
+    #if defined(EIGEN_ALTIVEC_MMA_ONLY)
+      //generate with MMA only
+      gemm_function = &Eigen::internal::gemm_complexMMA<std::complex<double>, double, std::complex<double>, double, Index, Packet, Packetc, RhsPacket, DataMapper, accRows, accCols, ConjugateLhs, ConjugateRhs, false, true>;
+    #elif defined(EIGEN_ALTIVEC_MMA_DYNAMIC_DISPATCH)
+      if (__builtin_cpu_supports ("arch_3_1") && __builtin_cpu_supports ("mma")){
+        gemm_function = &Eigen::internal::gemm_complexMMA<std::complex<double>, double, std::complex<double>, double, Index, Packet, Packetc, RhsPacket, DataMapper, accRows, accCols, ConjugateLhs, ConjugateRhs, false, true>;
+      }
+      else{
+        gemm_function = &Eigen::internal::gemm_complex<std::complex<double>, double, std::complex<double>, double, Index, Packet, Packetc, RhsPacket, DataMapper, accRows, accCols, ConjugateLhs, ConjugateRhs, false, true>;
+      }
+    #else
+      gemm_function = &Eigen::internal::gemm_complex<std::complex<double>, double, std::complex<double>, double, Index, Packet, Packetc, RhsPacket, DataMapper, accRows, accCols, ConjugateLhs, ConjugateRhs, false, true>;
+    #endif
+    gemm_function(res, blockA, blockB, rows, depth, cols, alpha, strideA, strideB, offsetA, offsetB);
   }
 
 template<typename Index, typename DataMapper, int mr, int nr, bool ConjugateLhs, bool ConjugateRhs>
@@ -2838,20 +2849,20 @@ void gebp_kernel<double, std::complex<double>, Index, DataMapper, mr, nr, Conjug
     const Index accCols = quad_traits<double>::size;
     void (*gemm_function)(const DataMapper&, const double*, const std::complex<double>*,
           Index, Index, Index, std::complex<double>, Index, Index, Index, Index);
-    #ifdef EIGEN_ALTIVEC_MMA_ONLY
-       //generate with MMA only
-       gemm_function = &Eigen::internal::gemm_complexMMA<double, std::complex<double>, std::complex<double>, double, Index, Packet, Packetc, RhsPacket, DataMapper, accRows, accCols, ConjugateLhs, ConjugateRhs, true, false>;
-     #elif defined(ALTIVEC_MMA_SUPPORT) && !defined(EIGEN_ALTIVEC_DISABLE_MMA)
-       if (__builtin_cpu_supports ("arch_3_1") && __builtin_cpu_supports ("mma")){
-         gemm_function = &Eigen::internal::gemm_complexMMA<double, std::complex<double>, std::complex<double>, double, Index, Packet, Packetc, RhsPacket, DataMapper, accRows, accCols, ConjugateLhs, ConjugateRhs, true, false>;
-       }
-       else{
-         gemm_function = &Eigen::internal::gemm_complex<double, std::complex<double>, std::complex<double>, double, Index, Packet, Packetc, RhsPacket, DataMapper, accRows, accCols, ConjugateLhs, ConjugateRhs, true, false>;
-       }
-     #else
-       gemm_function = &Eigen::internal::gemm_complex<double, std::complex<double>, std::complex<double>, double, Index, Packet, Packetc, RhsPacket, DataMapper, accRows, accCols, ConjugateLhs, ConjugateRhs, true, false>;
-     #endif
-       gemm_function(res, blockA, blockB, rows, depth, cols, alpha, strideA, strideB, offsetA, offsetB);
+    #if defined(EIGEN_ALTIVEC_MMA_ONLY)
+      //generate with MMA only
+      gemm_function = &Eigen::internal::gemm_complexMMA<double, std::complex<double>, std::complex<double>, double, Index, Packet, Packetc, RhsPacket, DataMapper, accRows, accCols, ConjugateLhs, ConjugateRhs, true, false>;
+    #elif defined(EIGEN_ALTIVEC_MMA_DYNAMIC_DISPATCH)
+      if (__builtin_cpu_supports ("arch_3_1") && __builtin_cpu_supports ("mma")){
+        gemm_function = &Eigen::internal::gemm_complexMMA<double, std::complex<double>, std::complex<double>, double, Index, Packet, Packetc, RhsPacket, DataMapper, accRows, accCols, ConjugateLhs, ConjugateRhs, true, false>;
+      }
+      else{
+        gemm_function = &Eigen::internal::gemm_complex<double, std::complex<double>, std::complex<double>, double, Index, Packet, Packetc, RhsPacket, DataMapper, accRows, accCols, ConjugateLhs, ConjugateRhs, true, false>;
+      }
+    #else
+      gemm_function = &Eigen::internal::gemm_complex<double, std::complex<double>, std::complex<double>, double, Index, Packet, Packetc, RhsPacket, DataMapper, accRows, accCols, ConjugateLhs, ConjugateRhs, true, false>;
+    #endif
+    gemm_function(res, blockA, blockB, rows, depth, cols, alpha, strideA, strideB, offsetA, offsetB);
   }
 } // end namespace internal
 
