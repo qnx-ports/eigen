@@ -1146,19 +1146,6 @@ EIGEN_ALWAYS_INLINE void bscalec_common(PacketBlock<Packet,N>& acc, PacketBlock<
   }
 }
 
-// Complex version of PacketBlock scaling.
-template<typename Packet, int N>
-EIGEN_ALWAYS_INLINE void bscalec(PacketBlock<Packet,N>& aReal, PacketBlock<Packet,N>& aImag, const Packet& bReal, const Packet& bImag, PacketBlock<Packet,N>& cReal, PacketBlock<Packet,N>& cImag)
-{
-  bscalec_common<Packet, N>(cReal, aReal, bReal);
-
-  bscalec_common<Packet, N>(cImag, aImag, bReal);
-
-  pger_common<Packet, true, N>(&cReal, bImag, aImag.packet);
-
-  pger_common<Packet, false, N>(&cImag, bImag, aReal.packet);
-}
-
 template<typename Packet, int N>
 EIGEN_ALWAYS_INLINE void band(PacketBlock<Packet,N>& acc, const Packet& pMask)
 {
@@ -1174,6 +1161,7 @@ EIGEN_ALWAYS_INLINE void band(PacketBlock<Packet,N>& acc, const Packet& pMask)
   }
 }
 
+// Complex version of PacketBlock scaling.
 template<typename Packet, int N, bool mask>
 EIGEN_ALWAYS_INLINE void bscalec(PacketBlock<Packet,N>& aReal, PacketBlock<Packet,N>& aImag, const Packet& bReal, const Packet& bImag, PacketBlock<Packet,N>& cReal, PacketBlock<Packet,N>& cImag, const Packet& pMask)
 {
@@ -1184,7 +1172,13 @@ EIGEN_ALWAYS_INLINE void bscalec(PacketBlock<Packet,N>& aReal, PacketBlock<Packe
     EIGEN_UNUSED_VARIABLE(pMask);
   }
 
-  bscalec<Packet,N>(aReal, aImag, bReal, bImag, cReal, cImag);
+  bscalec_common<Packet, N>(cReal, aReal, bReal);
+
+  bscalec_common<Packet, N>(cImag, aImag, bReal);
+
+  pger_common<Packet, true, N>(&cReal, bImag, aImag.packet);
+
+  pger_common<Packet, false, N>(&cImag, bImag, aReal.packet);
 }
 
 // Load a PacketBlock, the N parameters make tunning gemm easier so we can add more accumulators as needed.
@@ -2041,7 +2035,7 @@ EIGEN_ALWAYS_INLINE void gemm_unrolled_complex_row_iteration(
       bstore<DataMapper, Packetc, Index, accRows>(acc1, res, row + accColsC);
     }
   } else {
-    bscalec<Packet,accRows>(accReal0, accImag0, pAlphaReal, pAlphaImag, taccReal, taccImag);
+    bscalec<Packet,accRows,false>(accReal0, accImag0, pAlphaReal, pAlphaImag, taccReal, taccImag, pMask);
     bcouple<Packet, Packetc, accRows>(taccReal, taccImag, tRes, acc0, acc1);
 
     if ((sizeof(Scalar) == sizeof(float)) && (remaining_rows == 1))
@@ -2138,11 +2132,7 @@ EIGEN_ALWAYS_INLINE void gemm_complex_extra_row(
 #define MICRO_COMPLEX_STORE_ONE(iter) \
   if (unroll_factor > iter) { \
     bload<DataMapper, Packetc, Index, accColsC, ColMajor, true, accRows>(tRes, res, row + iter*accCols, 0); \
-    if (MICRO_NORMAL(iter)) { \
-      bscalec<Packet,accRows>(accReal##iter, accImag##iter, pAlphaReal, pAlphaImag, taccReal, taccImag); \
-    } else { \
-      bscalec<Packet,accRows>(accReal##iter, accImag##iter, pAlphaReal, pAlphaImag, taccReal, taccImag, pMask); \
-    } \
+    bscalec<Packet,accRows,!(MICRO_NORMAL(iter))>(accReal##iter, accImag##iter, pAlphaReal, pAlphaImag, taccReal, taccImag, pMask); \
     bcouple<Packet, Packetc, accRows>(taccReal, taccImag, tRes, acc0, acc1); \
     bstore<DataMapper, Packetc, Index, accRows>(acc0, res, row + iter*accCols + 0); \
     bstore<DataMapper, Packetc, Index, accRows>(acc1, res, row + iter*accCols + accColsC); \

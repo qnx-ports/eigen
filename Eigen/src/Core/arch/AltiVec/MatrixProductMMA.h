@@ -67,13 +67,7 @@ EIGEN_ALWAYS_INLINE void storeComplexAccumulator(Index i, const DataMapper& data
   bload<DataMapper, Packetc, Index, accColsC, ColMajor, true, 4>(tRes, data, i, 0);
 
   PacketBlock<Packet,4> taccReal, taccImag;
-  if (accColsC == accColsC2) {
-    EIGEN_UNUSED_VARIABLE(pMask);
-
-    bscalec<Packet,4>(resultReal, resultImag, alphaReal, alphaImag, taccReal, taccImag);
-  } else {
-    bscalec<Packet,4,(sizeof(__UNPACK_TYPE__(Packet)) == sizeof(float))>(resultReal, resultImag, alphaReal, alphaImag, taccReal, taccImag, pMask);
-  }
+  bscalec<Packet,4,(accColsC != accColsC2) && (sizeof(__UNPACK_TYPE__(Packet)) == sizeof(float))>(resultReal, resultImag, alphaReal, alphaImag, taccReal, taccImag, pMask);
 
   PacketBlock<Packetc, 4> acc1, acc2;
   bcouple<Packet, Packetc, 4>(taccReal, taccImag, tRes, acc1, acc2);
