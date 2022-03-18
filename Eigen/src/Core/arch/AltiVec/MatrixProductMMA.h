@@ -46,13 +46,8 @@ EIGEN_ALWAYS_INLINE void storeAccumulator(Index i, const DataMapper& data, const
   PacketBlock<Packet, 4> tRes;
   bload<DataMapper, Packet, Index, 0, ColMajor, false, 4>(tRes, data, i, 0);
 
-  if (accCols == accCols2) {
-    EIGEN_UNUSED_VARIABLE(pMask);
+  bscale<Packet, 4, (accCols != accCols2)>(tRes, result, alpha, pMask);
 
-    bscale<Packet, 4>(tRes, result, alpha);
-  } else {
-    bscale<Packet, 4>(tRes, result, alpha, pMask);
-  }
   bstore<DataMapper, Packet, Index, 4>(tRes, data, i);
 }
 

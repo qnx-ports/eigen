@@ -1115,22 +1115,6 @@ EIGEN_ALWAYS_INLINE void bsetzero(PacketBlock<Packet,N>& acc)
   }
 }
 
-// Scale the PacketBlock vectors by alpha.
-template<typename Packet, int N>
-EIGEN_ALWAYS_INLINE void bscale(PacketBlock<Packet,N>& acc, PacketBlock<Packet,N>& accZ, const Packet& pAlpha)
-{
-  acc.packet[0] = pmadd(pAlpha, accZ.packet[0], acc.packet[0]);
-  if (N > 1) {
-    acc.packet[1] = pmadd(pAlpha, accZ.packet[1], acc.packet[1]);
-  }
-  if (N > 2) {
-    acc.packet[2] = pmadd(pAlpha, accZ.packet[2], acc.packet[2]);
-  }
-  if (N > 3) {
-    acc.packet[3] = pmadd(pAlpha, accZ.packet[3], acc.packet[3]);
-  }
-}
-
 template<typename Packet, int N>
 EIGEN_ALWAYS_INLINE void bscalec_common(PacketBlock<Packet,N>& acc, PacketBlock<Packet,N>& accZ, const Packet& pAlpha)
 {
@@ -1288,12 +1272,26 @@ EIGEN_ALWAYS_INLINE Packet2d bmask<Packet2d,Index>(const Index remaining_rows)
 #endif
 }
 
-template<typename Packet, int N>
+// Scale the PacketBlock vectors by alpha.
+template<typename Packet, int N, bool mask>
 EIGEN_ALWAYS_INLINE void bscale(PacketBlock<Packet,N>& acc, PacketBlock<Packet,N>& accZ, const Packet& pAlpha, const Packet& pMask)
 {
-  band<Packet, N>(accZ, pMask);
+  if (mask) {
+    band<Packet, N>(accZ, pMask);
+  } else {
+    EIGEN_UNUSED_VARIABLE(pMask);
+  }
 
-  bscale<Packet, N>(acc, accZ, pAlpha);
+  acc.packet[0] = pmadd(pAlpha, accZ.packet[0], acc.packet[0]);
+  if (N > 1) {
+    acc.packet[1] = pmadd(pAlpha, accZ.packet[1], acc.packet[1]);
+  }
+  if (N > 2) {
+    acc.packet[2] = pmadd(pAlpha, accZ.packet[2], acc.packet[2]);
+  }
+  if (N > 3) {
+    acc.packet[3] = pmadd(pAlpha, accZ.packet[3], acc.packet[3]);
+  }
 }
 
 template<typename Packet, int N, bool real>
@@ -1574,10 +1572,10 @@ EIGEN_ALWAYS_INLINE void gemm_unrolled_row_iteration(
   bload<DataMapper, Packet, Index, 0, ColMajor, false, accRows>(acc, res, row, 0);
   if ((accRows == 1) || (rows >= accCols))
   {
-    bscale<Packet,accRows>(acc, accZero0, pAlpha, pMask);
+    bscale<Packet,accRows,true>(acc, accZero0, pAlpha, pMask);
     bstore<DataMapper, Packet, Index, accRows>(acc, res, row);
   } else {
-    bscale<Packet,accRows>(acc, accZero0, pAlpha);
+    bscale<Packet,accRows,false>(acc, accZero0, pAlpha, pMask);
     for(Index j = 0; j < accRows; j++) {
       for(Index i = 0; i < remaining_rows; i++) {
         res(row + i, j) = acc.packet[j][i];
@@ -1678,11 +1676,7 @@ EIGEN_ALWAYS_INLINE void gemm_extra_row(
 #define MICRO_STORE_ONE(iter) \
   if (unroll_factor > iter) { \
     bload<DataMapper, Packet, Index, 0, ColMajor, false, accRows>(acc, res, row + iter*accCols, 0); \
-    if (MICRO_NORMAL(iter)) { \
-      bscale<Packet,accRows>(acc, accZero##iter, pAlpha); \
-    } else { \
-      bscale<Packet,accRows>(acc, accZero##iter, pAlpha, pMask); \
-    } \
+    bscale<Packet,accRows,!(MICRO_NORMAL(iter))>(acc, accZero##iter, pAlpha, pMask); \
     bstore<DataMapper, Packet, Index, accRows>(acc, res, row + iter*accCols); \
   }
 
@@ -1869,6 +1863,7 @@ EIGEN_STRONG_INLINE void gemm(const DataMapper& res, const Scalar* blockA, const
 }
 
 #define accColsC (accCols / 2)
+#define accColsC2 (accCols2 / 2)
 #define advanceRows ((LhsIsReal) ? 1 : 2)
 #define advanceCols ((RhsIsReal) ? 1 : 2)
 
@@ -2315,6 +2310,7 @@ EIGEN_STRONG_INLINE void gemm_complex(const DataMapper& res, const LhsScalar* bl
 }
 
 #undef accColsC
+#undef accColsC2
 #undef advanceCols
 #undef advanceRows
 

@@ -89,10 +89,7 @@ EIGEN_ALWAYS_INLINE void bload(PacketBlock<Packet,N*(Complex?2:1)>& acc, const D
 template<typename DataMapper, typename Packet, typename Index, int N>
 EIGEN_ALWAYS_INLINE void bstore(PacketBlock<Packet,N>& acc, const DataMapper& res, Index row);
 
-template<typename Packet, int N>
-EIGEN_ALWAYS_INLINE void bscale(PacketBlock<Packet,N>& acc, PacketBlock<Packet,N>& accZ, const Packet& pAlpha);
-
-template<typename Packet, int N>
+template<typename Packet, int N, bool mask>
 EIGEN_ALWAYS_INLINE void bscale(PacketBlock<Packet,N>& acc, PacketBlock<Packet,N>& accZ, const Packet& pAlpha, const Packet& pMask);
 
 template<typename Packet, int N, bool mask>
