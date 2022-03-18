@@ -72,14 +72,16 @@ EIGEN_ALWAYS_INLINE void storeComplexAccumulator(Index i, const DataMapper& data
 
     bscalec<Packet,4>(resultReal, resultImag, alphaReal, alphaImag, taccReal, taccImag);
   } else {
-    bscalec<Packet,4>(resultReal, resultImag, alphaReal, alphaImag, taccReal, taccImag, pMask);
+    bscalec<Packet,4,(sizeof(__UNPACK_TYPE__(Packet)) == sizeof(float))>(resultReal, resultImag, alphaReal, alphaImag, taccReal, taccImag, pMask);
   }
 
   PacketBlock<Packetc, 4> acc1, acc2;
   bcouple<Packet, Packetc, 4>(taccReal, taccImag, tRes, acc1, acc2);
 
   bstore<DataMapper, Packetc, Index, 4>(acc1, data, i);
-  bstore<DataMapper, Packetc, Index, 4>(acc2, data, i + accColsC);
+  if (accColsC2) {
+    bstore<DataMapper, Packetc, Index, 4>(acc2, data, i + accColsC);
+  }
 }
 
 // Defaults to float32, since Eigen still supports C++03 we can't use default template arguments
@@ -445,7 +447,7 @@ void gemmMMA(const DataMapper& res, const Scalar* blockA, const Scalar* blockB, 
   }
 
 #define MICRO_COMPLEX_MMA_LOAD1_TWO(lhs_ptr, iter) \
-  if (unroll_factor > iter) { \
+  if (!LhsIsReal && (unroll_factor > iter)) { \
     if (MICRO_NORMAL(iter)) { \
       ploadLhsMMA(reinterpret_cast<const double*>(lhs_ptr_real##iter + imag_delta), plhsVi##iter); \
       __builtin_vsx_disassemble_pair(reinterpret_cast<void*>(&lhsVi2##iter.packet), &plhsVi##iter); \

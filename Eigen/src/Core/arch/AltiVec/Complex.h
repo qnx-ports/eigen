@@ -358,7 +358,7 @@ template<> EIGEN_STRONG_INLINE void prefetch<std::complex<double> >(const std::c
 
 template<> EIGEN_STRONG_INLINE std::complex<double>  pfirst<Packet1cd>(const Packet1cd& a)
 {
-  EIGEN_ALIGN16 std::complex<double> res[2];
+  EIGEN_ALIGN16 std::complex<double> res[1];
   pstore<std::complex<double> >(res, a);
 
   return res[0];
