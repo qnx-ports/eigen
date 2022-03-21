@@ -1149,7 +1149,7 @@ EIGEN_ALWAYS_INLINE void band(PacketBlock<Packet,N>& acc, const Packet& pMask)
 template<typename Packet, int N, bool mask>
 EIGEN_ALWAYS_INLINE void bscalec(PacketBlock<Packet,N>& aReal, PacketBlock<Packet,N>& aImag, const Packet& bReal, const Packet& bImag, PacketBlock<Packet,N>& cReal, PacketBlock<Packet,N>& cImag, const Packet& pMask)
 {
-  if (mask) {
+  if (mask && (sizeof(__UNPACK_TYPE__(Packet)) == sizeof(float))) {
     band<Packet, N>(aReal, pMask);
     band<Packet, N>(aImag, pMask);
   } else {
@@ -1863,7 +1863,6 @@ EIGEN_STRONG_INLINE void gemm(const DataMapper& res, const Scalar* blockA, const
 }
 
 #define accColsC (accCols / 2)
-#define accColsC2 (accCols2 / 2)
 #define advanceRows ((LhsIsReal) ? 1 : 2)
 #define advanceCols ((RhsIsReal) ? 1 : 2)
 
@@ -2023,7 +2022,7 @@ EIGEN_ALWAYS_INLINE void gemm_unrolled_complex_row_iteration(
   bload<DataMapper, Packetc, Index, accColsC, ColMajor, true, accRows>(tRes, res, row, 0);
   if ((accRows == 1) || (rows >= accCols))
   {
-    bscalec<Packet,accRows,(sizeof(Scalar) == sizeof(float))>(accReal0, accImag0, pAlphaReal, pAlphaImag, taccReal, taccImag, pMask);
+    bscalec<Packet,accRows,true>(accReal0, accImag0, pAlphaReal, pAlphaImag, taccReal, taccImag, pMask);
     bcouple<Packet, Packetc, accRows>(taccReal, taccImag, tRes, acc0, acc1);
     bstore<DataMapper, Packetc, Index, accRows>(acc0, res, row + 0);
     if(remaining_rows > accColsC) {
@@ -2130,7 +2129,9 @@ EIGEN_ALWAYS_INLINE void gemm_complex_extra_row(
     bscalec<Packet,accRows,!(MICRO_NORMAL(iter))>(accReal##iter, accImag##iter, pAlphaReal, pAlphaImag, taccReal, taccImag, pMask); \
     bcouple<Packet, Packetc, accRows>(taccReal, taccImag, tRes, acc0, acc1); \
     bstore<DataMapper, Packetc, Index, accRows>(acc0, res, row + iter*accCols + 0); \
-    bstore<DataMapper, Packetc, Index, accRows>(acc1, res, row + iter*accCols + accColsC); \
+    if ((MICRO_NORMAL(iter)) || (accCols2 > accColsC)) { \
+      bstore<DataMapper, Packetc, Index, accRows>(acc1, res, row + iter*accCols + accColsC); \
+    } \
   }
 
 #define MICRO_COMPLEX_STORE MICRO_COMPLEX_UNROLL(MICRO_COMPLEX_STORE_ONE)
@@ -2310,7 +2311,6 @@ EIGEN_STRONG_INLINE void gemm_complex(const DataMapper& res, const LhsScalar* bl
 }
 
 #undef accColsC
-#undef accColsC2
 #undef advanceCols
 #undef advanceRows
 

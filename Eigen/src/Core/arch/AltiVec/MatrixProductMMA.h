@@ -32,6 +32,8 @@ namespace Eigen {
 
 namespace internal {
 
+#define accColsC (accCols / 2)
+
 EIGEN_ALWAYS_INLINE void bsetzeroMMA(__vector_quad* acc)
 {
   __builtin_mma_xxsetaccz(acc);
@@ -51,7 +53,7 @@ EIGEN_ALWAYS_INLINE void storeAccumulator(Index i, const DataMapper& data, const
   bstore<DataMapper, Packet, Index, 4>(tRes, data, i);
 }
 
-template<typename DataMapper, typename Index, typename Packet, typename Packetc, const Index accColsC, const Index accColsC2>
+template<typename DataMapper, typename Index, typename Packet, typename Packetc, const Index accCols, const Index accCols2>
 EIGEN_ALWAYS_INLINE void storeComplexAccumulator(Index i, const DataMapper& data, const Packet& alphaReal, const Packet& alphaImag, const Packet& pMask, __vector_quad* accReal, __vector_quad* accImag)
 {
   PacketBlock<Packet, 4> resultReal, resultImag;
@@ -61,14 +63,14 @@ EIGEN_ALWAYS_INLINE void storeComplexAccumulator(Index i, const DataMapper& data
   PacketBlock<Packetc, 8> tRes;
   bload<DataMapper, Packetc, Index, accColsC, ColMajor, true, 4>(tRes, data, i, 0);
 
-  PacketBlock<Packet,4> taccReal, taccImag;
-  bscalec<Packet,4,(accColsC != accColsC2) && (sizeof(__UNPACK_TYPE__(Packet)) == sizeof(float))>(resultReal, resultImag, alphaReal, alphaImag, taccReal, taccImag, pMask);
+  PacketBlock<Packet, 4> taccReal, taccImag;
+  bscalec<Packet, 4, (accCols != accCols2)>(resultReal, resultImag, alphaReal, alphaImag, taccReal, taccImag, pMask);
 
   PacketBlock<Packetc, 4> acc1, acc2;
   bcouple<Packet, Packetc, 4>(taccReal, taccImag, tRes, acc1, acc2);
 
   bstore<DataMapper, Packetc, Index, 4>(acc1, data, i);
-  if (accColsC2) {
+  if (accCols2 > accColsC) {
     bstore<DataMapper, Packetc, Index, 4>(acc2, data, i + accColsC);
   }
 }
@@ -410,8 +412,6 @@ void gemmMMA(const DataMapper& res, const Scalar* blockA, const Scalar* blockB, 
 #endif
 }
 
-#define accColsC (accCols / 2)
-#define accColsC2 (accCols2 / 2)
 #define advanceRows ((LhsIsReal) ? 1 : 2)
 #define advanceCols ((RhsIsReal) ? 1 : 2)
 
@@ -546,7 +546,7 @@ void gemmMMA(const DataMapper& res, const Scalar* blockA, const Scalar* blockB, 
 
 #define MICRO_COMPLEX_MMA_STORE_ONE(iter) \
   if (unroll_factor > iter) { \
-    storeComplexAccumulator<DataMapper, Index, Packet, Packetc, accColsC, (unroll_factor != (iter + 1)) ? accColsC : accColsC2>(row + iter*accCols, res, pAlphaReal, pAlphaImag, pMask, &accReal##iter, &accImag##iter); \
+    storeComplexAccumulator<DataMapper, Index, Packet, Packetc, accCols, (unroll_factor != (iter + 1)) ? accCols : accCols2>(row + iter*accCols, res, pAlphaReal, pAlphaImag, pMask, &accReal##iter, &accImag##iter); \
   }
 
 #define MICRO_COMPLEX_MMA_STORE MICRO_COMPLEX_MMA_UNROLL(MICRO_COMPLEX_MMA_STORE_ONE)
@@ -701,7 +701,6 @@ void gemm_complexMMA(const DataMapper& res, const LhsScalar* blockAc, const RhsS
 }
 
 #undef accColsC
-#undef accColsC2
 #undef advanceRows
 #undef advanceCols
 
