@@ -1166,7 +1166,7 @@ EIGEN_ALWAYS_INLINE void bscalec(PacketBlock<Packet,N>& aReal, PacketBlock<Packe
 }
 
 // Load a PacketBlock, the N parameters make tunning gemm easier so we can add more accumulators as needed.
-template<typename DataMapper, typename Packet, typename Index, const Index accCols, int StorageOrder, bool Complex, int N>
+template<typename DataMapper, typename Packet, typename Index, const Index accCols, int StorageOrder, bool Complex, int N, const bool full>
 EIGEN_ALWAYS_INLINE void bload(PacketBlock<Packet,N*(Complex?2:1)>& acc, const DataMapper& res, Index row, Index col)
 {
   if (StorageOrder == RowMajor) {
@@ -1203,7 +1203,7 @@ EIGEN_ALWAYS_INLINE void bload(PacketBlock<Packet,N*(Complex?2:1)>& acc, const D
     if (N > 3) {
       acc.packet[3] = res.template loadPacket<Packet>(row, col + 3);
     }
-    if (Complex) {
+    if (Complex && full) {
       acc.packet[0+N] = res.template loadPacket<Packet>(row + accCols, col + 0);
       if (N > 1) {
         acc.packet[1+N] = res.template loadPacket<Packet>(row + accCols, col + 1);
@@ -1379,7 +1379,7 @@ EIGEN_ALWAYS_INLINE void bcouple_common(PacketBlock<Packet,N>& taccReal, PacketB
   }
 }
 
-template<typename Packet, typename Packetc, int N>
+template<typename Packet, typename Packetc, int N, const bool full>
 EIGEN_ALWAYS_INLINE void bcouple(PacketBlock<Packet,N>& taccReal, PacketBlock<Packet,N>& taccImag, PacketBlock<Packetc,N*2>& tRes, PacketBlock<Packetc, N>& acc1, PacketBlock<Packetc, N>& acc2)
 {
   bcouple_common<Packet, Packetc, N>(taccReal, taccImag, acc1, acc2);
@@ -1395,15 +1395,17 @@ EIGEN_ALWAYS_INLINE void bcouple(PacketBlock<Packet,N>& taccReal, PacketBlock<Pa
     acc1.packet[3] = padd<Packetc>(tRes.packet[3], acc1.packet[3]);
   }
 
-  acc2.packet[0] = padd<Packetc>(tRes.packet[0+N], acc2.packet[0]);
-  if (N > 1) {
-    acc2.packet[1] = padd<Packetc>(tRes.packet[1+N], acc2.packet[1]);
-  }
-  if (N > 2) {
-    acc2.packet[2] = padd<Packetc>(tRes.packet[2+N], acc2.packet[2]);
-  }
-  if (N > 3) {
-    acc2.packet[3] = padd<Packetc>(tRes.packet[3+N], acc2.packet[3]);
+  if (full) {
+    acc2.packet[0] = padd<Packetc>(tRes.packet[0+N], acc2.packet[0]);
+    if (N > 1) {
+      acc2.packet[1] = padd<Packetc>(tRes.packet[1+N], acc2.packet[1]);
+    }
+    if (N > 2) {
+      acc2.packet[2] = padd<Packetc>(tRes.packet[2+N], acc2.packet[2]);
+    }
+    if (N > 3) {
+      acc2.packet[3] = padd<Packetc>(tRes.packet[3+N], acc2.packet[3]);
+    }
   }
 }
 
@@ -2019,18 +2021,19 @@ EIGEN_ALWAYS_INLINE void gemm_unrolled_complex_row_iteration(
     MICRO_COMPLEX_EXTRA_ROW<Scalar, Packet, Index, accRows, ConjugateLhs, ConjugateRhs, LhsIsReal, RhsIsReal, remaining_rows>(lhs_ptr_real, lhs_ptr_imag, rhs_ptr_real0, rhs_ptr_real1, rhs_ptr_real2, rhs_ptr_imag0, rhs_ptr_imag1, rhs_ptr_imag2, accReal0, accImag0);
   }
 
-  bload<DataMapper, Packetc, Index, accColsC, ColMajor, true, accRows>(tRes, res, row, 0);
+  const bool full = (remaining_rows > accColsC);
+  bload<DataMapper, Packetc, Index, accColsC, ColMajor, true, accRows, full>(tRes, res, row, 0);
   if ((accRows == 1) || (rows >= accCols))
   {
     bscalec<Packet,accRows,true>(accReal0, accImag0, pAlphaReal, pAlphaImag, taccReal, taccImag, pMask);
-    bcouple<Packet, Packetc, accRows>(taccReal, taccImag, tRes, acc0, acc1);
+    bcouple<Packet, Packetc, accRows, full>(taccReal, taccImag, tRes, acc0, acc1);
     bstore<DataMapper, Packetc, Index, accRows>(acc0, res, row + 0);
-    if(remaining_rows > accColsC) {
+    if (full) {
       bstore<DataMapper, Packetc, Index, accRows>(acc1, res, row + accColsC);
     }
   } else {
     bscalec<Packet,accRows,false>(accReal0, accImag0, pAlphaReal, pAlphaImag, taccReal, taccImag, pMask);
-    bcouple<Packet, Packetc, accRows>(taccReal, taccImag, tRes, acc0, acc1);
+    bcouple<Packet, Packetc, accRows, full>(taccReal, taccImag, tRes, acc0, acc1);
 
     if ((sizeof(Scalar) == sizeof(float)) && (remaining_rows == 1))
     {
@@ -2039,7 +2042,7 @@ EIGEN_ALWAYS_INLINE void gemm_unrolled_complex_row_iteration(
       }
     } else {
       bstore<DataMapper, Packetc, Index, accRows>(acc0, res, row + 0);
-      if(remaining_rows > accColsC) {
+      if (full) {
         for(Index j = 0; j < accRows; j++) {
           res(row + accColsC, j) = pfirst<Packetc>(acc1.packet[j]);
         }
@@ -2125,11 +2128,12 @@ EIGEN_ALWAYS_INLINE void gemm_complex_extra_row(
 
 #define MICRO_COMPLEX_STORE_ONE(iter) \
   if (unroll_factor > iter) { \
-    bload<DataMapper, Packetc, Index, accColsC, ColMajor, true, accRows>(tRes, res, row + iter*accCols, 0); \
+    const bool full = ((MICRO_NORMAL(iter)) || (accCols2 > accColsC)); \
+    bload<DataMapper, Packetc, Index, accColsC, ColMajor, true, accRows, full>(tRes, res, row + iter*accCols, 0); \
     bscalec<Packet,accRows,!(MICRO_NORMAL(iter))>(accReal##iter, accImag##iter, pAlphaReal, pAlphaImag, taccReal, taccImag, pMask); \
-    bcouple<Packet, Packetc, accRows>(taccReal, taccImag, tRes, acc0, acc1); \
+    bcouple<Packet, Packetc, accRows, full>(taccReal, taccImag, tRes, acc0, acc1); \
     bstore<DataMapper, Packetc, Index, accRows>(acc0, res, row + iter*accCols + 0); \
-    if ((MICRO_NORMAL(iter)) || (accCols2 > accColsC)) { \
+    if (full) { \
       bstore<DataMapper, Packetc, Index, accRows>(acc1, res, row + iter*accCols + accColsC); \
     } \
   }

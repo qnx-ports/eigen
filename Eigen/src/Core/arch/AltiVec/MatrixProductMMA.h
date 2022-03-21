@@ -56,21 +56,22 @@ EIGEN_ALWAYS_INLINE void storeAccumulator(Index i, const DataMapper& data, const
 template<typename DataMapper, typename Index, typename Packet, typename Packetc, const Index accCols, const Index accCols2>
 EIGEN_ALWAYS_INLINE void storeComplexAccumulator(Index i, const DataMapper& data, const Packet& alphaReal, const Packet& alphaImag, const Packet& pMask, __vector_quad* accReal, __vector_quad* accImag)
 {
+  const bool full = (accCols2 > accColsC);
   PacketBlock<Packet, 4> resultReal, resultImag;
   __builtin_mma_disassemble_acc(&resultReal.packet, accReal);
   __builtin_mma_disassemble_acc(&resultImag.packet, accImag);
 
   PacketBlock<Packetc, 8> tRes;
-  bload<DataMapper, Packetc, Index, accColsC, ColMajor, true, 4>(tRes, data, i, 0);
+  bload<DataMapper, Packetc, Index, accColsC, ColMajor, true, 4, full>(tRes, data, i, 0);
 
   PacketBlock<Packet, 4> taccReal, taccImag;
   bscalec<Packet, 4, (accCols != accCols2)>(resultReal, resultImag, alphaReal, alphaImag, taccReal, taccImag, pMask);
 
   PacketBlock<Packetc, 4> acc1, acc2;
-  bcouple<Packet, Packetc, 4>(taccReal, taccImag, tRes, acc1, acc2);
+  bcouple<Packet, Packetc, 4, full>(taccReal, taccImag, tRes, acc1, acc2);
 
   bstore<DataMapper, Packetc, Index, 4>(acc1, data, i);
-  if (accCols2 > accColsC) {
+  if (full) {
     bstore<DataMapper, Packetc, Index, 4>(acc2, data, i + accColsC);
   }
 }
