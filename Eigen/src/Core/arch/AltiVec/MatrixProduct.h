@@ -1133,15 +1133,15 @@ EIGEN_ALWAYS_INLINE void bscalec_common(PacketBlock<Packet,N>& acc, PacketBlock<
 template<typename Packet, int N>
 EIGEN_ALWAYS_INLINE void band(PacketBlock<Packet,N>& acc, const Packet& pMask)
 {
-  acc.packet[0] = pand(acc.packet[0], pMask);
+  acc.packet[0] = pand<Packet>(acc.packet[0], pMask);
   if (N > 1) {
-    acc.packet[1] = pand(acc.packet[1], pMask);
+    acc.packet[1] = pand<Packet>(acc.packet[1], pMask);
   }
   if (N > 2) {
-    acc.packet[2] = pand(acc.packet[2], pMask);
+    acc.packet[2] = pand<Packet>(acc.packet[2], pMask);
   }
   if (N > 3) {
-    acc.packet[3] = pand(acc.packet[3], pMask);
+    acc.packet[3] = pand<Packet>(acc.packet[3], pMask);
   }
 }
 
@@ -1282,15 +1282,15 @@ EIGEN_ALWAYS_INLINE void bscale(PacketBlock<Packet,N>& acc, PacketBlock<Packet,N
     EIGEN_UNUSED_VARIABLE(pMask);
   }
 
-  acc.packet[0] = pmadd(pAlpha, accZ.packet[0], acc.packet[0]);
+  acc.packet[0] = pmadd<Packet>(pAlpha, accZ.packet[0], acc.packet[0]);
   if (N > 1) {
-    acc.packet[1] = pmadd(pAlpha, accZ.packet[1], acc.packet[1]);
+    acc.packet[1] = pmadd<Packet>(pAlpha, accZ.packet[1], acc.packet[1]);
   }
   if (N > 2) {
-    acc.packet[2] = pmadd(pAlpha, accZ.packet[2], acc.packet[2]);
+    acc.packet[2] = pmadd<Packet>(pAlpha, accZ.packet[2], acc.packet[2]);
   }
   if (N > 3) {
-    acc.packet[3] = pmadd(pAlpha, accZ.packet[3], acc.packet[3]);
+    acc.packet[3] = pmadd<Packet>(pAlpha, accZ.packet[3], acc.packet[3]);
   }
 }
 
