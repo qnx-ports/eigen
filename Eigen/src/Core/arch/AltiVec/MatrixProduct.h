@@ -1118,15 +1118,15 @@ EIGEN_ALWAYS_INLINE void bsetzero(PacketBlock<Packet,N>& acc)
 template<typename Packet, int N>
 EIGEN_ALWAYS_INLINE void bscalec_common(PacketBlock<Packet,N>& acc, PacketBlock<Packet,N>& accZ, const Packet& pAlpha)
 {
-  acc.packet[0] = pmul<Packet>(accZ.packet[0], pAlpha);
+  acc.packet[0] = vec_mul(accZ.packet[0], pAlpha);
   if (N > 1) {
-    acc.packet[1] = pmul<Packet>(accZ.packet[1], pAlpha);
+    acc.packet[1] = vec_mul(accZ.packet[1], pAlpha);
   }
   if (N > 2) {
-    acc.packet[2] = pmul<Packet>(accZ.packet[2], pAlpha);
+    acc.packet[2] = vec_mul(accZ.packet[2], pAlpha);
   }
   if (N > 3) {
-    acc.packet[3] = pmul<Packet>(accZ.packet[3], pAlpha);
+    acc.packet[3] = vec_mul(accZ.packet[3], pAlpha);
   }
 }
 
