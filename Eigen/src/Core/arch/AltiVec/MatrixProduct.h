@@ -1891,9 +1891,9 @@ EIGEN_STRONG_INLINE void gemm(const DataMapper& res, const Scalar* blockA, const
   if (!RhsIsReal) { \
     MICRO_ADD(ptr_imag, N) \
   } else if (used) { \
-    EIGEN_UNUSED_VARIABLE(rhs_ptr_imag0); \
-    EIGEN_UNUSED_VARIABLE(rhs_ptr_imag1); \
-    EIGEN_UNUSED_VARIABLE(rhs_ptr_imag2); \
+    EIGEN_UNUSED_VARIABLE(MICRO_RHS(ptr_imag,0)); \
+    EIGEN_UNUSED_VARIABLE(MICRO_RHS(ptr_imag,1)); \
+    EIGEN_UNUSED_VARIABLE(MICRO_RHS(ptr_imag,2)); \
   }
 
 #define MICRO_COMPLEX_BROADCAST(peel) \
