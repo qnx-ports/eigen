@@ -1946,7 +1946,7 @@ EIGEN_STRONG_INLINE void gemm(const DataMapper& res, const Scalar* blockA, const
   Packet rhsVi0[4], rhsVi1[4], rhsVi2[4], rhsVi3[4]; \
   MICRO_COMPLEX_UNROLL(MICRO_COMPLEX_WORK_PEEL) \
   MICRO_COMPLEX_ADD_COLS(PEEL_COMPLEX_ROW) \
-  MICRO_COMPLEX_ADD_ROWS(PEEL_COMPLEX_ROW, true)
+  MICRO_COMPLEX_ADD_ROWS(PEEL_COMPLEX_ROW, false)
 
 #define MICRO_COMPLEX_ADD_PEEL(peel, sum) \
   if (PEEL_COMPLEX_ROW > peel) { \
