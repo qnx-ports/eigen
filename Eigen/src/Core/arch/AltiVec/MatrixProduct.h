@@ -1353,7 +1353,7 @@ EIGEN_ALWAYS_INLINE void pbroadcastN<Packet2d,4,false>(const double* ap0, const 
 }
 
 // Grab two decouples real/imaginary PacketBlocks and return two coupled (real/imaginary pairs) PacketBlocks.
-template<typename Packet, typename Packetc, int N>
+template<typename Packet, typename Packetc, int N, bool full>
 EIGEN_ALWAYS_INLINE void bcouple_common(PacketBlock<Packet,N>& taccReal, PacketBlock<Packet,N>& taccImag, PacketBlock<Packetc, N>& acc1, PacketBlock<Packetc, N>& acc2)
 {
   acc1.packet[0].v = vec_mergeh(taccReal.packet[0], taccImag.packet[0]);
@@ -1367,22 +1367,24 @@ EIGEN_ALWAYS_INLINE void bcouple_common(PacketBlock<Packet,N>& taccReal, PacketB
     acc1.packet[3].v = vec_mergeh(taccReal.packet[3], taccImag.packet[3]);
   }
 
-  acc2.packet[0].v = vec_mergel(taccReal.packet[0], taccImag.packet[0]);
-  if (N > 1) {
-    acc2.packet[1].v = vec_mergel(taccReal.packet[1], taccImag.packet[1]);
-  }
-  if (N > 2) {
-    acc2.packet[2].v = vec_mergel(taccReal.packet[2], taccImag.packet[2]);
-  }
-  if (N > 3) {
-    acc2.packet[3].v = vec_mergel(taccReal.packet[3], taccImag.packet[3]);
+  if (full) {
+    acc2.packet[0].v = vec_mergel(taccReal.packet[0], taccImag.packet[0]);
+    if (N > 1) {
+      acc2.packet[1].v = vec_mergel(taccReal.packet[1], taccImag.packet[1]);
+    }
+    if (N > 2) {
+      acc2.packet[2].v = vec_mergel(taccReal.packet[2], taccImag.packet[2]);
+    }
+    if (N > 3) {
+      acc2.packet[3].v = vec_mergel(taccReal.packet[3], taccImag.packet[3]);
+    }
   }
 }
 
 template<typename Packet, typename Packetc, int N, const bool full>
 EIGEN_ALWAYS_INLINE void bcouple(PacketBlock<Packet,N>& taccReal, PacketBlock<Packet,N>& taccImag, PacketBlock<Packetc,N*2>& tRes, PacketBlock<Packetc, N>& acc1, PacketBlock<Packetc, N>& acc2)
 {
-  bcouple_common<Packet, Packetc, N>(taccReal, taccImag, acc1, acc2);
+  bcouple_common<Packet, Packetc, N, full>(taccReal, taccImag, acc1, acc2);
 
   acc1.packet[0] = padd<Packetc>(tRes.packet[0], acc1.packet[0]);
   if (N > 1) {
