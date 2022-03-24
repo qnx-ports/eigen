@@ -114,10 +114,10 @@ template<> struct unpacket_traits<Packet2cf> { typedef std::complex<float> type;
 template<> EIGEN_STRONG_INLINE Packet2cf pset1<Packet2cf>(const std::complex<float>&  from)
 {
   Packet2cf res;
-  const float re = std::real(from);
-  const float im = std::imag(from);
-  Packet4f res2 = {re, im, re, im};
-  res.v = res2;
+  Packet4f res1, res2;
+  res1 = vec_splats(std::real(from));
+  res2 = vec_splats(std::imag(from));
+  res.v = vec_mergel(res1, res2);
   return res;
 }
 
