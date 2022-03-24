@@ -909,7 +909,7 @@ EIGEN_ALWAYS_INLINE void pstoreu_pmadd_complex(PResPacket& c0, PResPacket& c1, A
 {
     PResPacket c2 = pcplxflipconj(c0);
     PResPacket c3 = pcplxflipconj(c1);
-#if EIGEN_COMP_LLVM
+#if EIGEN_COMP_LLVM || !defined(_ARCH_PWR10)
     ScalarPacket c4 = pload_complex<ResPacket>(res + (iter2 * ResPacketSize));
     ScalarPacket c5 = pload_complex<ResPacket>(res + ((iter2 + 1) * ResPacketSize));
     PResPacket c6 = PResPacket(pmadd_complex<ScalarPacket, AlphaData>(c0.v, c2.v, c4, b0));

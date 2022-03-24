@@ -114,11 +114,10 @@ template<> struct unpacket_traits<Packet2cf> { typedef std::complex<float> type;
 template<> EIGEN_STRONG_INLINE Packet2cf pset1<Packet2cf>(const std::complex<float>&  from)
 {
   Packet2cf res;
-  if((std::ptrdiff_t(&from) % 16) == 0)
-    res.v = pload<Packet4f>((const float *)&from);
-  else
-    res.v = ploadu<Packet4f>((const float *)&from);
-  res.v = vec_perm(res.v, res.v, p16uc_PSET64_HI);
+  const float re = std::real(from);
+  const float im = std::imag(from);
+  Packet4f res2 = {re, im, re, im};
+  res.v = res2;
   return res;
 }
 
