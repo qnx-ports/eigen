@@ -1064,7 +1064,7 @@ EIGEN_ALWAYS_INLINE void pger(PacketBlock<Packet,N>* acc, const Scalar* lhs, con
 
 // 512-bits rank1-update of complex acc. It takes decoupled accumulators as entries. It also takes cares of mixed types real * complex and complex * real.
 template<int N, typename Packet, bool ConjugateLhs, bool ConjugateRhs, bool LhsIsReal, bool RhsIsReal>
-EIGEN_ALWAYS_INLINE void pgerc_common(PacketBlock<Packet,N>* accReal, PacketBlock<Packet,N>* accImag, const Packet &lhsV, const Packet &lhsVi, const Packet* rhsV, const Packet* rhsVi)
+EIGEN_ALWAYS_INLINE void pgerc_common(PacketBlock<Packet,N>* accReal, PacketBlock<Packet,N>* accImag, const Packet &lhsV, Packet &lhsVi, const Packet* rhsV, const Packet* rhsVi)
 {
   pger_common<Packet, false, N>(accReal, lhsV, rhsV);
   if(LhsIsReal)
@@ -1100,18 +1100,18 @@ EIGEN_ALWAYS_INLINE Packet ploadLhs(const __UNPACK_TYPE__(Packet)* lhs)
 }
 
 // Zero the accumulator on PacketBlock.
-template<typename Scalar, typename Packet, int N>
+template<typename Packet, int N>
 EIGEN_ALWAYS_INLINE void bsetzero(PacketBlock<Packet,N>& acc)
 {
-  acc.packet[0] = pset1<Packet>((Scalar)0);
+  acc.packet[0] = pset1<Packet>((__UNPACK_TYPE__(Packet))0);
   if (N > 1) {
-    acc.packet[1] = pset1<Packet>((Scalar)0);
+    acc.packet[1] = pset1<Packet>((__UNPACK_TYPE__(Packet))0);
   }
   if (N > 2) {
-    acc.packet[2] = pset1<Packet>((Scalar)0);
+    acc.packet[2] = pset1<Packet>((__UNPACK_TYPE__(Packet))0);
   }
   if (N > 3) {
-    acc.packet[3] = pset1<Packet>((Scalar)0);
+    acc.packet[3] = pset1<Packet>((__UNPACK_TYPE__(Packet))0);
   }
 }
 
@@ -1427,7 +1427,7 @@ EIGEN_ALWAYS_INLINE void bcouple(PacketBlock<Packet,N>& taccReal, PacketBlock<Pa
 
 #define MICRO_ZERO_PEEL(peel) \
   if ((PEEL_ROW > peel) && (peel != 0)) { \
-    bsetzero<Scalar, Packet, accRows>(accZero##peel); \
+    bsetzero<Packet, accRows>(accZero##peel); \
   } else { \
     EIGEN_UNUSED_VARIABLE(accZero##peel); \
   }
@@ -1554,7 +1554,7 @@ EIGEN_ALWAYS_INLINE void gemm_unrolled_row_iteration(
   PacketBlock<Packet,accRows> accZero0, accZero1, accZero2, accZero3, accZero4, accZero5, accZero6, accZero7, acc;
 
   MICRO_SRC2_PTR
-  bsetzero<Scalar, Packet, accRows>(accZero0);
+  bsetzero<Packet, accRows>(accZero0);
 
   Index remaining_depth = depth & -quad_traits<Scalar>::rows;
   Index k = 0;
@@ -1666,7 +1666,7 @@ EIGEN_ALWAYS_INLINE void gemm_extra_row(
 
 #define MICRO_DST_PTR_ONE(iter) \
   if (unroll_factor > iter) { \
-    bsetzero<Scalar, Packet, accRows>(accZero##iter); \
+    bsetzero<Packet, accRows>(accZero##iter); \
   } else { \
     EIGEN_UNUSED_VARIABLE(accZero##iter); \
   }
@@ -1879,8 +1879,8 @@ EIGEN_STRONG_INLINE void gemm(const DataMapper& res, const Scalar* blockA, const
 
 #define MICRO_COMPLEX_ZERO_PEEL(peel) \
   if ((PEEL_COMPLEX_ROW > peel) && (peel != 0)) { \
-    bsetzero<Scalar, Packet, accRows>(accReal##peel); \
-    bsetzero<Scalar, Packet, accRows>(accImag##peel); \
+    bsetzero<Packet, accRows>(accReal##peel); \
+    bsetzero<Packet, accRows>(accImag##peel); \
   } else { \
     EIGEN_UNUSED_VARIABLE(accReal##peel); \
     EIGEN_UNUSED_VARIABLE(accImag##peel); \
@@ -2000,8 +2000,8 @@ EIGEN_ALWAYS_INLINE void gemm_unrolled_complex_row_iteration(
 
   MICRO_COMPLEX_SRC2_PTR
 
-  bsetzero<Scalar, Packet, accRows>(accReal0);
-  bsetzero<Scalar, Packet, accRows>(accImag0);
+  bsetzero<Packet, accRows>(accReal0);
+  bsetzero<Packet, accRows>(accImag0);
 
   Index remaining_depth = depth & -quad_traits<Scalar>::rows;
   Index k = 0;
@@ -2115,8 +2115,8 @@ EIGEN_ALWAYS_INLINE void gemm_complex_extra_row(
 
 #define MICRO_COMPLEX_DST_PTR_ONE(iter) \
   if (unroll_factor > iter) { \
-    bsetzero<Scalar, Packet, accRows>(accReal##iter); \
-    bsetzero<Scalar, Packet, accRows>(accImag##iter); \
+    bsetzero<Packet, accRows>(accReal##iter); \
+    bsetzero<Packet, accRows>(accImag##iter); \
   } else { \
     EIGEN_UNUSED_VARIABLE(accReal##iter); \
     EIGEN_UNUSED_VARIABLE(accImag##iter); \
