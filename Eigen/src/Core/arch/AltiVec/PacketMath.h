@@ -780,7 +780,7 @@ template<> EIGEN_STRONG_INLINE Packet16uc psub<Packet16uc>(const Packet16uc& a, 
 
 template<> EIGEN_STRONG_INLINE Packet4f pnegate(const Packet4f& a)
 {
-#ifdef _ARCH_PWR9
+#ifdef __POWER8_VECTOR__
   return vec_neg(a);
 #else
   return p4f_ZERO - a;
@@ -788,7 +788,7 @@ template<> EIGEN_STRONG_INLINE Packet4f pnegate(const Packet4f& a)
 }
 template<> EIGEN_STRONG_INLINE Packet4i pnegate(const Packet4i& a)
 {
-#ifdef _ARCH_PWR9
+#ifdef __POWER8_VECTOR__
   return vec_neg(a);
 #else
   return p4i_ZERO - a;
@@ -2401,7 +2401,7 @@ template<> EIGEN_STRONG_INLINE Packet2d psub<Packet2d>(const Packet2d& a, const 
 
 template<> EIGEN_STRONG_INLINE Packet2d pnegate(const Packet2d& a)
 {
-#ifdef _ARCH_PWR9
+#ifdef __POWER8_VECTOR__
   return vec_neg(a);
 #else
   return p2d_ZERO - a;
