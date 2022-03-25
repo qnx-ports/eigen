@@ -114,10 +114,25 @@ template<> struct unpacket_traits<Packet2cf> { typedef std::complex<float> type;
 template<> EIGEN_STRONG_INLINE Packet2cf pset1<Packet2cf>(const std::complex<float>&  from)
 {
   Packet2cf res;
-  Packet4f res1, res2;
-  res1 = vec_splats(std::real(from));
-  res2 = vec_splats(std::imag(from));
-  res.v = vec_mergel(res1, res2);
+#ifdef __VSX__
+#if defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Warray-bounds"
+#endif
+  // This load accesses memory beyond the end of the object
+  // but should be optimized away with the vec_splat
+  res.v = vec_xl(0, (const float *)&from);
+#if defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif
+  res.v = Packet4f(vec_splat(Packet2d(res.v), 0));
+#else
+  if((std::ptrdiff_t(&from) % 16) == 0)
+    res.v = pload<Packet4f>((const float *)&from);
+  else
+    res.v = ploadu<Packet4f>((const float *)&from);
+  res.v = vec_perm(res.v, res.v, p16uc_PSET64_HI);
+#endif
   return res;
 }
 
