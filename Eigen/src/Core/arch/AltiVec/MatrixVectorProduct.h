@@ -555,7 +555,7 @@ EIGEN_ALWAYS_INLINE Packet1cd pcplxconjflip(Packet1cd a)
 /** \internal packet negate */
 EIGEN_ALWAYS_INLINE Packet2cf pnegate2(Packet2cf a)
 {
-#ifdef _ARCH_PWR9
+#ifdef __POWER8_VECTOR__
     return Packet2cf(vec_neg(a.v));
 #else
     return Packet2cf(pxor(a.v, reinterpret_cast<Packet4f>(p16uc_COMPLEX32_NEGATE)));
@@ -564,7 +564,7 @@ EIGEN_ALWAYS_INLINE Packet2cf pnegate2(Packet2cf a)
 
 EIGEN_ALWAYS_INLINE Packet1cd pnegate2(Packet1cd a)
 {
-#ifdef _ARCH_PWR9
+#ifdef __POWER8_VECTOR__
     return Packet1cd(vec_neg(a.v));
 #else
     return Packet1cd(pxor(a.v, reinterpret_cast<Packet2d>(p16uc_COMPLEX64_NEGATE)));
