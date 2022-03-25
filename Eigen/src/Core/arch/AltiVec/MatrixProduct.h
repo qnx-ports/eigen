@@ -1261,10 +1261,11 @@ template<>
 EIGEN_ALWAYS_INLINE Packet2d bmask<Packet2d,Index>(const Index remaining_rows)
 {
 #if USE_NEW_P10
+  Packet2d mask2 = Packet2d(vec_gendm(remaining_rows));
 #ifdef _BIG_ENDIAN
-  return Packet2d(vec_reve(vec_gendm(remaining_rows)));
+  return preverse(mask2);
 #else
-  return Packet2d(vec_gendm(remaining_rows));
+  return mask2;
 #endif
 #else
   Packet2l ret = { -remaining_rows, 0 };

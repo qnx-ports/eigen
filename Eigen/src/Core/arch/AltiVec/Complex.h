@@ -200,7 +200,7 @@ template<> EIGEN_STRONG_INLINE std::complex<float>  pfirst<Packet2cf>(const Pack
 template<> EIGEN_STRONG_INLINE Packet2cf preverse(const Packet2cf& a)
 {
   Packet4f rev_a;
-  rev_a = vec_perm(a.v, a.v, p16uc_COMPLEX32_REV2);
+  rev_a = vec_sld(a.v, a.v, 8);
   return Packet2cf(rev_a);
 }
 
