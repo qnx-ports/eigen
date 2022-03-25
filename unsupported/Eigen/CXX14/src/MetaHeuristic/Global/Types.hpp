@@ -50,15 +50,15 @@ using stdVecD_t = stdContainer<double, Size>;
  * \tparam scalar_t Type of elements.
  * \tparam Size Size at compile time. Use Eigen::Dynamic for dynamic size.
  * \tparam DVO Type of container.
- * Use DoubleVectorOption::Eigen for Eigen::Array<scalar_t,Size,1> and
+ * Use ContainerOption::Eigen for Eigen::Array<scalar_t,Size,1> and
  * other enum values for stdContainer<scalar_t,Size>.
  *
  */
-template <typename scalar_t, int Size, DoubleVectorOption DVO>
-using Container = typename std::conditional<(DVO != DoubleVectorOption::Eigen), stdContainer<scalar_t, Size>,
+template <typename scalar_t, int Size, ContainerOption DVO>
+using Container = typename std::conditional<(DVO != ContainerOption::Eigen), stdContainer<scalar_t, Size>,
                                             Eigen::Array<double, Size, 1> >::type;
 
-// template<DoubleVectorOption dvo,size_t Dim>
+// template<ContainerOption dvo,size_t Dim>
 // using FitnessVec_t= Container<double,Dim,dvo>;
 
 namespace internal {

@@ -31,6 +31,70 @@ namespace Eigen {
  * nullptr if you hope to determine it at runtime. nullptr as default value.
  * \tparam _mFun_ Function to apply mutation. Use nullptr if you hope to
  * determine it at runtime. nullptr as default value.
+ *
+ *
+ * \note `Arg_t` is a pseudo-global variable for solvers. It's not global variables because it's stored as a member of
+ * solver, thus if in some special conditions you have to run multiple solvers, each solver has its own gloabl
+ * variable. It can be any type about the problem you are solving. For constrainted problems, it can be a box-constraint
+ * type; for TSP problems, it can be the distance matrix; and even for GA-BP or PSO-BP, it can be your data set. If you
+ * don't need it, use `void` and it will disapper.
+ *
+ * Usually there are five main procedures in GA :
+ * 1. initialization : Filling all decision variables in the population with random initial values.
+ * 2. computing fitness : Go through the whole population and compute each's fitness value.
+ * 3. selection : Eliminate some relatively bad inidividual sothat the size of population can decline to
+ * `populationSize` assigned in the `GAOption`.
+ * 4. crossover Randomly pick individuals in pairs as parents and create pairs of child inidividuals. The childern will
+ * be inserted into the original population.
+ * 5. mutation Randomly pick individuals and change their values slightly. This procedure doesn't change the value
+ * inplace, but insert the modified value into the population.
+ *
+ * The 1,2,4,5 each corresponds to a function representively, called initialization function(iFun), fitness
+ * function(fFun), crossover function(cFun), mutation function(mFun). These functions can be assigned either at compile
+ * time or runtime.
+ *
+ * APIs of SOGA are implemented sperately in many internal base classes, and they are organized through public
+ * inheriting.
+ *
+ * ## APIs that **all** genetic solvers have:
+ * - `void setOption(const GAOption&)` sets the option of solver.
+ * - `void initializePop()` that initialized the population.
+ * - `void run<>()` runs the genetic algorithm.
+ * - `double bestFitness() const` returns the fitness of best solution in current population.
+ * - `size_t generation() const` returns the generation that solvers has passed.
+ * - `size_t failTimes() const` returns the fail times of current population.
+ * - `const std::list<Gene> & population() const` returns a const-reference to the population.
+ * - `const GAOption & option() const` returns a const-reference to the GAOption of solver.
+ * - `typename solver_t::initializeFun` is the type of iFuns
+ * - `typename solver_t::fitnessFun` is the type of fFuns
+ * - `typename solver_t::crossoverFun` is the type of cFuns
+ * - `typename solver_t::mutateFun` is the type of mFuns
+ * - `initializeFun iFun() const` returns the initialization function.
+ * - `fitnessFun fFun() const` returns the fitness function.
+ * - `crossoverFun cFun() const` returns the crossover function.
+ * - `mutateFun mFun() const` returns the mutation function.
+ * - `virtual void customOptAfterInitialization()` this function can be reloaded if you want to customize the algorithm.
+ * You can do anything to the solver and this function will be executed after the population is initialized.
+ * - `virutal void customOptAfterEachGeneration()` is like `virtual void customOptAfterInitialization()` but it's
+ * executed after each generation.
+ *
+ * If virtual functions above failed to satify yourself, function `calculateAll`, `select`, `crossover`, `mutate` are
+ * all virtual functions. Just inherit a solver and reimplement it. By the way, these functions don't cause much
+ * performance loss since they will only be runned for no more than maxGeneration times and this value rarely exceeds
+ * 1000.
+ *
+ * ## APIs that all genetic solvers whose `Args_t` is not `void` have:
+ * - `const Arg_t & args() const` returns a const-reference of args.
+ * - `void setArgs(const Arg_t &)` set the value of args.
+ *
+ * ## APIs that all genetic solvers with recording have:
+ * - `const std::vector<Fitness_t> & record() const` returns a const reference to the recoding.
+ *
+ *
+ * ## APIs that SOGA solvers have:
+ * - `const Var_t& result() const` returns a const-reference the the final result decision variable.
+ *
+ * \sa NSGA2 NSGA3
  */
 template <typename Var_t, FitnessOption fOpt = FITNESS_LESS_BETTER, RecordOption Record = DONT_RECORD_FITNESS,
           class Args_t = void, typename internal::GAAbstract<Var_t, double, Args_t>::initializeFun _iFun_ = nullptr,

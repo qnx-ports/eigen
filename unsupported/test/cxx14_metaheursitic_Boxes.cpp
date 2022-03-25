@@ -17,8 +17,7 @@ using namespace std;
 // this example shows how to use box-constraint types
 void test_Box() {
   //[0,1]^50, mutate step = 0.02
-  BoxNdS<50, DoubleVectorOption::Eigen, true, DivEncode<0, 1>::code, DivEncode<1, 1>::code, DivEncode<1, 50>::code>
-      box0;
+  BoxNdS<50, ContainerOption::Eigen, true, DivEncode<0, 1>::code, DivEncode<1, 1>::code, DivEncode<1, 50>::code> box0;
 
   box0.min();
 
@@ -28,7 +27,7 @@ void test_Box() {
        << endl;  // every thing about this boxes are known at compile time, so its size is 1
 
   // Dynamic dim non-suqare box
-  BoxXdN<DoubleVectorOption::Eigen> box;
+  BoxXdN<ContainerOption::Eigen> box;
 
   // Set the min and max by its non-const-ref to max and min members.
   box.max().setConstant(50, 1, 1.0);

@@ -37,7 +37,7 @@ namespace internal {
  *
  * \note Non-square box with runtime range.
  */
-template <typename Scalar_t, int Size, BoxShape BS, DoubleVectorOption DVO>
+template <typename Scalar_t, int Size, BoxShape BS, ContainerOption DVO>
 class BoxDynamicRange {
  public:
   using Var_t = Container<Scalar_t, Size, DVO>;  ///< Type of decision variable
@@ -77,7 +77,7 @@ class BoxDynamicRange {
  *
  * \note Square box with runtime range
  */
-template <typename Scalar_t, int Size, DoubleVectorOption DVO>
+template <typename Scalar_t, int Size, ContainerOption DVO>
 class BoxDynamicRange<Scalar_t, Size, BoxShape::SQUARE_BOX, DVO> {
  public:
   using Var_t = Container<Scalar_t, Size, DVO>;                           ///< Type of decision variable

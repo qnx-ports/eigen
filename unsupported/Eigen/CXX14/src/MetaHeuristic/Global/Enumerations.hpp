@@ -20,6 +20,10 @@ namespace Eigen {
  * \ingroup CXX14_METAHEURISTIC
  * \brief Whether to record trainning curve of not
  *
+ * If `RECORD_FITNESS` is assigned to a solver, a specialization of its internal base class will be activated resulting
+ * in an extra member `std::vector<Fitness_t> _record`. In that conditon, the solver will record the best fitness of
+ * each generation when it's running.
+ *
  */
 enum RecordOption : uint8_t {
   RECORD_FITNESS = true,       ///< The solver will record fitness values of every generation when running
@@ -46,6 +50,8 @@ inline const char* Enum2String(RecordOption r) {
  * \ingroup CXX14_METAHEURISTIC
  * \brief Optimization direction
  *
+ * It's vital to tell which direction is better. If `FITNESS_LESS_BETTER` is assigned, a solver will tries the find the
+ * minimum value and vise versa.
  */
 enum FitnessOption : uint8_t {
   FITNESS_LESS_BETTER = false,    ///< Less fitness value is better
@@ -74,15 +80,15 @@ inline const char* Enum2String(FitnessOption f) {
  * \brief Which type of container to use.
  *
  * \note Std uses std::vector for dynamic and std::array for fixed.\n\n
- *  While Eigen refers to Eigen::Array<scalar_t,size,1>. If you hope
+ *  While Eigen refers to `Eigen::Array<scalar_t,size,1>`. If you hope
  *  to use Eigen's matrices or even tensors, inherit it and reload
- *  operator[] to avoid size-checking.\n\n
+ *  `operator[](int)` to avoid size-checking.\n\n
  *  Custom types should at least be able to act like a vector.
- *  It must has opeartor[](int) that provides random access and
- *  member function size() const that returns the number of elements.
- *  Also if it's dynamic-sized, it should have function resize(int) to change its size.
+ *  It must has `opeartor[](int)` that provides random access and
+ *  member function `size() const` that returns the number of elements.
+ *  Also if it's dynamic-sized, it should have function `resize(int)` to change its size.
  */
-enum DoubleVectorOption {
+enum ContainerOption {
   Std = 'S',    ///< C++ standard containers
   Eigen = 'E',  ///< Eigen containers
   Custom = 'C'  ///< User defined custom types.
@@ -95,7 +101,7 @@ enum DoubleVectorOption {
  * \param e The enum value
  * \return const char* Name of the value.
  */
-inline const char* Enum2String(DoubleVectorOption e) {
+inline const char* Enum2String(ContainerOption e) {
   switch (e) {
     case Std:
       return "C++ std vector/array";

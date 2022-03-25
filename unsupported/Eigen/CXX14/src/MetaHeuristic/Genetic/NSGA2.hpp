@@ -21,8 +21,10 @@ namespace Eigen {
  * \brief NSGA2 MOGA solver. Suitable for not too many objectives.
  *
  * This class implemented the NSGA-II algorithm.\n
- * NSGA-II is a template for multi-objective genetic algorithm based on
- * Pareto optimality. It selects by nondomainance sorting
+ * NSGA-II is a template for multi-objective genetic algorithm based on Pareto optimality. It selects by nondomainance
+ * sorting.
+ *
+ * \sa NSGA2::select for this special procedure.
  *
  * @tparam Var_t Type of decisition variable.
  * @tparam ObjNum Numbers of objectives.
@@ -33,6 +35,20 @@ namespace Eigen {
  * @tparam _fFun_ Compile-time fFun, use nullptr for runtime
  * @tparam _cFun_ Compile-time cFun, use nullptr for runtime
  * @tparam _mFun_ Compile-time mFun, use nullptr for runtime
+ *
+ * \sa SOGA for APIs that all genetic solvers have.
+ * \sa NSGA3
+ *
+ * ## APIs that MOGA solvers have:
+ * - `void paretoFront(std::vector<Fitness_t>& front) const` get pareto front of fitness values.
+ * - `void paretoFront(std::vector<std::pair<const Var_t*, const Fitness_t*>>& front) const` get pareto front of
+ * decision variables and fitness values.
+ * - `const std::unordered_set<const Gene*>& pfGenes() const` returns a const reference to the PF hash set.
+ * - `size_t objectiveNum() const` get the number of objectives.
+ *
+ * ## APIs that MOGA with dynamic objective numbers have:
+ * - `void setObjectiveNum(int _objNum)` set the objective number.
+ *
  */
 template <typename Var_t, int ObjNum, FitnessOption fOpt = FITNESS_LESS_BETTER, RecordOption rOpt = DONT_RECORD_FITNESS,
           class Args_t = void,
@@ -149,7 +165,6 @@ class NSGA2 : public internal::NSGABase<Var_t, ObjNum, fOpt, rOpt, Args_t, _iFun
     std::vector<infoUnit2> pop;
     pop.clear();
     pop.reserve(popSizeBefore);
-    this->sortSpace.reserve(2 * this->_option.populationSize);
     this->sortSpace.resize(popSizeBefore);
 
     for (auto it = this->_population.begin(); it != this->_population.end(); ++it) {

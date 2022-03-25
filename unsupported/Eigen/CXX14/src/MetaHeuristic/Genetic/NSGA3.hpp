@@ -23,6 +23,9 @@ namespace Eigen {
  * \ingroup CXX14_METAHEURISTIC
  * \brief NSGA3 is the thrid Nondominated Sorting Genetic Algorithm. It's suitable for many objective problems.
  *
+ * NSGA3 uses many reference points to maintain a diverse and uniform PF.
+ * \sa internal::NSGA3Abstract::select for this special procedure.
+ *
  *
  * The default value of template parameters are listed in braces
  * \tparam Var_t Type of decision variable
@@ -35,7 +38,27 @@ namespace Eigen {
  * \tparam _cFun_ Crossover function (nullptr)
  * \tparam _mFun_ Mutation function (nullptr)
  *
- * \sa NSGA3Base NSGA3Abstract NSGABase MOGABase MOGAAbstract GABase
+ * \sa SOGA for APIs that all genetic solvers have
+ * \sa NSGA2 for APIs that all MOGA solvers have
+ *
+ * ## APIs that all NSGA3 solvers have:
+ * - `const RefMat_t& referencePoints() const` returns a matrix of reference points. Each coloumn is the coordinate of a
+ * RP. (Here RP refers to the word reference point)
+ * - `size_t referencePointCount() const` number of reference points according to the RP precision.
+ *
+ *
+ * ## APIs that NSGA3 solvers using single-layer RPs have:
+ * - `size_t referencePointPrecision() const` returns the RP precision.
+ * - `void setReferencePointPrecision(size_t)` set the RP precision
+ *
+ *
+ * ## APIs that NSGA2 solvers using double-layer RPs have:
+ * - `size_t innerPrecision() const` returns the precision of inner layer RP.
+ * - `size_t outerPrecision() const` returns the precision of outer layer RP.
+ * - `void setReferencePointPrecision(size_t i, size_t o)` set the precison of inner and outer layer.
+ *
+ * \note When using NSGA3 solvers, is strongly recommended to set the precision explicitly before initializing the
+ * population. Don't rely on the default value!
  */
 template <typename Var_t, int ObjNum, RecordOption rOpt = DONT_RECORD_FITNESS,
           ReferencePointOption rpOpt = ReferencePointOption::SINGLE_LAYER, class Args_t = void,

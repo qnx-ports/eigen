@@ -36,7 +36,51 @@ namespace Eigen {
  * \tparam _iFun_ Initialization function at compile time (nullptr)
  * \tparam _fFun_ Fitness function at compile time (nullptr)
  *
+ * \sa SOGA for the meanning of `Arg_t`
+ *
  * \note This class implements PSO for the condition that `isEigenTypes` is `false`.
+ *
+ * PSO solvers have different APIs for different template parameters.
+ *
+ * ## These APIs are common:
+ * - `void setOption(const PSOOption&)` to set the option of a PSO solver.
+ * - `void setPVRange(const Var_t& pMin, const Var_t& pMax, const Var_t& vMax)` to set the value of posMin, posMax, and
+ * velocityMax.
+ * - `void setPVRange(double pMin, double pMax, double vMax)` will also set these value but it shapes the box into a
+ * square box.
+ * - `void initializePop()` to initialize the whole population.
+ * - `void run<>()` to run the PSO algorithm.
+ * - `double bestFitness() const` returns the best fitness value.
+ * - `const PSOOption& option() const` returns a const-ref to the PSOOption object.
+ * - `size_t generation() const` returns the generations that the solver has spend.
+ * - `size_t failTimes() const` returns the failtimes for current population.
+ * - `const Var_t& posMin() const` returns a const-ref to the minimum value of positoin.
+ * - `const Var_t& posMax() const` returns a const-ref to the maximum value of position.
+ * - `const Var_t& velocityMax() const` returns a const-ref to the maximum value of the abstract value of velocity.
+ * - `const std::vector<Particle>& population() const` returns a const-ref to the population.
+ * - `const Point& globalBest() const` returns a const-ref to the best solution that has ever found.
+ * - `int dimensions() const` returns the dimensions of decision variables.
+ * - `solver_t::HasParameters` marks whether `Arg_t` is `void`
+ * - `typename solver_t::iFun_t` is the type of initialization function
+ * - `typename solver_t::fFun_t` is the type of fitness function.
+ * - `iFun_t iFun() const` returns the initialization function.
+ * - `fFun_t fFun() const` returns the fitness function.
+ *
+ *
+ * ## These APIs exist when `Args_t` is not `void` :
+ * - `const Arg_t &args() const` returns a const-ref to args in the solver.
+ * - `void setArgs(const Arg_t &)` set the value of args.
+ *
+ *
+ * ## These APIs exist when template parameter `_iFun_` is `nullptr` :
+ * - `setiFun(iFun_t)` sets the initialization function.
+ *
+ * ## These APIs exist when template parameter `_fFun_` is `nullptr` :
+ * - `setfFun(fFun_t)` sets the fitness function.
+ *
+ * ## These APIs exist when template parameter `ObjNum` is `Eigen::Dynamic` :
+ * - `void setDimensions(int d)` set the size of posMin, posMax and velocityMax to d.
+ *
  */
 template <typename Var_t, int DIM, bool isEigenTypes = true, FitnessOption FitnessOpt = FITNESS_LESS_BETTER,
           RecordOption RecordOpt = DONT_RECORD_FITNESS, class Arg_t = void,
@@ -50,25 +94,8 @@ class PSO : public internal::PSOBase<Var_t, DIM, double, RecordOpt, Arg_t, _iFun
   virtual ~PSO() {}
   EIGEN_HEU_MAKE_PSOABSTRACT_TYPES(Base_t)
 
-  static const DoubleVectorOption Flag =
-      (std::is_same<Var_t, stdVecD_t<DIM>>::value) ? DoubleVectorOption::Std : DoubleVectorOption::Custom;
-
-  /**
-   * \brief Set the range of position and velocity.
-   *
-   * \note This function will shape the box to a square box. Non't call this if you need a non-square box.
-   *
-   * \param pMin Minium position value
-   * \param pMax Maximum position value
-   * \param vMax Maximum velocity absolute value
-   */
-  void setPVRange(double pMin, double pMax, double vMax) {
-    for (size_t i = 0; i < this->dimensions(); i++) {
-      this->_posMin[i] = pMin;
-      this->_posMax[i] = pMax;
-      this->_velocityMax[i] = vMax;
-    }
-  }
+  static const ContainerOption Flag =
+      (std::is_same<Var_t, stdVecD_t<DIM>>::value) ? ContainerOption::Std : ContainerOption::Custom;
 
   /**
    * \brief Function used to provide a result for recording
@@ -216,12 +243,6 @@ class PSO<Var_t, DIM, true, FitnessOpt, RecordOpt, Arg_t, _iFun_, _fFun_>
 
  public:
   EIGEN_HEU_MAKE_PSOABSTRACT_TYPES(Base_t)
-
-  virtual void setPVRange(double pMin, double pMax, double vMax) {
-    this->_posMin.setConstant(this->dimensions(), 1, pMin);
-    this->_posMax.setConstant(this->dimensions(), 1, pMax);
-    this->_velocityMax.setConstant(this->dimensions(), 1, vMax);
-  }
 
   virtual double bestFitness() const { return this->gBest.fitness; }
 

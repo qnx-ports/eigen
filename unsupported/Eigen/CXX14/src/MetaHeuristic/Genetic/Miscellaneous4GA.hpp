@@ -19,7 +19,7 @@ namespace Eigen {
 
 namespace internal {
 
-template <typename Var_t, DoubleVectorOption dvo>
+template <typename Var_t, ContainerOption dvo>
 struct imp_GADefaults_DVO {
   template <DivCode _r>
   inline static void imp_cFunNd(const Var_t *p1, const Var_t *p2, Var_t *c1, Var_t *c2) {
@@ -46,7 +46,7 @@ struct imp_GADefaults_DVO {
 };
 
 template <typename Var_t>
-struct imp_GADefaults_DVO<Var_t, DoubleVectorOption::Eigen> {
+struct imp_GADefaults_DVO<Var_t, ContainerOption::Eigen> {
   template <DivCode _r>
   inline static void imp_cFunNd(const Var_t *p1, const Var_t *p2, Var_t *c1, Var_t *c2) {
     static const double constexpr r = DivDecode<_r>::real;
@@ -108,7 +108,7 @@ struct imp_GADefaults_DVO<Var_t, DoubleVectorOption::Eigen> {
  * \sa internal::GABase internal::GAAbstract
  *
  */
-template <typename Var_t, class Args_t = void, DoubleVectorOption dvo = DoubleVectorOption::Std>
+template <typename Var_t, class Args_t = void, ContainerOption dvo = ContainerOption::Std>
 struct GADefaults {
  private:
   static_assert(!std::is_same<Args_t, void>::value,
@@ -464,7 +464,7 @@ struct GADefaults {
   }
 };
 
-template <typename Var_t, DoubleVectorOption dvo>
+template <typename Var_t, ContainerOption dvo>
 struct GADefaults<Var_t, void, dvo> {
   /**
    * \brief Initialization function for fixed double array without args.

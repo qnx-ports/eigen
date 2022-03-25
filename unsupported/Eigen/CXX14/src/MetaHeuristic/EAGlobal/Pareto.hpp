@@ -24,6 +24,11 @@ namespace internal {
  *
  * \tparam ObjNum Number of objectives, Eigen::Dynamic for runtime objs
  * \tparam fOpt Whether greater or less fitness means better.
+ *
+ * \note If the number of objectives can't be fixed at compile time, you can use `Eigen::Dynamic`(-1) to `ObjNum`. But
+ * other negative numbers and 0 aren't allowed. Mention that Pareto optimality is a concept for multi-objective
+ * problems, using 1 for `ObjNum` is not allowed as well. You will see static assertion failure if invalid value of
+ * `ObjNum` is assigned to template parameter.
  */
 template <int ObjNum, FitnessOption fOpt>
 struct Pareto {

@@ -55,7 +55,7 @@ void testNSGA2_Binh_and_Korn() {
   // 0<=x_0<=5,  0<=x_1<=3
 
   // this function requires 0<=x<=5 and 0<=y<=3. Use a non-square constraint to present it.
-  using args_t = Eigen::BoxNdN<2, Eigen::DoubleVectorOption::Std>;
+  using args_t = Eigen::BoxNdN<2, Eigen::ContainerOption::Std>;
 
   // the type of solver
   using solver_t =

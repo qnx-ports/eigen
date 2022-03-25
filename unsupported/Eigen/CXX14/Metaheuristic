@@ -27,9 +27,11 @@
  * objective Particle Swarm Optimization (PSO)
  *
  * To include this module, use
- * \code
- * #include <Eigen/CXX14/MetaHeuristic>
+ * \code {.cpp}
+ * #include <unsupported/Eigen/CXX14/MetaHeuristic>
  * \endcode
+ *
+ * \sa Eigen::SOGA Eigen::NSGA2 Eigen::NSGA3 Eigen::PSO
  */
 
 #include "src/MetaHeuristic/Global/Global"

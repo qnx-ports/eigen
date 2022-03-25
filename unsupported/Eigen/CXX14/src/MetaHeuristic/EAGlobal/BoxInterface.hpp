@@ -26,8 +26,33 @@ namespace Eigen {
  * \tparam MinCT Minval (DivCode), default value is 0
  * \tparam MaxCT Maxval (DivCode), default value is 0
  * \tparam LRCT Learn rate(DivCode), default value is 0
+ *
+ * Although Boxes has varities of implementation, they are common rules of their APIs:
+ * 1. APIs that always exists:
+ *  - `box.min() const` for minimum value (returns scalar for square box, vector otherwise)
+ *  - `box.max() const` for maximum value (returns scalar for square box, vector otherwise)
+ *  - `int box.dimensions() const` for box dimension number.
+ *  - `typename BoxType::Var_t` is the type of decision variable.
+ *
+ * 2. APIs that only exists when box is not square box, or a square box which doesn't have a fixed range:
+ *  - `box.setMin(min)` for setting minimum value (min should be a scalar for square box, and vector otherwise)
+ *  - `box.setMax(max)` for setting maximum value (max should be a scalar for square box, and vector otherwise)
+ *  - `box.min()` returns a non-const reference of minimum (scalar/vector)
+ *  - `box.max()` returns a non-const reference of maximum (scalar/vector)
+ *
+ * 3. APIs that only exists when box's dimensions isn't fixed at compile time:
+ *  - `box.setDimensions(int dim)` Set the box's dimension to dim.
+ *
+ * 4. APIs that only exists for real boxes:
+ *  - `box.learnRate() const` returns a the learning rate of the real box (the word learning rate is borrowed from
+ * neural network tranning, here it refers to the greatest mangnitude to change the value of a decision variable)
+ *
+ * 5. APIs that only exists for real boxes which isn't a square box or doesn't have a fixed range:
+ *  - `box.setLearnRate(LR)` to set the value of LR.
+ *  - `box.learnRate()` returns a non-const reference to the learning rate (scalar/vector)
+ *
  */
-template <int Dim, DoubleVectorOption DVO = DoubleVectorOption::Std, bool isFixedRange = false,
+template <int Dim, ContainerOption DVO = ContainerOption::Std, bool isFixedRange = false,
           internal::TemplateVal_t<double> MinCT = DivEncode<0, 1>::code,
           internal::TemplateVal_t<double> MaxCT = DivEncode<0, 1>::code,
           internal::TemplateVal_t<double> LRCT = DivEncode<0, 1>::code>
@@ -47,7 +72,7 @@ using BoxNdS = internal::RealBox<double, Dim, DVO, BoxShape::SQUARE_BOX, isFixed
  * \tparam MaxCT Maxval (DivCode), default value is 0
  * \tparam LRCT Learn rate(DivCode), default value is 0
  */
-template <DoubleVectorOption DVO = DoubleVectorOption::Std, bool isFixedRange = false,
+template <ContainerOption DVO = ContainerOption::Std, bool isFixedRange = false,
           internal::TemplateVal_t<double> MinCT = DivEncode<0, 1>::code,
           internal::TemplateVal_t<double> MaxCT = DivEncode<0, 1>::code,
           internal::TemplateVal_t<double> LRCT = DivEncode<0, 1>::code>
@@ -60,7 +85,7 @@ using BoxXdS = internal::RealBox<double, Eigen::Dynamic, DVO, BoxShape::SQUARE_B
  * \tparam Dim Box dimensions
  * \tparam DVO Type of container.
  */
-template <int Dim, DoubleVectorOption DVO = DoubleVectorOption::Std>
+template <int Dim, ContainerOption DVO = ContainerOption::Std>
 using BoxNdN = internal::RealBox<double, Dim, DVO, BoxShape::RECTANGLE_BOX>;
 
 /**
@@ -69,7 +94,7 @@ using BoxNdN = internal::RealBox<double, Dim, DVO, BoxShape::RECTANGLE_BOX>;
  *
  * \tparam DVO Type of container, std containers for defult value.
  */
-template <DoubleVectorOption DVO = DoubleVectorOption::Std>
+template <ContainerOption DVO = ContainerOption::Std>
 using BoxXdN = internal::RealBox<double, Eigen::Dynamic, DVO, BoxShape::RECTANGLE_BOX>;
 
 /**
@@ -80,7 +105,7 @@ using BoxXdN = internal::RealBox<double, Eigen::Dynamic, DVO, BoxShape::RECTANGL
  * \tparam Dim Box dimensions
  * \tparam DVO Type of container.
  */
-template <int Dim, DoubleVectorOption DVO = DoubleVectorOption::Std>
+template <int Dim, ContainerOption DVO = ContainerOption::Std>
 class BooleanBox : public internal::BoxDims<bool, Dim, DVO, BoxShape::SQUARE_BOX, true, 0, 1> {
  private:
   static_assert(Dim > 0 || Dim == Eigen::Dynamic, "Invalid template parameter Dim");
@@ -100,7 +125,7 @@ class BooleanBox : public internal::BoxDims<bool, Dim, DVO, BoxShape::SQUARE_BOX
  * \tparam Dim Box dimensions
  * \tparam DVO Type of container.
  */
-template <int Dim, DoubleVectorOption DVO = DoubleVectorOption::Std>
+template <int Dim, ContainerOption DVO = ContainerOption::Std>
 using BoxNb = typename std::enable_if<Dim != Eigen::Dynamic, BooleanBox<Dim, DVO>>::type;
 
 /**
@@ -109,7 +134,7 @@ using BoxNb = typename std::enable_if<Dim != Eigen::Dynamic, BooleanBox<Dim, DVO
  *
  * \tparam DVO Type of container, std containers as default.
  */
-template <DoubleVectorOption DVO = DoubleVectorOption::Std>
+template <ContainerOption DVO = ContainerOption::Std>
 using BoxXb = BooleanBox<Eigen::Dynamic, DVO>;
 
 namespace internal {
@@ -127,8 +152,8 @@ namespace internal {
  * \tparam MinCT Minimum value at compile time
  * \tparam MaxCT Maximum value at compile time
  */
-template <typename Scalar_t, int Dim, DoubleVectorOption DVO = DoubleVectorOption::Std,
-          BoxShape BS = BoxShape::SQUARE_BOX, bool isFixedRange = false, Scalar_t MinCT = 0, Scalar_t MaxCT = 1>
+template <typename Scalar_t, int Dim, ContainerOption DVO = ContainerOption::Std, BoxShape BS = BoxShape::SQUARE_BOX,
+          bool isFixedRange = false, Scalar_t MinCT = 0, Scalar_t MaxCT = 1>
 class SymbolBox : public internal::BoxDims<Scalar_t, Dim, DVO, BS, isFixedRange, MinCT, MaxCT> {
  private:
   static_assert(std::is_integral<Scalar_t>::value, "Symbol box requires integer Scalar_t");
@@ -156,7 +181,7 @@ class SymbolBox : public internal::BoxDims<Scalar_t, Dim, DVO, BS, isFixedRange,
  * \tparam MaxCT Maximum value at compile time, default val 1
  *
  */
-template <typename Scalar_t, int Dim, DoubleVectorOption DVO = DoubleVectorOption::Std, bool isFixedRange = false,
+template <typename Scalar_t, int Dim, ContainerOption DVO = ContainerOption::Std, bool isFixedRange = false,
           Scalar_t MinCT = 0, Scalar_t MaxCT = 1>
 using BoxNsS =
     typename std::enable_if<Dim != Eigen::Dynamic, internal::SymbolBox<Scalar_t, Dim, DVO, BoxShape::SQUARE_BOX,
@@ -173,8 +198,8 @@ using BoxNsS =
  * \tparam MinCT Minimum value at compile time, default val 0
  * \tparam MaxCT Maximum value at compile time, default val 1
  */
-template <typename Scalar_t, DoubleVectorOption DVO = DoubleVectorOption::Std, bool isFixedRange = false,
-          Scalar_t MinCT = 0, Scalar_t MaxCT = 1>
+template <typename Scalar_t, ContainerOption DVO = ContainerOption::Std, bool isFixedRange = false, Scalar_t MinCT = 0,
+          Scalar_t MaxCT = 1>
 using BoxXsS = internal::SymbolBox<Scalar_t, Eigen::Dynamic, DVO, BoxShape::SQUARE_BOX, isFixedRange, MinCT, MaxCT>;
 
 /**
@@ -185,7 +210,7 @@ using BoxXsS = internal::SymbolBox<Scalar_t, Eigen::Dynamic, DVO, BoxShape::SQUA
  * \tparam Dim Box dimensions
  * \tparam DVO Type of container, std containers as default.
  */
-template <typename Scalar_t, int Dim, DoubleVectorOption DVO = DoubleVectorOption::Std>
+template <typename Scalar_t, int Dim, ContainerOption DVO = ContainerOption::Std>
 using BoxNsN = typename std::enable_if<Dim != Eigen::Dynamic,
                                        internal::SymbolBox<Scalar_t, Dim, DVO, BoxShape::RECTANGLE_BOX>>::type;
 
@@ -200,7 +225,7 @@ using BoxNsN = typename std::enable_if<Dim != Eigen::Dynamic,
  * \tparam Scalar_t Type of symboxs
  * \tparam DVO Type of container, std containers as default.
  */
-template <typename Scalar_t, DoubleVectorOption DVO = DoubleVectorOption::Std>
+template <typename Scalar_t, ContainerOption DVO = ContainerOption::Std>
 using BoxXsN = internal::SymbolBox<Scalar_t, Eigen::Dynamic, DVO, BoxShape::RECTANGLE_BOX>;
 
 }  // namespace Eigen

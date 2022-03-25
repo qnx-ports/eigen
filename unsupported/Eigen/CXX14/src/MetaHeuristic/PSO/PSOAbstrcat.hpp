@@ -160,6 +160,23 @@ class PSOAbstract : public PSOParameterPack<Var_t, Fitness_t, Arg_t>,
   }
 
   /**
+   * \brief Set the range of position and velocity.
+   *
+   * \note This function will shape the box to a square box. Non't call this if you need a non-square box.
+   *
+   * \param pMin Minium position value
+   * \param pMax Maximum position value
+   * \param vMax Maximum velocity absolute value
+   */
+  inline void setPVRange(double pMin, double pMax, double vMax) {
+    for (size_t i = 0; i < this->dimensions(); i++) {
+      this->_posMin[i] = pMin;
+      this->_posMax[i] = pMax;
+      this->_velocityMax[i] = vMax;
+    }
+  }
+
+  /**
    * \brief Initialize the whole population
    *
    * This function reset the generation and failTimes to 0, and gBest to the first member of population.

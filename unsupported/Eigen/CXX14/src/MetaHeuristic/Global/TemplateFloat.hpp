@@ -18,8 +18,17 @@ namespace Eigen {
 
 /**
  * \ingroup CXX14_METAHEURISTIC
- * \brief This enumeration encode a floating-point number
- * by a division of int32 and uint32 stored in uint64
+ * \brief This enumeration encode a floating-point number by a division of int32 and uint32 stored in uint64
+ *
+ * In this way, floating-point values can be passed through template parameters and knowen at compile time under C++20.
+ *
+ * Members of this enumeration are some fundamental math constants.
+ *
+ * \note This enum should be taken as integers instead of enumerations. The reason it's designed to be a enum is to
+ * prevent from being mixed up with general integers -- when you misuse integers as DivCode without explicitly
+ * converting its type, you receive an error.
+ *
+ * \sa PowCode DivEncode DivDecode
  *
  */
 enum DivCode : uint64_t {
@@ -49,7 +58,9 @@ enum DivCode : uint64_t {
  *
  * \tparam a Numerator, it can be positive, negative or 0
  * \tparam b Denominator, not less than 1.
- * \return DivCode code the encoded
+ * \return `DivCode` code the encoded
+ *
+ * \sa DivCode DivDecode
  */
 template <int32_t a, uint32_t b>
 struct DivEncode {
@@ -66,8 +77,10 @@ struct DivEncode {
  * \brief Metafunction to decode a DivCode back to the numerator and denominator
  * and corresponding floating-point number.
  *
- * \tparam dc DivCode to be decoded.
- * \return double real the decoded floating-point number at compile time.
+ * \tparam `dc` `DivCode` to be decoded.
+ * \return `double` real the decoded floating-point number at compile time.
+ *
+ * \sa DivCode DivEncode
  */
 template <DivCode dc>
 struct DivDecode {
@@ -88,6 +101,8 @@ struct DivDecode {
  * PowEncode has 16 diget(decimal) of precision.
  *
  * In all the 64 binary bits, 1 for sign, 54 for significant digits and 9 bits for power.
+ *
+ * \sa DivCode PowEncode PowDecode
  */
 enum PowCode : uint64_t {
 
@@ -144,6 +159,8 @@ struct PowEncode_OneE<0> {
  * PowEncode<1919810,-20>::code==PowEncode<191981,-20>::code;  // 1.191981^-20.
  * \endcode
  *
+ * \sa PowCode PowDecode
+ *
  */
 template <int64_t significant, int16_t power>
 struct PowEncode {
@@ -182,6 +199,7 @@ struct PowEncode {
  * constexpr double real=PowDecode<pCode>::real;
  * \endcode
  *
+ * \sa PowCode PowEncode
  */
 template <PowCode pc>
 struct PowDecode {

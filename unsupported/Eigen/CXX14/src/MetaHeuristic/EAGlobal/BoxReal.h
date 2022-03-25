@@ -32,7 +32,7 @@ namespace internal {
  *
  * \note Real boxes of different types
  */
-template <typename Scalar_t, int Dim, DoubleVectorOption DVO, BoxShape BS, bool isFixedRange,
+template <typename Scalar_t, int Dim, ContainerOption DVO, BoxShape BS, bool isFixedRange,
           TemplateVal_t<Scalar_t> MinCT, TemplateVal_t<Scalar_t> MaxCT>
 class RealBoxBase : public BoxDims<Scalar_t, Dim, DVO, BS, isFixedRange, MinCT, MaxCT> {
  private:
@@ -81,7 +81,7 @@ struct learnRateBody {
  * \tparam MaxCT Max value (DivCode)
  * \tparam LearnRateCT Learn rate at compile time(DivCode)
  */
-template <typename Scalar_t, int Dim, DoubleVectorOption DVO, BoxShape BS, bool isFixedRange = false,
+template <typename Scalar_t, int Dim, ContainerOption DVO, BoxShape BS, bool isFixedRange = false,
           TemplateVal_t<Scalar_t> MinCT = TemplateVal_t<Scalar_t>(1),
           TemplateVal_t<Scalar_t> MaxCT = TemplateVal_t<Scalar_t>(1),
           TemplateVal_t<Scalar_t> LearnRateCT = TemplateVal_t<Scalar_t>(1)>
@@ -110,7 +110,7 @@ class RealBox : public RealBoxBase<Scalar_t, Dim, DVO, BS, isFixedRange, MinCT, 
  * \tparam MaxCT Meaningless for this specialization
  * \tparam LearnRateCT Meaningless for this specialization
  */
-template <typename Scalar_t, int Dim, DoubleVectorOption DVO, BoxShape BS, TemplateVal_t<Scalar_t> MinCT,
+template <typename Scalar_t, int Dim, ContainerOption DVO, BoxShape BS, TemplateVal_t<Scalar_t> MinCT,
           TemplateVal_t<Scalar_t> MaxCT, TemplateVal_t<Scalar_t> LearnRateCT>
 class RealBox<Scalar_t, Dim, DVO, BS, false, MinCT, MaxCT, LearnRateCT>
     : public RealBoxBase<Scalar_t, Dim, DVO, BS, false, MinCT, MaxCT>,

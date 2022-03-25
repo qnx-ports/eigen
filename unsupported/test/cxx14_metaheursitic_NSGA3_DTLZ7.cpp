@@ -65,11 +65,11 @@ void testNSGA3_DTLZ7() {
                          DONT_RECORD_FITNESS, DOUBLE_LAYER, void>;
 
   using Var_t = Eigen::Array<double, N, 1>;
-  //using Fitness_t = solver_t::Fitness_t;
+  // using Fitness_t = solver_t::Fitness_t;
 
-  auto iFun = GADefaults<Var_t, void, DoubleVectorOption::Eigen>::iFunNd<>;
+  auto iFun = GADefaults<Var_t, void, ContainerOption::Eigen>::iFunNd<>;
 
-  auto cFun = GADefaults<Var_t, void, DoubleVectorOption::Eigen>::cFunNd<DivEncode<1, 10>::code>;
+  auto cFun = GADefaults<Var_t, void, ContainerOption::Eigen>::cFunNd<DivEncode<1, 10>::code>;
 
   auto mFun = [](const Var_t* src, Var_t* v) {
     *v = *src;

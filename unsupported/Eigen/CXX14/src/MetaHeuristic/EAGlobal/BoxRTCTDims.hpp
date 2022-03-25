@@ -32,7 +32,7 @@ namespace internal {
  *
  * \note Square box with fixed dims
  */
-template <typename Scalar_t, int Dim, DoubleVectorOption DVO, BoxShape BS, bool isFixedRange,
+template <typename Scalar_t, int Dim, ContainerOption DVO, BoxShape BS, bool isFixedRange,
           TemplateVal_t<Scalar_t> MinCT, TemplateVal_t<Scalar_t> MaxCT>
 class BoxCTDim : public SquareBox<Scalar_t, Dim, DVO, isFixedRange, MinCT, MaxCT> {
  private:
@@ -50,7 +50,7 @@ class BoxCTDim : public SquareBox<Scalar_t, Dim, DVO, isFixedRange, MinCT, MaxCT
 /**
  * @brief NonSquarebox with fixed dims
  */
-template <typename Scalar_t, int Dim, DoubleVectorOption DVO, bool isFixedRange, TemplateVal_t<Scalar_t> MinCT,
+template <typename Scalar_t, int Dim, ContainerOption DVO, bool isFixedRange, TemplateVal_t<Scalar_t> MinCT,
           TemplateVal_t<Scalar_t> MaxCT>
 class BoxCTDim<Scalar_t, Dim, DVO, BoxShape::RECTANGLE_BOX, isFixedRange, MinCT, MaxCT>
     : public NonsquareBox<Scalar_t, Dim, DVO> {
@@ -79,7 +79,7 @@ class BoxCTDim<Scalar_t, Dim, DVO, BoxShape::RECTANGLE_BOX, isFixedRange, MinCT,
  *
  * \note Square box with runtime dims
  */
-template <typename Scalar_t, DoubleVectorOption DVO, BoxShape BS, bool isFixedRange, TemplateVal_t<Scalar_t> MinCT,
+template <typename Scalar_t, ContainerOption DVO, BoxShape BS, bool isFixedRange, TemplateVal_t<Scalar_t> MinCT,
           TemplateVal_t<Scalar_t> MaxCT>
 class BoxRTDim : public SquareBox<Scalar_t, Eigen::Dynamic, DVO, isFixedRange, MinCT, MaxCT> {
  private:
@@ -123,7 +123,7 @@ class BoxRTDim : public SquareBox<Scalar_t, Eigen::Dynamic, DVO, isFixedRange, M
  *
  * \note Non-square box with dynamic dims
  */
-template <typename Scalar_t, DoubleVectorOption DVO, bool isFixedRange, TemplateVal_t<Scalar_t> MinCT,
+template <typename Scalar_t, ContainerOption DVO, bool isFixedRange, TemplateVal_t<Scalar_t> MinCT,
           TemplateVal_t<Scalar_t> MaxCT>
 class BoxRTDim<Scalar_t, DVO, BoxShape::RECTANGLE_BOX, isFixedRange, MinCT, MaxCT>
     : public NonsquareBox<Scalar_t, Eigen::Dynamic, DVO> {
@@ -160,7 +160,7 @@ class BoxRTDim<Scalar_t, DVO, BoxShape::RECTANGLE_BOX, isFixedRange, MinCT, MaxC
  * \tparam MinCT Minimum value at compile time
  * \tparam MaxCT Maximum value at compile time
  */
-template <typename Scalar_t, int Dim, DoubleVectorOption DVO, BoxShape BS, bool isFixedRange,
+template <typename Scalar_t, int Dim, ContainerOption DVO, BoxShape BS, bool isFixedRange,
           TemplateVal_t<Scalar_t> MinCT, TemplateVal_t<Scalar_t> MaxCT>
 class BoxDims : public std::conditional<Dim == Eigen::Dynamic, BoxRTDim<Scalar_t, DVO, BS, isFixedRange, MinCT, MaxCT>,
                                         BoxCTDim<Scalar_t, Dim, DVO, BS, isFixedRange, MinCT, MaxCT>>::type {};

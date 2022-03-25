@@ -94,7 +94,7 @@ void testTSP_SOGA(const uint32_t PointNum) {
   }
 
   auto crossoverFun =
-      Eigen::GADefaults<vector<double>, Args_t, DoubleVectorOption::Std>::cFunXd<Eigen::DivCode::DivCode_Half>;
+      Eigen::GADefaults<vector<double>, Args_t, ContainerOption::Std>::cFunXd<Eigen::DivCode::DivCode_Half>;
 
   auto mutateFun = [](const vector<double> *src, vector<double> *x, const Args_t *) {
     *x = *src;

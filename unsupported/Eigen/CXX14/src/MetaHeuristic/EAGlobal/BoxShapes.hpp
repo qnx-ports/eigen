@@ -29,7 +29,7 @@ namespace internal {
  *
  * \note Non-square box types.
  */
-template <typename Scalar_t, int Size, DoubleVectorOption DVO>
+template <typename Scalar_t, int Size, ContainerOption DVO>
 class NonsquareBox : public BoxDynamicRange<Scalar_t, Size, BoxShape::RECTANGLE_BOX, DVO> {};
 
 /**
@@ -46,7 +46,7 @@ class NonsquareBox : public BoxDynamicRange<Scalar_t, Size, BoxShape::RECTANGLE_
  *
  * \note Square box with compile time range
  */
-template <typename Scalar_t, int Size, DoubleVectorOption DVO, bool isFixedRange, TemplateVal_t<Scalar_t> MinCT,
+template <typename Scalar_t, int Size, ContainerOption DVO, bool isFixedRange, TemplateVal_t<Scalar_t> MinCT,
           TemplateVal_t<Scalar_t> MaxCT>
 class SquareBox : public BoxFixedRange<Scalar_t, MinCT, MaxCT> {
  private:
@@ -73,7 +73,7 @@ class SquareBox : public BoxFixedRange<Scalar_t, MinCT, MaxCT> {
  *
  * \note Square box with runtime ranges
  */
-template <typename Scalar_t, int Size, DoubleVectorOption DVO, TemplateVal_t<Scalar_t> MinCT,
+template <typename Scalar_t, int Size, ContainerOption DVO, TemplateVal_t<Scalar_t> MinCT,
           TemplateVal_t<Scalar_t> MaxCT>
 class SquareBox<Scalar_t, Size, DVO, false, MinCT, MaxCT>
     : public BoxDynamicRange<Scalar_t, Size, BoxShape::SQUARE_BOX, DVO> {
