@@ -22,7 +22,7 @@
 #include <iostream>
 #endif
 
-#include "../../Global"
+#include <unsupported/Eigen/CXX14/src/MetaHeuristic/Global/Global>
 #include "InternalHeaderCheck.h"
 #include "GAOption.hpp"
 #include "GAAbstract.hpp"
@@ -32,7 +32,7 @@ namespace Eigen {
 namespace internal {
 
 /**
- * \ingroup HEU_Genetic
+ * \ingroup CXX14_METAHEURISTIC
  * \class GABase
  * \brief Genetic algorithm base class.
  *  It's an abstrcat base class for all genetic algorithm solvers.
@@ -361,7 +361,7 @@ class GABase : public GAAbstract<Var_t, Fitness_t, Args_t>,
   EIGEN_HEU_MAKE_GAABSTRACT_TYPES
 
 /**
- * \ingroup HEU_Genetic
+ * \ingroup CXX14_METAHEURISTIC
  * \class GABase
  * \brief partial specialization for GABase with record.
  *

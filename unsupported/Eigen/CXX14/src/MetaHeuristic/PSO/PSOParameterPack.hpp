@@ -10,7 +10,7 @@
 #ifndef EIGEN_HEU_PSOPARAMETERPACK_HPP
 #define EIGEN_HEU_PSOPARAMETERPACK_HPP
 
-#include "../../Global"
+#include <unsupported/Eigen/CXX14/src/MetaHeuristic/Global/Global>
 #include "InternalHeaderCheck.h"
 
 namespace Eigen {
@@ -21,7 +21,7 @@ EIGEN_HEU_MAKE_FUNAREA(iFun, iFun, PSO)
 EIGEN_HEU_MAKE_FUNAREA(fFun, fFun, PSO)
 
 /**
- * \ingroup HEU_PSO
+ * \ingroup CXX14_METAHEURISTIC
  * \class PSOParameterPack
  * \brief This class maintains a member `Args_t _args` if `Args_t` is void. Besides it defines the format of
  * initialization function and fitness function.
@@ -102,7 +102,7 @@ class PSOParameterPack {
 };
 
 /**
- * \ingroup HEU_PSO
+ * \ingroup CXX14_METAHEURISTIC
  * \class PSOParameterPack<Var_t, Fitness_t, void>
  * \brief Specilized for PSO without args
  *

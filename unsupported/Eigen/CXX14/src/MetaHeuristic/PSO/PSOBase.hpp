@@ -21,7 +21,7 @@ namespace internal {
 // Abstrcat base class for most PSO solvers
 
 /**
- * \ingroup HEU_PSO
+ * \ingroup CXX14_METAHEURISTIC
  * \class PSOBase
  * \brief Internal base class for PSO solvers
  *
@@ -62,7 +62,7 @@ class PSOBase : public PSOAbstract<Var_t, Fitness_t, Record, Arg_t, _iFun_, _fFu
 //
 
 /**
- * \ingroup HEU_PSO
+ * \ingroup CXX14_METAHEURISTIC
  * \class PSOBase<Var_t, Eigen::Dynamic, Fitness_t, Record, Arg_t, _iFun_, _fFun_>
  * \brief Partial specialization for PSOBase with Runtime dimensions
  *

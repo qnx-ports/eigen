@@ -19,7 +19,7 @@ namespace Eigen {
 /// options about GA algorithm
 
 /**
- * \ingroup HEU_Genetic
+ * \ingroup CXX14_METAHEURISTIC
  * \struct GAOption
  * \brief GAOption is a struct encapsulating several general options for most types of genetic algorithm.
  *

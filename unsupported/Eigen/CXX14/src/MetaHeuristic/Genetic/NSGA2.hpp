@@ -16,7 +16,7 @@
 namespace Eigen {
 
 /**
- * \ingroup HEU_Genetic
+ * \ingroup CXX14_METAHEURISTIC
  * \class NSGA2
  * \brief NSGA2 MOGA solver. Suitable for not too many objectives.
  *

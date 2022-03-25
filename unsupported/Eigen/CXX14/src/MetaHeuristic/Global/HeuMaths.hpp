@@ -44,7 +44,7 @@ return 0;
 */
 
 /**
- * \ingroup HEU_Global
+ * \ingroup CXX14_METAHEURISTIC
  * \brief Compute fractorial.
  *
  * \tparam num_t Type of integer
@@ -60,7 +60,7 @@ inline num_t fractorial(num_t n) {
 }
 
 /**
- * \ingroup HEU_Global
+ * \ingroup CXX14_METAHEURISTIC
  * \brief Computer combinatorial number C^K_N.
  * This function is called by NSGA3 when making reference points.
  *
@@ -164,7 +164,7 @@ inline T imp_max(T a, U b, Args_t... args) {
 }  // namespace internal
 
 /**
- * \ingroup HEU_Global
+ * \ingroup CXX14_METAHEURISTIC
  * \brief Find Minimum value for multiple inputs
  *
  * \tparam T Type of input
@@ -179,7 +179,7 @@ inline T min(T a, Args_t... args) {
 }
 
 /**
- * \ingroup HEU_Global
+ * \ingroup CXX14_METAHEURISTIC
  * \brief Find maximum value for multiple inputs
  *
  * \tparam T Type of input

@@ -17,7 +17,7 @@
 namespace Eigen {
 
 /**
- * \ingroup HEU_Global
+ * \ingroup CXX14_METAHEURISTIC
  * \brief This enumeration encode a floating-point number
  * by a division of int32 and uint32 stored in uint64
  *
@@ -39,7 +39,7 @@ enum DivCode : uint64_t {
 };
 
 /**
- * \ingroup HEU_Global
+ * \ingroup CXX14_METAHEURISTIC
  * \struct DivEncode
  * \brief Metafunction to encode the numerator and denominator into uint64.
  *
@@ -61,7 +61,7 @@ struct DivEncode {
 };
 
 /**
- * \ingroup HEU_Global
+ * \ingroup CXX14_METAHEURISTIC
  * \struct DivDecode
  * \brief Metafunction to decode a DivCode back to the numerator and denominator
  * and corresponding floating-point number.
@@ -78,7 +78,7 @@ struct DivDecode {
 };
 
 /**
- * \ingroup HEU_Global
+ * \ingroup CXX14_METAHEURISTIC
  * \brief This enumeration encode a floating-point number
  * by storing its sign, its coefficient and exponent into a uint64.
  *
@@ -131,7 +131,7 @@ struct PowEncode_OneE<0> {
 }  // namespace internal
 
 /**
- * \ingroup HEU_Global
+ * \ingroup CXX14_METAHEURISTIC
  * \struct PowEncode
  * \brief Metafunction to encode a floating-point number like scientific notation
  *
@@ -170,7 +170,7 @@ struct PowEncode {
 };
 
 /**
- * \ingroup HEU_Global
+ * \ingroup CXX14_METAHEURISTIC
  * \struct PowDecode
  * \brief Metafunction to decode a divcode back into its real numer.
  *

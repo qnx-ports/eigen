@@ -11,19 +11,14 @@
 #define EIGEN_HEU_PARETO_HPP
 
 #include "InternalHeaderCheck.h"
-#include "../../Global"
-
-/**
- * \defgroup HEU_EAGlobal EAGlobal (Micellaneous for evoluntionary algorithms)
- *
- */
+#include <unsupported/Eigen/CXX14/src/MetaHeuristic/Global/Global>
 
 namespace Eigen {
 
 namespace internal {
 
 /**
- * \ingroup HEU_EAGlobal
+ * \ingroup CXX14_METAHEURISTIC
  * \struct Pareto
  * \brief Pareto optimality in multi-objective problems
  *

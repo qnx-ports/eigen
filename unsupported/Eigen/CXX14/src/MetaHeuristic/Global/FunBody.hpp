@@ -17,9 +17,8 @@
 namespace Eigen {
 
 /**
- * \ingroup HEU_Global
- * \brief This marco metafunction is used to generate a struct
- * that adpatively mantain a function pointer.
+ * \ingroup CXX14_METAHEURISTIC
+ * \brief This marco metafunction is used to generate a struct that adpatively mantain a function pointer.
  *
  *
  * If a function name is provided at compile time, it can execute the function,

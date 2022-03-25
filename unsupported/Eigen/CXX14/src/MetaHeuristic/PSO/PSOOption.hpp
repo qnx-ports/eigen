@@ -12,20 +12,14 @@
 
 #include <stdint.h>
 #include "InternalHeaderCheck.h"
-#include "../../Global"
-
-/**
- * \defgroup HEU_PSO Particle Swarm Optimization algorithm
- *
- * This module provides fundamental implementation of PSO.
- */
+#include "../Global/Global"
 
 namespace Eigen {
 
 // Options to PSO
 
 /**
- * \ingroup HEU_PSO
+ * \ingroup CXX14_METAHEURISTIC
  * \struct PSOOption
  * \brief Basical option of PSO
  *

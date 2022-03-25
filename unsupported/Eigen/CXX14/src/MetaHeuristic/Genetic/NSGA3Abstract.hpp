@@ -21,7 +21,7 @@ namespace Eigen {
 namespace internal {
 
 /**
- * \ingroup HEU_Genetic
+ * \ingroup CXX14_METAHEURISTIC
  * \brief Internal base class for NSGA3.
  *
  * This class implements most part of NSGA3' selection precedure. Also it maintains reference points in a matrix.

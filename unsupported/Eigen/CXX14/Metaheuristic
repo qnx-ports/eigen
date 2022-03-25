@@ -10,53 +10,31 @@
 #ifndef EIGEN_HEU_METAHEURISTIC_
 #define EIGEN_HEU_METAHEURISTIC_
 
-#ifndef EIGEN_HEU_GLOBAL_
-#define EIGEN_HEU_GLOBAL_
+/**
+ * \file Metaheuristic
+ * \author Shawn Li (tokinobug@163.com)
+ * \brief Header file for metaheuristic algorithms
+ * \date 2022-03-25
+ */
 
-#include "../../../Eigen/Dense"
+/**
+ * \defgroup CXX14_METAHEURISTIC Metaheuristic optimization algorithms
+ * Metaheuristic algorithms are computational intelligence paradigms especially used for sophisticated solving
+ * optimization problems.
+ *
+ * This module implements single objective genetic algorithm (GA), non-dominated sorting GA II (NSGA-II) for
+ * multi-objective and non-dominated sorting GA III (NSGA-III) for many objective problems. Also there are single
+ * objective Particle Swarm Optimization (PSO)
+ *
+ * To include this module, use
+ * \code
+ * #include <Eigen/CXX14/MetaHeuristic>
+ * \endcode
+ */
 
-#include "src/MetaHeuristic/Global/Threading.hpp"
-#include "src/MetaHeuristic/Global/FunBody.hpp"
-#include "src/MetaHeuristic/Global/Enumerations.hpp"
-#include "src/MetaHeuristic/Global/Types.hpp"
-#include "src/MetaHeuristic/Global/Constants.hpp"
-#include "src/MetaHeuristic/Global/TemplateFloat.hpp"
-#include "src/MetaHeuristic/Global/HeuMaths.hpp"
-#include "src/MetaHeuristic/Global/Randoms.hpp"
-
-#endif  // EIGEN_HEU_GLOBAL_
-
-#ifndef EIGEN_HEU_EAGLOBAL_
-#define EIGEN_HEU_EAGLOBAL_
-
-#include "src/MetaHeuristic/EAGlobal/Pareto.hpp"
-#include "src/MetaHeuristic/EAGlobal/BoxInterface.hpp"
-
-#endif  //  EIGEN_HEU_EAGLOBAL_
-
-#ifndef EIGEN_HEU_GENETIC_
-#define EIGEN_HEU_GENETIC_
-
-#include "src/MetaHeuristic/Genetic/GAOption.hpp"
-#include "src/MetaHeuristic/Genetic/GABase.hpp"
-#include "src/MetaHeuristic/Genetic/SOGA.hpp"
-#include "src/MetaHeuristic/Genetic/MOGAAbstract.hpp"
-#include "src/MetaHeuristic/Genetic/MOGABase.hpp"
-#include "src/MetaHeuristic/Genetic/NSGA2.hpp"
-#include "src/MetaHeuristic/Genetic/Micellaneous4GA.hpp"
-#include "src/MetaHeuristic/Genetic/NSGA3.hpp"
-
-#endif  //  EIGEN_HEU_GENETIC_
-
-#ifndef EIGEN_HEU_PSO_
-#define EIGEN_HEU_PSO_
-
-#include "src/MetaHeuristic/PSO/PSOParameterPack.hpp"
-#include "src/MetaHeuristic/PSO/PSOOption.hpp"
-#include "src/MetaHeuristic/PSO/PSOBase.hpp"
-#include "src/MetaHeuristic/PSO/PSO.hpp"
-#include "src/MetaHeuristic/PSO/PSODefaults.hpp"
-
-#endif  // EIGEN_HEU_PSO_
+#include "src/MetaHeuristic/Global/Global"
+#include "src/MetaHeuristic/EAGlobal/EAGlobal"
+#include "src/MetaHeuristic/Genetic/Genetic"
+#include "src/MetaHeuristic/PSO/PSO"
 
 #endif  //  EIGEN_HEU_METAHEURISTIC_

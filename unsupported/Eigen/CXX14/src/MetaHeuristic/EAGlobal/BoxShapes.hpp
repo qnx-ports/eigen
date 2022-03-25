@@ -10,7 +10,7 @@
 #ifndef EIGEN_HEU_BOXSHAPES_HPP
 #define EIGEN_HEU_BOXSHAPES_HPP
 
-#include <Eigen/Core>
+#include <Eigen/Dense>
 #include "InternalHeaderCheck.h"
 #include "BoxRTCTRange.hpp"
 
@@ -19,7 +19,7 @@ namespace Eigen {
 namespace internal {
 
 /**
- * \ingroup HEU_EAGlobal
+ * \ingroup CXX14_METAHEURISTIC
  * \class NonsquareBox
  * \brief Internal typedef of base class for various types of boxes.
  *
@@ -33,7 +33,7 @@ template <typename Scalar_t, int Size, DoubleVectorOption DVO>
 class NonsquareBox : public BoxDynamicRange<Scalar_t, Size, BoxShape::RECTANGLE_BOX, DVO> {};
 
 /**
- * \ingroup HEU_EAGlobal
+ * \ingroup CXX14_METAHEURISTIC
  * \class SquareBox
  * \brief Internal base class for various types of boxes.
  *
@@ -61,7 +61,7 @@ class SquareBox : public BoxFixedRange<Scalar_t, MinCT, MaxCT> {
  */
 
 /**
- * \ingroup HEU_EAGlobal
+ * \ingroup CXX14_METAHEURISTIC
  * \class SquareBox
  * \brief Internal base class for various types of boxes.
  *

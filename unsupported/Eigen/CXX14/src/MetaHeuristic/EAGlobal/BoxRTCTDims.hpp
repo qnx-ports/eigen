@@ -18,7 +18,7 @@ namespace Eigen {
 namespace internal {
 
 /**
- * \ingroup HEU_EAGlobal
+ * \ingroup CXX14_METAHEURISTIC
  * \class BoxCTDim
  * \brief Internal base class for various types of boxes.
  *
@@ -66,7 +66,7 @@ class BoxCTDim<Scalar_t, Dim, DVO, BoxShape::RECTANGLE_BOX, isFixedRange, MinCT,
 };
 
 /**
- * \ingroup HEU_EAGlobal
+ * \ingroup CXX14_METAHEURISTIC
  * \class BoxRTDim
  * \brief Internal base class for various types of boxes.
  *
@@ -111,7 +111,7 @@ class BoxRTDim : public SquareBox<Scalar_t, Eigen::Dynamic, DVO, isFixedRange, M
 };
 
 /**
- * \ingroup HEU_EAGlobal
+ * \ingroup CXX14_METAHEURISTIC
  * \class BoxRTDim
  * \brief Internal base class for various types of boxes.
  *
@@ -147,7 +147,7 @@ class BoxRTDim<Scalar_t, DVO, BoxShape::RECTANGLE_BOX, isFixedRange, MinCT, MaxC
 };
 
 /**
- * \ingroup HEU_EAGlobal
+ * \ingroup CXX14_METAHEURISTIC
  * \class BoxDims
  * \brief Internal conditional base class for boolean box and symbolic box.
  * It's also a base class of real box.

@@ -7,11 +7,11 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef EIGEN_HEU_MICELLANEOUS4GA_HPP
-#define EIGEN_HEU_MICELLANEOUS4GA_HPP
+#ifndef EIGEN_HEU_MISCELLANEOUS4GA_HPP
+#define EIGEN_HEU_MISCELLANEOUS4GA_HPP
 
 #include <assert.h>
-#include "../../Global"
+#include "../Global/Global"
 #include "InternalHeaderCheck.h"
 #include "GAAbstract.hpp"
 
@@ -76,7 +76,7 @@ struct imp_GADefaults_DVO<Var_t, DoubleVectorOption::Eigen> {
 }  // namespace internal
 
 /**
- * \ingroup HEU_Genetic
+ * \ingroup CXX14_METAHEURISTIC
  * \struct GADefaults
  * \brief The GADefaults struct defines several candidate operations for GA.
  *
@@ -583,4 +583,4 @@ struct GADefaults<Var_t, void, dvo> {
 
 }  //  namespace Eigen
 
-#endif  //  EIGEN_HEU_MICELLANEOUS4GA_HPP
+#endif  //  EIGEN_HEU_MISCELLANEOUS4GA_HPP

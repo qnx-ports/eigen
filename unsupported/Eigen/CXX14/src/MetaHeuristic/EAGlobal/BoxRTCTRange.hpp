@@ -14,7 +14,7 @@
 #include <assert.h>
 
 #include "InternalHeaderCheck.h"
-#include "../../Global"
+#include <unsupported/Eigen/CXX14/src/MetaHeuristic/Global/Global>
 
 /**
  * This file has implementation for different min() and max()
@@ -26,7 +26,7 @@ namespace Eigen {
 namespace internal {
 
 /**
- * \ingroup HEU_EAGlobal
+ * \ingroup CXX14_METAHEURISTIC
  * \class BoxDynamicRange
  * \brief Internal base class for various types of boxes.
  *
@@ -66,7 +66,7 @@ class BoxDynamicRange {
 };
 
 /**
- * \ingroup HEU_EAGlobal
+ * \ingroup CXX14_METAHEURISTIC
  * \class BoxDynamicRange
  * \brief Internal base class for various types of boxes.
  *
@@ -103,7 +103,7 @@ class BoxDynamicRange<Scalar_t, Size, BoxShape::SQUARE_BOX, DVO> {
 };
 
 /**
- * \ingroup HEU_EAGlobal
+ * \ingroup CXX14_METAHEURISTIC
  * \brief Types that can pass a Scalar_t in templates.
  *
  * \tparam Scalar_t Type of scalar
@@ -113,7 +113,7 @@ template <typename Scalar_t>
 using TemplateVal_t = typename std::conditional<std::is_floating_point<Scalar_t>::value, DivCode, Scalar_t>::type;
 
 /**
- * \ingroup HEU_EAGlobal
+ * \ingroup CXX14_METAHEURISTIC
  * \class BoxFixedRange
  * \brief Internal base class for various types of boxes.
  *

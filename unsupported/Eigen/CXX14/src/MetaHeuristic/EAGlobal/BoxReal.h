@@ -18,7 +18,7 @@ namespace Eigen {
 namespace internal {
 
 /**
- * \ingroup HEU_EAGlobal
+ * \ingroup CXX14_METAHEURISTIC
  * \class RealBoxBase
  * \brief Internal base class for all kinds of real boxes.
  *
@@ -48,7 +48,7 @@ class RealBoxBase : public BoxDims<Scalar_t, Dim, DVO, BS, isFixedRange, MinCT, 
 };
 
 /**
- * \ingroup HEU_EAGlobal
+ * \ingroup CXX14_METAHEURISTIC
  * \class learnRateBody
  * \brief Internal base class that for runtime learning rate.
  *
@@ -68,7 +68,7 @@ struct learnRateBody {
 };
 
 /**
- * \ingroup HEU_EAGlobal
+ * \ingroup CXX14_METAHEURISTIC
  * \class RealBox
  * \brief Compile-time ranged box with fixed learning rate
  *
@@ -99,7 +99,7 @@ class RealBox : public RealBoxBase<Scalar_t, Dim, DVO, BS, isFixedRange, MinCT, 
  */
 
 /**
- * \ingroup HEU_EAGlobal
+ * \ingroup CXX14_METAHEURISTIC
  * \brief Runtime-ranged box with runtime range and learning rate
  *
  * \tparam Scalar_t Type of scalar

@@ -16,7 +16,7 @@
 namespace Eigen {
 
 /**
- * \ingroup HEU_Genetic
+ * \ingroup CXX14_METAHEURISTIC
  * \brief Different options of reference points.
  *
  * Here's two ways to generate reference points: the Das and Dennis' systematic approach generates a single layer, while
@@ -38,7 +38,7 @@ enum ReferencePointOption {
 namespace internal {
 
 /**
- * \ingroup HEU_Genetic
+ * \ingroup CXX14_METAHEURISTIC
  * \class NSGA3Base
  * \brief Internal base class for NSGA3(single layer).
  *
@@ -114,7 +114,7 @@ class NSGA3Base : public NSGA3Abstract<Var_t, ObjNum, rOpt, Args_t, _iFun_, _fFu
 };
 
 /**
- * \ingroup HEU_Genetic
+ * \ingroup CXX14_METAHEURISTIC
  * \class NSGA3Base
  * \brief Internal base class for NSGA3(double layers).
  *

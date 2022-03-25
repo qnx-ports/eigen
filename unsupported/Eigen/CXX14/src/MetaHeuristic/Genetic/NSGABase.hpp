@@ -18,7 +18,7 @@ namespace Eigen {
 namespace internal {
 
 /**
- * \ingroup HEU_Genetic
+ * \ingroup CXX14_METAHEURISTIC
  * \class NSGABase
  * \brief Base class for nondominated sorting series of genetic algorithms, like NSGA2 and NSGA3.
  *

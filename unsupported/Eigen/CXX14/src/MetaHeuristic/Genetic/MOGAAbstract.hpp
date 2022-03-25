@@ -14,7 +14,7 @@
 #include <functional>
 #include <unordered_set>
 
-#include "../../EAGlobal"
+#include <unsupported/Eigen/CXX14/src/MetaHeuristic/EAGlobal/EAGlobal>
 #include "InternalHeaderCheck.h"
 #include "GABase.hpp"
 
@@ -23,7 +23,7 @@ namespace Eigen {
 namespace internal {
 
 /**
- * \ingroup HEU_Genetic
+ * \ingroup CXX14_METAHEURISTIC
  * \class MOGAAbstract
  * \brief Base class for multi-objective genetic algorithm solver.
  *

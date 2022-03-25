@@ -19,7 +19,7 @@
 namespace Eigen {
 
 /**
- * \ingroup HEU_Global
+ * \ingroup CXX14_METAHEURISTIC
  * \class LogisticChaos
  * \brief A chaos device to generate logistic chaotic sequence.
  *

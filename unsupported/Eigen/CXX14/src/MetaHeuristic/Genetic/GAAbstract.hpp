@@ -13,17 +13,7 @@
 #include <type_traits>
 
 #include "InternalHeaderCheck.h"
-#include "../../Global"
-
-/**
- * \defgroup HEU_Genetic GeneticAlgorithms
- *
- * This module has some implementations of varities of genetic algorithm solvers, including `SOGA` for single objectives
- * while `NSGA2` and `NSGA3` for multiple objectives. Besides, `GADefaults` provides many candidate functions to for
- * initialization, crossover and mutation.
- *
- * \sa SOGA NSGA2 NSGA3 GADefaults
- */
+#include <unsupported/Eigen/CXX14/src/MetaHeuristic/Global/Global>
 
 namespace Eigen {
 
@@ -39,7 +29,7 @@ EIGEN_HEU_MAKE_FUNAREA(mFun, mFun, GA)
  */
 
 /**
- * \ingroup HEU_Genetic
+ * \ingroup CXX14_METAHEURISTIC
  * \class GAAbstract
  * \brief Internal base class.
  *

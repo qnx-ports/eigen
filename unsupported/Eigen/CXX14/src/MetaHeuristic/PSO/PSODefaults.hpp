@@ -40,7 +40,7 @@ struct __impl_PSODefaults<Var_t, true> {
 }  // namespace internal
 
 /**
- * \ingroup HEU_PSO
+ * \ingroup CXX14_METAHEURISTIC
  * \struct PSODefaults
  * \brief PSODefaults provides candidate functions for initialization
  *
@@ -74,7 +74,7 @@ struct PSODefaults {
 };
 
 /**
- * \ingroup HEU_PSO
+ * \ingroup CXX14_METAHEURISTIC
  * \struct PSODefaults<Var_t, isVarEigenTypes, void>
  * \brief Specialization when `Args_t` is `void`.
  *

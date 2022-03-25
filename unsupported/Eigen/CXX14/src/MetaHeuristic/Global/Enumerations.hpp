@@ -17,7 +17,7 @@
 namespace Eigen {
 
 /**
- * \ingroup HEU_Global
+ * \ingroup CXX14_METAHEURISTIC
  * \brief Whether to record trainning curve of not
  *
  */
@@ -27,7 +27,7 @@ enum RecordOption : uint8_t {
 };
 
 /**
- * \ingroup HEU_Global
+ * \ingroup CXX14_METAHEURISTIC
  * \brief Convert enumeration to string
  *
  * \param r The enum value
@@ -43,7 +43,7 @@ inline const char* Enum2String(RecordOption r) {
 }
 
 /**
- * \ingroup HEU_Global
+ * \ingroup CXX14_METAHEURISTIC
  * \brief Optimization direction
  *
  */
@@ -53,7 +53,7 @@ enum FitnessOption : uint8_t {
 };
 
 /**
- * \ingroup HEU_Global
+ * \ingroup CXX14_METAHEURISTIC
  * \brief Convert enumeration to string
  *
  * \param f The enum value
@@ -69,7 +69,7 @@ inline const char* Enum2String(FitnessOption f) {
 }
 
 /**
- * \ingroup HEU_Global
+ * \ingroup CXX14_METAHEURISTIC
  *
  * \brief Which type of container to use.
  *
@@ -89,7 +89,7 @@ enum DoubleVectorOption {
 };
 
 /**
- * \ingroup HEU_Global
+ * \ingroup CXX14_METAHEURISTIC
  * \brief Convert enumeration to string
  *
  * \param e The enum value
@@ -107,7 +107,7 @@ inline const char* Enum2String(DoubleVectorOption e) {
 }
 
 /**
- * \ingroup HEU_Global
+ * \ingroup CXX14_METAHEURISTIC
  * \brief The type of a box-constraint
  *
  * \note Box constraint is the most regular encoding types
@@ -122,7 +122,7 @@ enum BoxShape {
 };
 
 /**
- * \ingroup HEU_Global
+ * \ingroup CXX14_METAHEURISTIC
  * \brief Convert enumeration to string
  *
  * \param b The enum value
@@ -138,7 +138,7 @@ inline const char* Enum2String(BoxShape b) {
 }
 
 /**
- * \ingroup HEU_Global
+ * \ingroup CXX14_METAHEURISTIC
  * \brief Encoding type of a box constraint
  *
  * \note Various encoding types are used in evoluntionary
@@ -154,7 +154,7 @@ enum EncodeType {
 };
 
 /**
- * \ingroup HEU_Global
+ * \ingroup CXX14_METAHEURISTIC
  * \brief Convert enumeration to string
  *
  * \param e The enum value

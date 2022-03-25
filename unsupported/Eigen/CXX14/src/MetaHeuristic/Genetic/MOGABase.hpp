@@ -23,7 +23,7 @@ namespace Eigen {
 namespace internal {
 
 /**
- * \ingroup HEU_Genetic
+ * \ingroup CXX14_METAHEURISTIC
  * \class MOGABase
  * \brief Base class for multiple objective genetic solvers.
  *
@@ -63,7 +63,7 @@ class MOGABase : public MOGAAbstract<Var_t, ObjNum, fOpt, rOpt, Args_t, _iFun_, 
 };
 
 /**
- * \ingroup HEU_Genetic
+ * \ingroup CXX14_METAHEURISTIC
  * \class MOGABase
  * \brief Base class for multiple objective genetic solvers.
  *

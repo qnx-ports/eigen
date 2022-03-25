@@ -18,11 +18,11 @@ namespace Eigen {
 /**
  * \brief Single-object genetic solver.
  *
- *  @tparam Var_t  Type of decisition variable.
- *  @tparam fOpt Whether greater fitness value means better. SOGA will always try to find the best, so it's vital to
+ * \tparam Var_t  Type of decisition variable.
+ * \tparam fOpt Whether greater fitness value means better. SOGA will always try to find the best, so it's vital to
  * tell SOGA which direction is right.
- *  @tparam Record  Whether the solver records fitness changelog.
- *  @tparam Args_t  Type of other parameters.
+ * \tparam Record  Whether the solver records fitness changelog.
+ * \tparam Args_t  Type of other parameters.
  * \tparam _iFun_ Function to initialize an individual in population. This function will be called only when
  * initializing. Use nullptr if you hope to determine it at runtime. nullptr as default value.
  * \tparam _fFun_ Funtion to compute fitness for any

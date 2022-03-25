@@ -17,7 +17,7 @@
 namespace Eigen {
 
 /**
- * \ingroup HEU_EAGlobal
+ * \ingroup CXX14_METAHEURISTIC
  * \brief Fixed(N) dim real(d,double) square(S) box
  *
  * \tparam Dim Box dimensions
@@ -38,7 +38,7 @@ using BoxNdS = internal::RealBox<double, Dim, DVO, BoxShape::SQUARE_BOX, isFixed
  */
 
 /**
- * \ingroup HEU_EAGlobal
+ * \ingroup CXX14_METAHEURISTIC
  * \brief runtime(X) dim real(d-double) square(S) box
  *
  * \tparam DVO Type of container.
@@ -54,7 +54,7 @@ template <DoubleVectorOption DVO = DoubleVectorOption::Std, bool isFixedRange = 
 using BoxXdS = internal::RealBox<double, Eigen::Dynamic, DVO, BoxShape::SQUARE_BOX, isFixedRange, MinCT, MaxCT, LRCT>;
 
 /**
- * \ingroup HEU_EAGlobal
+ * \ingroup CXX14_METAHEURISTIC
  * \brief Fixed(N) dim real(d-double) nonsquare(N) box
  *
  * \tparam Dim Box dimensions
@@ -64,7 +64,7 @@ template <int Dim, DoubleVectorOption DVO = DoubleVectorOption::Std>
 using BoxNdN = internal::RealBox<double, Dim, DVO, BoxShape::RECTANGLE_BOX>;
 
 /**
- * \ingroup HEU_EAGlobal
+ * \ingroup CXX14_METAHEURISTIC
  * \brief runtime(X) dim real(d-double) nonsquare(N) box
  *
  * \tparam DVO Type of container, std containers for defult value.
@@ -73,7 +73,7 @@ template <DoubleVectorOption DVO = DoubleVectorOption::Std>
 using BoxXdN = internal::RealBox<double, Eigen::Dynamic, DVO, BoxShape::RECTANGLE_BOX>;
 
 /**
- * \ingroup HEU_EAGlobal
+ * \ingroup CXX14_METAHEURISTIC
  * \class BooleanBox
  * \brief Binary box
  *
@@ -94,7 +94,7 @@ class BooleanBox : public internal::BoxDims<bool, Dim, DVO, BoxShape::SQUARE_BOX
 };
 
 /**
- * \ingroup HEU_EAGlobal
+ * \ingroup CXX14_METAHEURISTIC
  * \brief Binary(b) box with fixed dims(N)
  *
  * \tparam Dim Box dimensions
@@ -104,7 +104,7 @@ template <int Dim, DoubleVectorOption DVO = DoubleVectorOption::Std>
 using BoxNb = typename std::enable_if<Dim != Eigen::Dynamic, BooleanBox<Dim, DVO>>::type;
 
 /**
- * \ingroup HEU_EAGlobal
+ * \ingroup CXX14_METAHEURISTIC
  * \brief Binary(b) box with dynamic(X) dims
  *
  * \tparam DVO Type of container, std containers as default.
@@ -115,7 +115,7 @@ using BoxXb = BooleanBox<Eigen::Dynamic, DVO>;
 namespace internal {
 
 /**
- * \ingroup HEU_EAGlobal
+ * \ingroup CXX14_METAHEURISTIC
  * \class SymbolBox
  * \brief Internal class for symbolic box
  *
@@ -145,7 +145,7 @@ class SymbolBox : public internal::BoxDims<Scalar_t, Dim, DVO, BS, isFixedRange,
 }  // namespace internal
 
 /**
- * \ingroup HEU_EAGlobal
+ * \ingroup CXX14_METAHEURISTIC
  * \brief Square(S) symbolic(s) box with fixed dim(N)
  *
  * \tparam Scalar_t Type of symbols
@@ -163,7 +163,7 @@ using BoxNsS =
                                                                        isFixedRange, MinCT, MaxCT>>::type;
 
 /**
- * \ingroup HEU_EAGlobal
+ * \ingroup CXX14_METAHEURISTIC
  * \brief Square(S) symbolic(s) box with runtime(X) dim
  *
  * \tparam Scalar_t Type of symbols
@@ -178,7 +178,7 @@ template <typename Scalar_t, DoubleVectorOption DVO = DoubleVectorOption::Std, b
 using BoxXsS = internal::SymbolBox<Scalar_t, Eigen::Dynamic, DVO, BoxShape::SQUARE_BOX, isFixedRange, MinCT, MaxCT>;
 
 /**
- * \ingroup HEU_EAGlobal
+ * \ingroup CXX14_METAHEURISTIC
  * \brief Non-square(N) symbolic(s) box with fixed(N) dim
  *
  * \tparam Scalar_t Type of symbols
@@ -194,7 +194,7 @@ using BoxNsN = typename std::enable_if<Dim != Eigen::Dynamic,
  */
 
 /**
- * \ingroup HEU_EAGlobal
+ * \ingroup CXX14_METAHEURISTIC
  * \brief Non-square(N) symbolic(s) box with dynamic(X) dim
  *
  * \tparam Scalar_t Type of symboxs

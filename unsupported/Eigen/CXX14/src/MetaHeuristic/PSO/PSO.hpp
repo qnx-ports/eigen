@@ -21,7 +21,7 @@
 namespace Eigen {
 
 /**
- * \ingroup HEU_PSO
+ * \ingroup CXX14_METAHEURISTIC
  * \class PSO
  * \brief Generalized PSO solver.
  *
@@ -153,7 +153,7 @@ class PSO : public internal::PSOBase<Var_t, DIM, double, RecordOpt, Arg_t, _iFun
 //
 
 /**
- * \ingroup HEU_PSO
+ * \ingroup CXX14_METAHEURISTIC
  * \brief Convenient typedef for stdArray (fix-sized and Runtime sized)
  *
  * \tparam DIM Dimensions of decision variable. Use `Eigen::Dynamic` for runtime determined.
@@ -169,7 +169,7 @@ template <int DIM, FitnessOption FitnessOpt, RecordOption RecordOpt, class Arg_t
 using PSO_std = PSO<stdVecD_t<DIM>, DIM, false, FitnessOpt, RecordOpt, Arg_t, _iFun_, _fFun_>;
 
 /**
- * \ingroup HEU_PSO
+ * \ingroup CXX14_METAHEURISTIC
  * \brief Convenient typedef for Eigen Arrays (fix-sized and Runtime sized)
  *
  * \tparam DIM Dimensions of decision variable. Use `Eigen::Dynamic` for runtime determined.
@@ -185,7 +185,7 @@ template <int DIM, FitnessOption FitnessOpt, RecordOption RecordOpt, class Arg_t
 using PSO_Eigen = PSO<Eigen::Array<double, DIM, 1>, DIM, true, FitnessOpt, RecordOpt, Arg_t, _iFun_, _fFun_>;
 
 /**
- * \ingroup HEU_PSO
+ * \ingroup CXX14_METAHEURISTIC
  * \class PSO<Var_t, DIM, true, FitnessOpt, RecordOpt, Arg_t, _iFun_, _fFun_>
  * \brief Partial specilization for PSO using Eigen's fix-sized Array
  *
