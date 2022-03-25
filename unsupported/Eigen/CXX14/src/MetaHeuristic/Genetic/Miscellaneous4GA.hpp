@@ -328,7 +328,7 @@ struct GADefaults {
    * \param c2 The second child
    */
   template <DivCode _r = DivEncode<1, 5>::code>
-  inline static void cFunXd(const Var_t *p1, const Var_t *p2, Var_t *c1, Var_t *c2, const Args_t *a) {
+  inline static void cFunXd(const Var_t *p1, const Var_t *p2, Var_t *c1, Var_t *c2, const Args_t *) {
     GADefaults<Var_t, void, dvo>::template cFunXd<_r>(p1, p2, c1, c2);
   }
 

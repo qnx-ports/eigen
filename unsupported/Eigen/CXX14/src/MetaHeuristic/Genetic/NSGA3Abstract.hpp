@@ -45,6 +45,7 @@ class NSGA3Abstract
   using Base_t = NSGABase<Var_t, ObjNum, FITNESS_LESS_BETTER, rOpt, Args_t, _iFun_, _fFun_, _cFun_, _mFun_>;
 
  public:
+  virtual ~NSGA3Abstract() {}
   EIGEN_HEU_MAKE_NSGABASE_TYPES(Base_t)
   using RefPointIdx_t = size_t;
 

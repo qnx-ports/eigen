@@ -44,9 +44,10 @@ class PSOBase : public PSOAbstract<Var_t, Fitness_t, Record, Arg_t, _iFun_, _fFu
   using Base_t = PSOAbstract<Var_t, Fitness_t, Record, Arg_t, _iFun_, _fFun_>;
 
  public:
+  virtual ~PSOBase() {}
+
   EIGEN_HEU_MAKE_PSOABSTRACT_TYPES(Base_t)
 
- public:
   /**
    * \brief Get dimensions
    *
@@ -83,6 +84,7 @@ class PSOBase<Var_t, Eigen::Dynamic, Fitness_t, Record, Arg_t, _iFun_, _fFun_>
   using Base_t = PSOAbstract<Var_t, Fitness_t, Record, Arg_t, _iFun_, _fFun_>;
 
  public:
+  virtual ~PSOBase() {}
   EIGEN_HEU_MAKE_PSOABSTRACT_TYPES(Base_t)
 
   /**

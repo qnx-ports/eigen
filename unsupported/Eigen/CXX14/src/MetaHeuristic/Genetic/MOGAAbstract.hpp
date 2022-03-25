@@ -52,7 +52,6 @@ class MOGAAbstract
   static_assert(ObjNum != 1, "You assigend 1 objective in multi-objective problems");
 
  public:
-  MOGAAbstract(){};
   virtual ~MOGAAbstract(){};
   EIGEN_HEU_MAKE_GABASE_TYPES(Base_t)
 

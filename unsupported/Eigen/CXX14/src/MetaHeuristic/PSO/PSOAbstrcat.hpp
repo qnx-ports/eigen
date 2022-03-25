@@ -50,6 +50,7 @@ class PSOAbstract : public PSOParameterPack<Var_t, Fitness_t, Arg_t>,
   using Base_t = PSOParameterPack<Var_t, Fitness_t, Arg_t>;
 
  public:
+  virtual ~PSOAbstract() {}
   EIGEN_HEU_MAKE_PSOPARAMETERPACK_TYPES(Base_t)
 
   /**
@@ -359,6 +360,7 @@ class PSOAbstract<Var_t, Fitness_t, RECORD_FITNESS, Arg_t, _iFun_, _fFun_>
   friend Base_t;
 
  public:
+  virtual ~PSOAbstract() {}
   EIGEN_HEU_MAKE_PSOABSTRACT_TYPES(Base_t)
 
   /**

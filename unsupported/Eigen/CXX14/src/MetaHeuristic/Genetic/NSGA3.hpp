@@ -47,6 +47,8 @@ class NSGA3 : public internal::NSGA3Base<Var_t, ObjNum, rOpt, rpOpt, Args_t, _iF
   using Base_t = internal::NSGA3Base<Var_t, ObjNum, rOpt, rpOpt, Args_t, _iFun_, _fFun_, _cFun_, _mFun_>;
 
  public:
+  NSGA3() {}
+  virtual ~NSGA3() {}
   EIGEN_HEU_MAKE_NSGA3ABSTRACT_TYPES(Base_t)
 
   /**

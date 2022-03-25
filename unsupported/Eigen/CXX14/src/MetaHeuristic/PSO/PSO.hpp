@@ -46,6 +46,8 @@ class PSO : public internal::PSOBase<Var_t, DIM, double, RecordOpt, Arg_t, _iFun
   using Base_t = internal::PSOBase<Var_t, DIM, double, RecordOpt, Arg_t, _iFun_, _fFun_>;
 
  public:
+  PSO() {}
+  virtual ~PSO() {}
   EIGEN_HEU_MAKE_PSOABSTRACT_TYPES(Base_t)
 
   static const DoubleVectorOption Flag =
@@ -127,9 +129,9 @@ class PSO : public internal::PSOBase<Var_t, DIM, double, RecordOpt, Arg_t, _iFun
     static const int32_t thN = Eigen::nbThreads();
 #pragma omp parallel for schedule(dynamic, this->_population.size() / thN)
 #endif  //  EIGEN_HAS_OPENMP
-    for (int idx = 0; idx < this->_population.size(); idx++) {
-      Particle_t& i = this->_population[idx];
-      for (size_t idx = 0; idx < Base_t::dimensions(); idx++) {
+    for (int index = 0; index < this->_population.size(); index++) {
+      Particle_t& i = this->_population[index];
+      for (int idx = 0; idx < this->dimensions(); idx++) {
         i.velocity[idx] = this->_option.inertiaFactor * i.velocity[idx] +
                           this->_option.learnFactorP * ei_randD() * (i.pBest.position[idx] - i.position[idx]) +
                           this->_option.learnFactorG * ei_randD() * (this->gBest.position[idx] - i.position[idx]);
@@ -258,7 +260,7 @@ class PSO<Var_t, DIM, true, FitnessOpt, RecordOpt, Arg_t, _iFun_, _fFun_>
     static const int32_t thN = Eigen::nbThreads();
 #pragma omp parallel for schedule(dynamic, this->_population.size() / thN)
 #endif  //  EIGEN_HAS_OPENMP
-    for (int idx = 0; idx < this->_population.size(); idx++) {
+    for (int idx = 0; idx < (int)this->_population.size(); idx++) {
       Particle_t& i = this->_population[idx];
       i.velocity = this->_option.inertiaFactor * i.velocity +
                    this->_option.learnFactorP * ei_randD() * (i.pBest.position - i.position) +

@@ -43,7 +43,8 @@ class SOGA : public internal::GABase<Var_t, double, Record, Args_t, _iFun_, _fFu
 
  public:
   EIGEN_HEU_MAKE_GABASE_TYPES(Base_t)
-
+  SOGA() {}
+  virtual ~SOGA() {}
   /**
    * \brief Return the best fitness of current population
    *

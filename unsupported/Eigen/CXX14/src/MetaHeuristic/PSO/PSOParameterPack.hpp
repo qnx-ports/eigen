@@ -36,6 +36,7 @@ EIGEN_HEU_MAKE_FUNAREA(fFun, fFun, PSO)
 template <class Var_t, class Fitness_t, class Arg_t = void>
 class PSOParameterPack {
  public:
+  virtual ~PSOParameterPack() {}
   /// A alias of `Args_t`
   using Args_t = Arg_t;
 
@@ -114,6 +115,7 @@ class PSOParameterPack {
 template <class Var_t, class Fitness_t>
 class PSOParameterPack<Var_t, Fitness_t, void> {
  public:
+  virtual ~PSOParameterPack() {}
   using Args_t = void;
 
   using iFun_t = void (*)(Var_t *pos, Var_t *velocity, const Var_t *pMin, const Var_t *pMax, const Var_t *vMax);

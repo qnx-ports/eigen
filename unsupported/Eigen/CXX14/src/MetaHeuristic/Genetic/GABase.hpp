@@ -68,6 +68,7 @@ class GABase : public GAAbstract<Var_t, Fitness_t, Args_t>,
  public:
   EIGEN_HEU_MAKE_GAABSTRACT_TYPES(Base_t)
 
+  virtual ~GABase() {}
   /**
    * \class Gene
    * \brief Type of a individual
@@ -389,6 +390,7 @@ class GABase<Var_t, Fitness_t, RECORD_FITNESS, Args_t, _iFun_, _fFun_, _cFun_, _
  public:
   EIGEN_HEU_MAKE_GABASE_TYPES(Base_t)
 
+  virtual ~GABase() {}
   /**
    * \brief Reimplement the run function so that recording related functions can be called.
    *

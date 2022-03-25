@@ -65,6 +65,7 @@ class NSGA3Base : public NSGA3Abstract<Var_t, ObjNum, rOpt, Args_t, _iFun_, _fFu
   using Base_t = NSGA3Abstract<Var_t, ObjNum, rOpt, Args_t, _iFun_, _fFun_, _cFun_, _mFun_>;
 
  public:
+  virtual ~NSGA3Base() {}
   EIGEN_HEU_MAKE_NSGA3ABSTRACT_TYPES(Base_t)
 
   /**
@@ -148,6 +149,7 @@ class NSGA3Base<Var_t, ObjNum, rOpt, DOUBLE_LAYER, Args_t, _iFun_, _fFun_, _cFun
     _innerPrecision = 3;
     _outerPrecision = 4;
   };
+  virtual ~NSGA3Base() {}
 
   /**
    * \brief Get the precison of inner layer
@@ -199,10 +201,10 @@ class NSGA3Base<Var_t, ObjNum, rOpt, DOUBLE_LAYER, Args_t, _iFun_, _fFun_, _cFun
     this->computeReferencePointPoses(this->objectiveNum(), _innerPrecision, &irfP);
     this->computeReferencePointPoses(this->objectiveNum(), _outerPrecision, &orfP);
 
-    for (int c = 0; c < this->referencePoses.cols(); c++) {
-      for (int r = 0; r < this->objectiveNum(); r++) {
+    for (size_t c = 0; c < (size_t)this->referencePoses.cols(); c++) {
+      for (size_t r = 0; r < this->objectiveNum(); r++) {
         if (c < irfP.size()) {
-          this->referencePoses(r, c) = irfP[c][r] * M_SQRT1_2;
+          this->referencePoses(r, c) = irfP[c][r] * 0.70710678118654752440;
         } else {
           this->referencePoses(r, c) = orfP[c - irfP.size()][r];
         }
