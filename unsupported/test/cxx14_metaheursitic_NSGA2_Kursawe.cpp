@@ -14,14 +14,28 @@
 using namespace Eigen;
 using namespace std;
 
+// This test shows how to use NSGA2 solvers without args.
+
+/*
+Kursawe function is also a testing function for multi-objective evoluntionary algorithms
+The Kursawe function has 1~3 dim(s) input and 2 dim(s) output.
+
+*/
+
 void testNSGA2_Kursawe() {
   // 1<=i<=3,  -5<=x_i<=5
+
+  // All functions at compile time is their default value (nullptr), so they must be assigned at runtime
   NSGA2<std::array<double, 3>, 2, FITNESS_LESS_BETTER, DONT_RECORD_FITNESS> algo;
+
+  // initialize function
   auto iFun = [](std::array<double, 3> *x) {
     for (auto &i : *x) {
       i = ei_randD(-5, 5);
     }
   };
+
+  // The kursawe function is the fitness function
   auto fFun = [](const std::array<double, 3> *x, Eigen::Array<double, 2, 1> *f) {
     double f1 = 0, f2 = 0;
     for (int i = 0; i < 2; i++) {
@@ -35,6 +49,7 @@ void testNSGA2_Kursawe() {
     f->operator[](1) = f2;
   };
 
+  // crossover function
   auto cFun = [](const std::array<double, 3> *p1, const std::array<double, 3> *p2, std::array<double, 3> *ch1,
                  std::array<double, 3> *ch2) {
     for (int i = 0; i < 3; i++) {
@@ -44,6 +59,7 @@ void testNSGA2_Kursawe() {
     }
   };
 
+  // mutate function
   auto mFun = [](const std::array<double, 3> *src, std::array<double, 3> *x) {
     *x = *src;
     const size_t idx = ei_randIdx(3);
@@ -55,7 +71,7 @@ void testNSGA2_Kursawe() {
   GAOption opt;
   opt.maxGenerations = 2000;
   opt.populationSize = 600;
-  opt.maxFailTimes = -1;
+  opt.maxFailTimes = opt.maxGenerations;
 
   algo.setiFun(iFun);
   algo.setmFun(mFun);

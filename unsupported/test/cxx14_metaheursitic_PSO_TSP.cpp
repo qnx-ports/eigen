@@ -16,13 +16,14 @@ using namespace std;
 
 #include <algorithm>
 
+// this tests shows how to solve TSP problems with PSO
 void testTSP_PSO(const size_t N) {
   static const size_t SpaceDim = 2;
-
+  // type of decision variable encoded in double
   using Var_t = Eigen::ArrayXd;
-
+  //  type of args
   using DistanceMat_t = Eigen::ArrayXXd;
-
+  //  type of solver
   using Solver_t = PSO_Eigen<Eigen::Dynamic, FITNESS_LESS_BETTER, RECORD_FITNESS, DistanceMat_t,
                              PSODefaults<Var_t, true, DistanceMat_t>::iFun>;
 
@@ -31,7 +32,7 @@ void testTSP_PSO(const size_t N) {
   Solver_t solver;
 
   using sortUnit = std::pair<double, size_t>;
-
+  //  Decode ArrayXd into a permulation through sorting.
   Solver_t::fFun_t fFun = [](const Var_t* x, const Args_t* args, double* fitness) {
     const size_t _N = (*args).rows();
     std::vector<sortUnit> sortSpace(_N);
@@ -66,6 +67,7 @@ void testTSP_PSO(const size_t N) {
     }
   }
 
+  // Set the option of PSO
   PSOOption opt;
   opt.inertiaFactor = 0.8;
   opt.learnFactorG = 2;
@@ -74,8 +76,10 @@ void testTSP_PSO(const size_t N) {
   opt.maxFailTimes = opt.maxGeneration / 10;
   opt.populationSize = 100;
 
+  // Set the dimension of PSO
   solver.setDimensions(N);
 
+  // Set posMin,posMax and velocityMax
   solver.setPVRange(0, 1, 0.5);
 
   solver.setfFun(fFun);
@@ -86,6 +90,7 @@ void testTSP_PSO(const size_t N) {
   {
     double iniFitness;
     fFun(&solver.population().front().position, &solver.args(), &iniFitness);
+    // The initial fitness value as reference
     cout << "iniFitness = " << iniFitness << endl;
   }
 

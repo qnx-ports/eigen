@@ -14,6 +14,7 @@
 using namespace Eigen;
 using namespace std;
 
+// Test SOGA with TSP problem
 void testTSP_SOGA(const uint32_t PointNum) {
   static const uint8_t DIM = 2;
   // static const double LengthBase=100;

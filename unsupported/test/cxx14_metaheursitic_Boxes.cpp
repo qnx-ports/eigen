@@ -16,7 +16,7 @@ using namespace std;
 
 // this example shows how to use box-constraint types
 void test_Box() {
-    //[0,1]^50, mutate step = 0.02
+  //[0,1]^50, mutate step = 0.02
   BoxNdS<50, DoubleVectorOption::Eigen, true, DivEncode<0, 1>::code, DivEncode<1, 1>::code, DivEncode<1, 50>::code>
       box0;
 
@@ -24,8 +24,8 @@ void test_Box() {
 
   cout << box0.dimensions() << endl;
   cout << box0.learnRate() << endl;
-  cout << "sizeof(box0) = " << sizeof(box0) << endl;// every thing about this boxes are known at compile time, so its size is 1
-
+  cout << "sizeof(box0) = " << sizeof(box0)
+       << endl;  // every thing about this boxes are known at compile time, so its size is 1
 
   // Dynamic dim non-suqare box
   BoxXdN<DoubleVectorOption::Eigen> box;
@@ -50,8 +50,8 @@ void test_Box() {
   cout << BNb.dimensions();
   cout << BXb.dimensions();
 
-  cout << "sizeof BNb=" << sizeof(BNb) << endl;// Every information of BNb is fixed at compile time so its size is 1
-  cout << "sizeof BXb=" << sizeof(BXb) << endl;//BXb 's dimensions is known at runtime so its size is 8 (size_t)
+  cout << "sizeof BNb=" << sizeof(BNb) << endl;  // Every information of BNb is fixed at compile time so its size is 1
+  cout << "sizeof BXb=" << sizeof(BXb) << endl;  // BXb 's dimensions is known at runtime so its size is 8 (size_t)
 }
 
 int main() {

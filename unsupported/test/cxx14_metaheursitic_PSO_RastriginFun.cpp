@@ -14,6 +14,7 @@
 using namespace Eigen;
 using namespace std;
 
+// Test NSGA2 with rastrigin function
 void testRastriginFun() {
   static const size_t N = 20;
   using solver_t = PSO_Eigen<N, FITNESS_LESS_BETTER, RECORD_FITNESS>;

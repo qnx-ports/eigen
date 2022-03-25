@@ -38,3 +38,4 @@ Makefile
 !ci/build.gitlab-ci.yml
 .vscode/c_cpp_properties.json
 .vscode/settings.json
+CMakeLists.txt.user

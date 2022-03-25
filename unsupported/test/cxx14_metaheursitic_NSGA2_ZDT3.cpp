@@ -14,11 +14,11 @@
 using namespace Eigen;
 using namespace std;
 
-/// Zitzler–Deb–Thiele's function N. 3
+/// Zitzler–Deb–Thiele's function N. 3 is a MO testing function
 void testNSGA2_ZDT3() {
   // 0<=x_i<=1, 1<=i<=30
   static const size_t XNum = 30;
-  //static const double r = 0.2;
+  // static const double r = 0.2;
 
   Eigen::NSGA2<std::array<double, XNum>, 2, FITNESS_LESS_BETTER, RECORD_FITNESS> algo;
 

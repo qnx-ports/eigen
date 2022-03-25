@@ -439,7 +439,7 @@ class NSGA3Abstract
 
  private:
   // make reference points with Das and Dennis’s method recrusively.
-  void pri_makeRP(const size_t dimN, const size_t precision, const size_t curDim, const size_t curP, const size_t accum,
+  void pri_makeRP(const size_t dimN, const size_t precision, const size_t curDim, const size_t, const size_t accum,
                   Fitness_t* rec, std::vector<Fitness_t>* dst) const {
     if (curDim + 1 >= dimN) {
       rec->operator[](dimN - 1) = 1.0 - double(accum) / precision;
@@ -456,7 +456,7 @@ class NSGA3Abstract
   void pri_startRP(const size_t dimN, const size_t precision, std::vector<Fitness_t>* dst) const {
     Fitness_t rec;
 #if __cplusplus >= 201703L
-    if constexpr (ObjNum == Runtime) {
+    if constexpr (ObjNum == Eigen::Dynamic) {
       rec.resize(this->objectiveNum());
     }
 #else

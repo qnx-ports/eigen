@@ -14,6 +14,8 @@
 using namespace Eigen;
 using namespace std;
 
+// Ackely function is a single objective testing function with great number of local minimum points, but its global
+// minimum point is [0,0] and corresponding value is 0. A good solver should be able to find the global minimum point.
 void testAckley_withRecord() {
   using args_t = Eigen::BoxNdS<2, Std>;
 

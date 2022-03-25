@@ -14,6 +14,7 @@
 using namespace Eigen;
 using namespace std;
 
+// this tests shows the hierarchy of PSO solvers.
 void testPSOBase() {
   using Var_t = std::vector<double>;
 
@@ -25,12 +26,12 @@ void testPSOBase() {
 
   internal::PSOBase<Var_t, 0, double, RecordOption::RECORD_FITNESS, void, nullptr, nullptr>* baseDoRec = nullptr;
 
-  // DoRec is derived from NoRec
-  abstractNoRec = abstractDoRec;
-
   // base is derived from abstract
   abstractNoRec = baseNoRec;
   abstractDoRec = baseDoRec;
+
+  // DoRec is derived from NoRec
+  abstractNoRec = abstractDoRec;
 }
 
 int main() {
