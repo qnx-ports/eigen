@@ -645,7 +645,7 @@ EIGEN_ALWAYS_INLINE void pload_realimag(RhsScalar* src, Packet2d& r, Packet2d& i
 #endif
 }
 
-#ifndef _ARCH_PWR9
+#ifndef __POWER8_VECTOR__
 const Packet16uc p16uc_MERGEE = { 0x00, 0x01, 0x02, 0x03, 0x10, 0x11, 0x12, 0x13, 0x08, 0x09, 0x0A, 0x0B, 0x18, 0x19, 0x1A, 0x1B };
 
 const Packet16uc p16uc_MERGEO = { 0x04, 0x05, 0x06, 0x07, 0x14, 0x15, 0x16, 0x17, 0x0C, 0x0D, 0x0E, 0x0F, 0x1C, 0x1D, 0x1E, 0x1F };
@@ -656,7 +656,7 @@ template<typename RhsScalar>
 EIGEN_ALWAYS_INLINE void pload_realimag_row(RhsScalar* src, Packet4f& r, Packet4f& i)
 {
     Packet4f t = ploadu<Packet4f>(reinterpret_cast<float*>(src));
-#ifdef _ARCH_PWR9
+#ifdef __POWER8_VECTOR__
     r = vec_mergee(t, t);
     i = vec_mergeo(t, t);
 #else
