@@ -396,7 +396,7 @@ void gemmMMA(const DataMapper& res, const Scalar* blockA, const Scalar* blockB, 
       const Packet pAlpha = pset1<Packet>(alpha);
       const Packet pMask  = bmask<Packet>(remaining_rows);
 
-      typedef typename std::conditional<(sizeof(Scalar) == sizeof(float)), RhsPacket, __vector_pair>::type RhsPacket2;
+      typedef typename std::conditional_t<(sizeof(Scalar) == sizeof(float)), RhsPacket, __vector_pair> RhsPacket2;
 
       Index col = 0;
       for(; col + accRows <= cols; col += accRows)
@@ -684,7 +684,7 @@ void gemm_complexMMA(const DataMapper& res, const LhsScalar* blockAc, const RhsS
       const Scalar* blockA = (Scalar *) blockAc;
       const Scalar* blockB = (Scalar *) blockBc;
 
-      typedef typename std::conditional<(sizeof(Scalar) == sizeof(float)), RhsPacket, __vector_pair>::type RhsPacket2;
+      typedef typename std::conditional_t<(sizeof(Scalar) == sizeof(float)), RhsPacket, __vector_pair> RhsPacket2;
 
       Index col = 0;
       for(; col + accRows <= cols; col += accRows)
