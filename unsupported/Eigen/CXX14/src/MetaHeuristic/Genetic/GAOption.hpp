@@ -50,6 +50,9 @@ struct GAOption {
    * \brief GA will stop once best solution hasn't been improved for continuous maxFailTimes generations. Default value
    * is 100.
    *
+   * \note This member doesn't works for MOGA solvers like NSGA2 and NSGA3 since there's no proper way to estimate if
+   * the PF hasn't been changing for generations.
+   *
    */
   size_t maxFailTimes;
 

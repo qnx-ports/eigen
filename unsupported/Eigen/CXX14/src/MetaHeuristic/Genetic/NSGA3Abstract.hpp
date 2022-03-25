@@ -394,7 +394,7 @@ class NSGA3Abstract
           }
           pickedGene = minGene;
         } else {
-          // pick a ei_random member in associatedGenesInFl
+          // pick a random member in associatedGenesInFl
           size_t N = 0;
           for (auto it = associatedGenesInFl.first; it != associatedGenesInFl.second; ++it) {
             N++;
@@ -426,7 +426,7 @@ class NSGA3Abstract
   inline static void findMinSet(std::unordered_map<RefPointIdx_t, size_t>& refPoints,
                                 std::vector<std::unordered_map<RefPointIdx_t, size_t>::iterator>* minNicheIterators) {
     minNicheIterators->clear();
-    size_t minNiche = -1;
+    size_t minNiche = 0xFFFFFFFF;
     for (auto i : refPoints) {
       minNiche = std::min(minNiche, i.second);
     }

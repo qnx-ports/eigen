@@ -36,20 +36,19 @@ template <size_t M, size_t N>
 void DTLZ1(const Eigen::Array<double, N, 1>* x, Eigen::Array<double, M, 1>* f) {
   f->resize(M, 1);
   auto xm = x->template bottomRows<N - M + 1>();
-  auto xm_sub_half_square = (xm - 0.5).square();
-  auto cos_20pi_mul = (20 * M_PI * (xm - 0.5)).cos();
-  const double g = 100 * (std::sqrt(xm.square().sum()) + (xm_sub_half_square - cos_20pi_mul).sum());
-  double accum = 0.5 * (1 + g);
-  int64_t dim = 0;
-  for (int64_t obj = M - 1; obj >= 0; obj--) {
-    if (obj > 0) {
-      (*f)[obj] = accum * (1 - (*x)[dim]);
-      accum *= (*x)[dim];
-      dim++;
-    } else {
-      (*f)[obj] = accum;
-    }
+  double g = (xm - 0.5).square().sum() - (20 * M_PI * (xm - 0.5)).cos().sum();
+  g += N - M + 1;
+  g *= 100;
+
+  double accum = (1 + g) * 0.5;
+
+  int i = 0;
+  for (int obj = M - 1; obj > 0; obj--) {
+    f->operator[](obj) = accum * (1 - x->operator[](i));
+    accum *= x->operator[](i);
+    i++;
   }
+  f->operator[](0) = x->template topRows<M - 1>().prod() * (1 + g) / 2;
 }
 
 void testNSGA3_DTLZ7() {
@@ -57,12 +56,12 @@ void testNSGA3_DTLZ7() {
   static const size_t N = 20;
   // Number of objectives. DTLZ series are greatly extentable, you can simply edit the value of M and N to see how it
   // behaves for higher dimensions.
-  static const size_t M = 3;
+  static const size_t M = 6;
 
   // Note that NSGA3 supports only FITNESS_LESS_BETTER
   using solver_t = NSGA3<Eigen::Array<double, N, 1>, M,
                          // FITNESS_LESS_BETTER,
-                         DONT_RECORD_FITNESS, DOUBLE_LAYER, void>;
+                         DONT_RECORD_FITNESS, SINGLE_LAYER, void>;
 
   using Var_t = Eigen::Array<double, N, 1>;
   // using Fitness_t = solver_t::Fitness_t;
@@ -84,7 +83,7 @@ void testNSGA3_DTLZ7() {
   cout << "maxGenerations=";
   cin >> opt.maxGenerations;
 
-  opt.maxFailTimes = -1;
+  // opt.maxFailTimes = -1; // this member is useless to MOGA solvers
   cout << "populationSize=";
   cin >> opt.populationSize;
   opt.crossoverProb = 0.8;
@@ -97,11 +96,11 @@ void testNSGA3_DTLZ7() {
   solver.setcFun(cFun);
   solver.setmFun(mFun);
   solver.setOption(opt);
-  solver.setReferencePointPrecision(6, 4);
+  solver.setReferencePointPrecision(10);
   cout << "RPCount=" << solver.referencePointCount() << endl;
   solver.initializePop();
 
-  // cout<<"RP=["<<solver.referencePoints()<<"]';\n\n\n"<<endl;
+  cout << "RP=[" << solver.referencePoints() << "]';\n\n\n" << endl;
 
   clock_t c = clock();
   solver.run();

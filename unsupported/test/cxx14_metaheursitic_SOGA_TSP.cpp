@@ -117,7 +117,10 @@ void testTSP_SOGA(const uint32_t PointNum) {
 
   GAOption opt;
   opt.maxGenerations = 30 * PointNum;
-  opt.maxFailTimes = -1;
+  opt.maxFailTimes = opt.maxGenerations;
+  //  If maxFailTimes is equal or greater than maxGenerations, the solver will definatly runs
+  //  for 100 generations. Since member `maxFailTimes` is of type `size_t`, you can also use
+  //  -1 to achieve this, however it's kind of undefined behavior
 
   algo.setiFun(initializeFun);
   algo.setmFun(mutateFun);

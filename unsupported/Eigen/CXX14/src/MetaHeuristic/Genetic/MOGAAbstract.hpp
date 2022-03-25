@@ -103,7 +103,6 @@ class MOGAAbstract
    *
    */
   inline void initializePop() {
-    this->prevFrontSize = -1;
     this->_pfGenes.clear();
     this->_pfGenes.reserve(this->_option.populationSize * 2);
     Base_t::initializePop();
@@ -131,11 +130,9 @@ class MOGAAbstract
   }
 
  protected:
-  size_t prevFrontSize;                      ///< Size of PF in the previous generation
-  size_t prevPFCheckSum;                     ///< The hash checksum of PF in the previous generation
   std::unordered_set<const Gene*> _pfGenes;  ///< A hash set to store the whole PF
 
-  /**
+  /*
    * \brief Compute the hash checksum of current PF
    *
    * PF checksum is computed with the hash of addresses of every Gene that consist of PF.
@@ -148,6 +145,7 @@ class MOGAAbstract
    *
    * \return size_t The checksum of PF
    */
+  /*
   virtual size_t makePFCheckSum() const {
     std::vector<const Gene*> pfvec;
     pfvec.reserve(_pfGenes.size());
@@ -161,7 +159,7 @@ class MOGAAbstract
       checkSum ^= std::hash<const void*>()(pfvec[i]);
     }
     return checkSum;
-  }
+  }*/
 
 };  // MOGAAbstract
 

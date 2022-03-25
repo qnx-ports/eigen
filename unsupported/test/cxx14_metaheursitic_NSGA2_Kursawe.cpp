@@ -71,7 +71,7 @@ void testNSGA2_Kursawe() {
   GAOption opt;
   opt.maxGenerations = 2000;
   opt.populationSize = 600;
-  opt.maxFailTimes = opt.maxGenerations;
+  // opt.maxFailTimes = opt.maxGenerations;  // this member is useless to MOGA solvers
 
   algo.setiFun(iFun);
   algo.setmFun(mFun);

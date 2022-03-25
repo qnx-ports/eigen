@@ -57,7 +57,7 @@ void testNSGA2_ZDT3() {
 
   GAOption opt;
   opt.populationSize = 200;
-  opt.maxFailTimes = 500;
+  // opt.maxFailTimes = 500;  // this member is useless to MOGA solvers
   opt.maxGenerations = 2000;
 
   algo.setiFun(iFun);

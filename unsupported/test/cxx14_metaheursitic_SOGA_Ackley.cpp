@@ -27,7 +27,7 @@ void testAckley_withRecord() {
 
   GAOption opt;
   opt.populationSize = 50;
-  opt.maxFailTimes = -1;
+  opt.maxFailTimes = 50;  // The solver will end if it hasn't been finding a better solution for 50 generations.
   opt.maxGenerations = 100;
 
   algo.setOption(opt);

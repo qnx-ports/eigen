@@ -75,9 +75,8 @@ void testNSGA2_Binh_and_Korn() {
     GAOption opt;
     opt.maxGenerations = 100;
     opt.populationSize = 200;
-    opt.maxFailTimes = 200;  // If maxFailTimes is equal or greater than maxGenerations, the solver will definatly runs
-                             // for 100 generations. Since member `maxFailTimes` is of type `size_t`, you can also use
-                             // -1 to achieve this, however it's kind of undefined behavior
+    // opt.maxFailTimes = 200;  // this member is useless to MOGA solvers
+
     opt.crossoverProb = 0.8;
     opt.mutateProb = 0.1;
     algo.setOption(opt);

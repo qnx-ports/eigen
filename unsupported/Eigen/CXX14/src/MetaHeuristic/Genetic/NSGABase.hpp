@@ -172,19 +172,6 @@ class NSGABase : public MOGABase<Var_t, ObjNum, fOpt, rOpt, Args_t, _iFun_, _fFu
     for (size_t i = 0; i < curFrontSize; i++) {
       this->_pfGenes.emplace(&*(pfs[i]->iterator));
     }
-    if (this->prevFrontSize != curFrontSize) {
-      this->_failTimes = 0;
-      this->prevFrontSize = curFrontSize;
-    } else {
-      size_t checkSum = this->makePFCheckSum();
-
-      if (this->prevPFCheckSum == checkSum) {
-        this->_failTimes++;
-      } else {
-        this->_failTimes = 0;
-        this->prevPFCheckSum = checkSum;
-      }
-    }
   }  // updatePF()
 
 };  // NSGABase

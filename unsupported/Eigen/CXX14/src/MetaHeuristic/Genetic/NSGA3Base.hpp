@@ -105,9 +105,9 @@ class NSGA3Base : public NSGA3Abstract<Var_t, ObjNum, rOpt, Args_t, _iFun_, _fFu
     this->referencePoses.resize(this->objectiveNum(), referencePointCount());
     std::vector<Fitness_t> rfP;
     this->computeReferencePointPoses(this->objectiveNum(), _precision, &rfP);
-    std::shuffle(rfP.begin(), rfP.end(), global_mt19937);
-    for (size_t c = 0; c < this->referencePoses.cols(); c++) {
-      for (size_t r = 0; r < this->referencePoses.rows(); r++) {
+    std::shuffle(rfP.begin(), rfP.end(), global_mt19937());
+    for (int c = 0; c < this->referencePoses.cols(); c++) {
+      for (int r = 0; r < this->referencePoses.rows(); r++) {
         this->referencePoses(r, c) = rfP[c][r];
       }
     }
