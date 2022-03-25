@@ -1,0 +1,62 @@
+// This file is part of Eigen, a lightweight C++ template library
+// for linear algebra.
+//
+// Copyright (C) 2022 Shawn Li <tokinobug@163.com>
+//
+// This Source Code Form is subject to the terms of the Mozilla
+// Public License v. 2.0. If a copy of the MPL was not distributed
+// with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+#ifndef EIGEN_HEU_METAHEURISTIC_
+#define EIGEN_HEU_METAHEURISTIC_
+
+#ifndef EIGEN_HEU_GLOBAL_
+#define EIGEN_HEU_GLOBAL_
+
+#include "../../../Eigen/Dense"
+
+#include "src/MetaHeuristic/Global/Threading.hpp"
+#include "src/MetaHeuristic/Global/FunBody.hpp"
+#include "src/MetaHeuristic/Global/Enumerations.hpp"
+#include "src/MetaHeuristic/Global/Types.hpp"
+#include "src/MetaHeuristic/Global/Constants.hpp"
+#include "src/MetaHeuristic/Global/TemplateFloat.hpp"
+#include "src/MetaHeuristic/Global/HeuMaths.hpp"
+#include "src/MetaHeuristic/Global/Randoms.hpp"
+
+#endif  // EIGEN_HEU_GLOBAL_
+
+#ifndef EIGEN_HEU_EAGLOBAL_
+#define EIGEN_HEU_EAGLOBAL_
+
+#include "src/MetaHeuristic/EAGlobal/Pareto.hpp"
+#include "src/MetaHeuristic/EAGlobal/BoxInterface.hpp"
+
+#endif  //  EIGEN_HEU_EAGLOBAL_
+
+#ifndef EIGEN_HEU_GENETIC_
+#define EIGEN_HEU_GENETIC_
+
+#include "src/MetaHeuristic/Genetic/GAOption.hpp"
+#include "src/MetaHeuristic/Genetic/GABase.hpp"
+#include "src/MetaHeuristic/Genetic/SOGA.hpp"
+#include "src/MetaHeuristic/Genetic/MOGAAbstract.hpp"
+#include "src/MetaHeuristic/Genetic/MOGABase.hpp"
+#include "src/MetaHeuristic/Genetic/NSGA2.hpp"
+#include "src/MetaHeuristic/Genetic/Micellaneous4GA.hpp"
+#include "src/MetaHeuristic/Genetic/NSGA3.hpp"
+
+#endif  //  EIGEN_HEU_GENETIC_
+
+#ifndef EIGEN_HEU_PSO_
+#define EIGEN_HEU_PSO_
+
+#include "src/MetaHeuristic/PSO/PSOParameterPack.hpp"
+#include "src/MetaHeuristic/PSO/PSOOption.hpp"
+#include "src/MetaHeuristic/PSO/PSOBase.hpp"
+#include "src/MetaHeuristic/PSO/PSO.hpp"
+#include "src/MetaHeuristic/PSO/PSODefaults.hpp"
+
+#endif  // EIGEN_HEU_PSO_
+
+#endif  //  EIGEN_HEU_METAHEURISTIC_
