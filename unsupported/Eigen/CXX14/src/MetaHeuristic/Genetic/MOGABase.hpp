@@ -15,8 +15,22 @@
 #include "InternalHeaderCheck.h"
 #include "MOGAAbstract.hpp"
 
-#ifndef Heu_MOGA_MaxRunTimeObjNum
-#define Heu_MOGA_MaxRunTimeObjNum 32
+#ifndef EIGEN_HEU_MAX_RUNTIME_OBJNUM
+
+/**
+ * \ingroup CXX14_METAHEURISTIC
+ * \brief Maximum runtime objective numbers at runtime.
+ * NSGA2 with runtime objective numbers requires limited objNum.
+ *
+ * To change this value, define this macro before including this module, see the following code:
+ *
+ * \code {.cpp}
+ * #define EIGEN_HEU_MAX_RUNTIME_OBJNUM 64
+ * #include <unsupported/Eigen/CXX14/MetaHeuristic>
+ * \endcode
+ *
+ */
+#define EIGEN_HEU_MAX_RUNTIME_OBJNUM 32
 #endif
 
 namespace Eigen {
@@ -101,16 +115,14 @@ class MOGABase<Var_t, Eigen::Dynamic, fOpt, rOpt, Args_t, _iFun_, _fFun_, _cFun_
   /**
    * \brief Set the Objective Num object
    *
-   * \note Runtime assertion will fail if given _objNum is less than 2, or it exceeds Heu_MOGA_MaxRunTimeObjNum.
+   * \note Runtime assertion will fail if given _objNum is less than 2, or it exceeds EIGEN_HEU_MAX_RUNTIME_OBJNUM.
    * \note This member function exists only when template parameter ObjNum is Eigen::Dynamic.
    *
    * \param _objNum Number of objectives
    */
   inline void setObjectiveNum(int _objNum) {
-#ifndef Heu_NO_RTASSERT
     assert(_objNum > 1);
-    assert(_objNum <= Heu_MOGA_MaxRunTimeObjNum);
-#endif
+    assert(_objNum <= EIGEN_HEU_MAX_RUNTIME_OBJNUM);
     _objectiveNum = _objNum;
   }
 

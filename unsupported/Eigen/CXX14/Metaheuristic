@@ -17,6 +17,14 @@
  * \date 2022-03-25
  */
 
+#if __cplusplus < 201103L
+#error Eigen's unsupported module MetaHeuristic requires at least C++11 because it depends on C++11 standard lib.
+#endif  //  #if __cplusplus <201103L
+
+#if __cplusplus < 201402L
+#warning It's strongly recommended to use Eigen's unsupported module MetaHeuristic with at least C++14. Otherwise all constexpr return values may lead to warnings or errors.
+#endif  //  #if __cplusplus <201103L
+
 /**
  * \defgroup CXX14_METAHEURISTIC Metaheuristic optimization algorithms
  * Metaheuristic algorithms are computational intelligence paradigms especially used for sophisticated solving

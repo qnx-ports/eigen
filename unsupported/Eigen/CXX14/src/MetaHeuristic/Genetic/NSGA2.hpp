@@ -111,9 +111,7 @@ class NSGA2 : public internal::NSGABase<Var_t, ObjNum, fOpt, rOpt, Args_t, _iFun
    */
   template <int64_t objIdx>
   static bool compareByFitness(const infoUnitBase_t *A, const infoUnitBase_t *B) {
-#ifndef Heu_NO_STATICASSERT
     static_assert(objIdx >= 0, "Invalid comparison flag");
-#endif
     if (A == B) return false;
     /// compare by fitness on single objective
     return A->fitnessCache[objIdx] < B->fitnessCache[objIdx];
