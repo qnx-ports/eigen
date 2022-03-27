@@ -49,7 +49,7 @@ namespace Eigen {
  * - `void setPVRange(double pMin, double pMax, double vMax)` will also set these value but it shapes the box into a
  * square box.
  * - `void initializePop()` to initialize the whole population.
- * - `void run<>()` to run the PSO algorithm.
+ * - `void run()` to run the PSO algorithm.
  * - `double bestFitness() const` returns the best fitness value.
  * - `const PSOOption& option() const` returns a const-ref to the PSOOption object.
  * - `size_t generation() const` returns the generations that the solver has spend.
@@ -99,9 +99,9 @@ class PSO : public internal::PSOBase<Var_t, DIM, double, RecordOpt, Arg_t, _iFun
       (std::is_same<Var_t, stdVecD_t<DIM>>::value) ? ContainerOption::Std : ContainerOption::Custom;
 
   /**
-   * \brief Function used to provide a result for recording
+   * \brief Get the current gBest fitness
    *
-   * \return double The best fitness to be recorded
+   * \return double Current global best fitness
    */
   double bestFitness() const { return this->gBest.fitness; }
 
@@ -274,6 +274,10 @@ class PSO<Var_t, DIM, true, FitnessOpt, RecordOpt, Arg_t, _iFun_, _fFun_>
     }
   }
 
+  /**
+   * \brief Update the value of pBest and gBest
+   *
+   */
   void __impl_updatePGBest() {
     Point_t* curGBest = &this->_population.front().pBest;
 
@@ -295,6 +299,10 @@ class PSO<Var_t, DIM, true, FitnessOpt, RecordOpt, Arg_t, _iFun_, _fFun_>
     }
   }
 
+  /**
+   * \brief Update the position and velocity of each particle
+   *
+   */
   void __impl_updatePopulation() {
 #ifdef EIGEN_HAS_OPENMP
     static const int32_t thN = Eigen::nbThreads();

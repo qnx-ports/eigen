@@ -229,7 +229,7 @@ class PSOAbstract : public PSOParameterPack<Var_t, Fitness_t, Arg_t>,
    *
    * \tparam this_t Type of solver. This can be a PSOAbstract, or the solver type at the end of the inheriting chain.
    *
-   * run() is designed to be a template function inorder to achieve compile polymorphism, kind of like CRTP
+   * __impl_run is designed to be a template function inorder to achieve compile polymorphism, kind of like CRTP
    *
    * \sa GABase::run
    */
@@ -303,16 +303,6 @@ class PSOAbstract : public PSOParameterPack<Var_t, Fitness_t, Arg_t>,
 #endif
   }
 
-  /**
-   * \brief Update the value of pBest and gBest
-   *
-   */
-
-  /**
-   * \brief Update the position and velocity of each particle
-   *
-   */
-
   // reloaded by template parameters to fit all types of `Args_t`
   template <bool _HasParameters, class unused = void>
   struct PSOExecutor {
@@ -374,12 +364,6 @@ class PSOAbstract<Var_t, Fitness_t, RECORD_FITNESS, Arg_t, _iFun_, _fFun_>
    * \return const std::vector<Fitness_t>& The fitness record.
    */
   const std::vector<Fitness_t>& record() const { return _record; }
-
-  /**
-   * \brief Get the current gBest
-   *
-   * \return Fitness_t The fitness value
-   */
 
  protected:
   /// The fitness record
