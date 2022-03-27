@@ -50,7 +50,7 @@ class PSOAbstract : public PSOParameterPack<Var_t, Fitness_t, Arg_t>,
   using Base_t = PSOParameterPack<Var_t, Fitness_t, Arg_t>;
 
  public:
-  virtual ~PSOAbstract() {}
+  ~PSOAbstract() {}
   EIGEN_HEU_MAKE_PSOPARAMETERPACK_TYPES(Base_t)
 
   /**
@@ -199,54 +199,6 @@ class PSOAbstract : public PSOParameterPack<Var_t, Fitness_t, Arg_t>,
     _failTimes = 0;
   }
 
-  /**
-   * \brief run the algorithm
-   *
-   * \tparam this_t Type of solver. This can be a PSOAbstract, or the solver type at the end of the inheriting chain.
-   *
-   * run() is designed to be a template function inorder to achieve compile polymorphism, kind of like CRTP
-   *
-   * \sa GABase::run
-   */
-  template <class this_t = PSOAbstract>
-  void run() {
-    _generation = 0;
-    _failTimes = 0;
-
-    static_cast<this_t*>(this)->__impl_clearRecord();
-
-    while (true) {
-      _generation++;
-      calculateAll();
-      updatePGBest();
-
-      static_cast<this_t*>(this)->__impl_recordFitness();
-      if (_generation > _option.maxGeneration) {
-#ifdef EIGEN_HEU_DO_OUTPUT
-        std::cout << "Terminated by max generation limit" << std::endl;
-#endif
-        break;
-      }
-
-      if (_option.maxFailTimes > 0 && _failTimes > _option.maxFailTimes) {
-#ifdef EIGEN_HEU_DO_OUTPUT
-        std::cout << "Terminated by max failTime limit" << std::endl;
-#endif
-        break;
-      }
-#ifdef EIGEN_HEU_DO_OUTPUT
-      std::cout << "Generation "
-                << _generation
-                //<<" , elite fitness="<<_eliteIt->fitness()
-                << std::endl;
-#endif
-      updatePopulation();
-
-      customOptAfterEachGeneration();
-    }
-    _generation--;
-  }
-
  protected:
   /// The option of PSO solver
   PSOOption _option;
@@ -273,6 +225,52 @@ class PSOAbstract : public PSOParameterPack<Var_t, Fitness_t, Arg_t>,
   Point gBest;
 
   /**
+   * \brief run the algorithm
+   *
+   * \tparam this_t Type of solver. This can be a PSOAbstract, or the solver type at the end of the inheriting chain.
+   *
+   * run() is designed to be a template function inorder to achieve compile polymorphism, kind of like CRTP
+   *
+   * \sa GABase::run
+   */
+  template <class this_t = PSOAbstract>
+  void __impl_run() {
+    _generation = 0;
+    _failTimes = 0;
+
+    static_cast<this_t*>(this)->__impl_clearRecord();
+
+    while (true) {
+      _generation++;
+      static_cast<this_t*>(this)->__impl_computeAllFitness();
+      static_cast<this_t*>(this)->__impl_updatePGBest();
+
+      static_cast<this_t*>(this)->template __impl_recordFitness<this_t>();
+      if (_generation > _option.maxGeneration) {
+#ifdef EIGEN_HEU_DO_OUTPUT
+        std::cout << "Terminated by max generation limit" << std::endl;
+#endif
+        break;
+      }
+
+      if (_option.maxFailTimes > 0 && _failTimes > _option.maxFailTimes) {
+#ifdef EIGEN_HEU_DO_OUTPUT
+        std::cout << "Terminated by max failTime limit" << std::endl;
+#endif
+        break;
+      }
+#ifdef EIGEN_HEU_DO_OUTPUT
+      std::cout << "Generation "
+                << _generation
+                //<<" , elite fitness="<<_eliteIt->fitness()
+                << std::endl;
+#endif
+      static_cast<this_t*>(this)->__impl_updatePopulation();
+    }
+    _generation--;
+  }
+
+  /**
    * \brief Record fitness for non-recording solvers.
    * This function is useless here but it will be reloaded for PSOAbstract with recording.
    */
@@ -282,6 +280,7 @@ class PSOAbstract : public PSOParameterPack<Var_t, Fitness_t, Arg_t>,
    * \brief Record fitness for non-recording solvers.
    * This function is useless here but it will be reloaded for PSOAbstract with recording.
    */
+  template <class this_t>
   inline void __impl_recordFitness() {}
 
   /**
@@ -289,7 +288,7 @@ class PSOAbstract : public PSOParameterPack<Var_t, Fitness_t, Arg_t>,
    *
    * In default cases, this function will boost the fitness computation via multi-threading.
    */
-  virtual void calculateAll() {
+  void __impl_computeAllFitness() {
 #ifdef EIGEN_HAS_OPENMP
     static const int32_t thN = Eigen::nbThreads();
 #pragma omp parallel for schedule(dynamic, _population.size() / thN)
@@ -308,22 +307,11 @@ class PSOAbstract : public PSOParameterPack<Var_t, Fitness_t, Arg_t>,
    * \brief Update the value of pBest and gBest
    *
    */
-  virtual void updatePGBest() = 0;
 
   /**
    * \brief Update the position and velocity of each particle
    *
    */
-  virtual void updatePopulation() = 0;
-
-  /**
-   * \brief Some custom operation after each generation.
-   *
-   * This function is not specially implemented in Eigen. If you hope to customize PSO, inherit PSO and reload this
-   * virtual function.
-   *
-   */
-  virtual void customOptAfterEachGeneration(){};
 
   // reloaded by template parameters to fit all types of `Args_t`
   template <bool _HasParameters, class unused = void>
@@ -377,7 +365,7 @@ class PSOAbstract<Var_t, Fitness_t, RECORD_FITNESS, Arg_t, _iFun_, _fFun_>
   friend Base_t;
 
  public:
-  virtual ~PSOAbstract() {}
+  ~PSOAbstract() {}
   EIGEN_HEU_MAKE_PSOABSTRACT_TYPES(Base_t)
 
   /**
@@ -392,19 +380,6 @@ class PSOAbstract<Var_t, Fitness_t, RECORD_FITNESS, Arg_t, _iFun_, _fFun_>
    *
    * \return Fitness_t The fitness value
    */
-  virtual Fitness_t bestFitness() const = 0;
-
-  /**
-   * \brief This function reloades and calls the function in the base class.
-   *
-   * \tparam this_t Type of solver.
-   *
-   * \sa PSOAbstract::run
-   */
-  template <class this_t = PSOAbstract>
-  void run() {
-    Base_t::template run<this_t>();
-  }
 
  protected:
   /// The fitness record
@@ -427,7 +402,10 @@ class PSOAbstract<Var_t, Fitness_t, RECORD_FITNESS, Arg_t, _iFun_, _fFun_>
    * \sa PSOAbstract::__impl_recordFitness
    *
    */
-  inline void __impl_recordFitness() { _record.emplace_back(bestFitness()); }
+  template <class this_t>
+  inline void __impl_recordFitness() {
+    _record.emplace_back(static_cast<this_t*>(this)->bestFitness());
+  }
 };
 
 }  //  namespace internal

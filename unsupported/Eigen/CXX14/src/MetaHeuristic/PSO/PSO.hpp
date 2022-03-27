@@ -91,8 +91,9 @@ class PSO : public internal::PSOBase<Var_t, DIM, double, RecordOpt, Arg_t, _iFun
 
  public:
   PSO() {}
-  virtual ~PSO() {}
+  ~PSO() {}
   EIGEN_HEU_MAKE_PSOABSTRACT_TYPES(Base_t)
+  friend class internal::PSOAbstract<Var_t, double, DONT_RECORD_FITNESS, Arg_t, _iFun_, _fFun_>;
 
   static const ContainerOption Flag =
       (std::is_same<Var_t, stdVecD_t<DIM>>::value) ? ContainerOption::Std : ContainerOption::Custom;
@@ -102,7 +103,13 @@ class PSO : public internal::PSOBase<Var_t, DIM, double, RecordOpt, Arg_t, _iFun
    *
    * \return double The best fitness to be recorded
    */
-  virtual double bestFitness() const { return this->gBest.fitness; }
+  double bestFitness() const { return this->gBest.fitness; }
+
+  /**
+   * \brief Run the PSO solver
+   *
+   */
+  inline void run() { this->template __impl_run<PSO>(); }
 
  protected:
   /**
@@ -125,7 +132,7 @@ class PSO : public internal::PSOBase<Var_t, DIM, double, RecordOpt, Arg_t, _iFun
    * \brief Update gBest and pBest
    *
    */
-  virtual void updatePGBest() {
+  void __impl_updatePGBest() {
     // gBest for current generation
     Point_t* curGBest = &this->_population.front().pBest;
 
@@ -151,7 +158,7 @@ class PSO : public internal::PSOBase<Var_t, DIM, double, RecordOpt, Arg_t, _iFun
    * \brief Update the position and velocity of all particles
    *
    */
-  virtual void updatePopulation() {
+  void __impl_updatePopulation() {
 #ifdef EIGEN_HAS_OPENMP
     static const int32_t thN = Eigen::nbThreads();
 #pragma omp parallel for schedule(dynamic, this->_population.size() / thN)
@@ -243,8 +250,20 @@ class PSO<Var_t, DIM, true, FitnessOpt, RecordOpt, Arg_t, _iFun_, _fFun_>
 
  public:
   EIGEN_HEU_MAKE_PSOABSTRACT_TYPES(Base_t)
+  friend class internal::PSOAbstract<Var_t, double, DONT_RECORD_FITNESS, Arg_t, _iFun_, _fFun_>;
 
-  virtual double bestFitness() const { return this->gBest.fitness; }
+  /**
+   * \brief Function used to provide a result for recording
+   *
+   * \return double The best fitness to be recorded
+   */
+  double bestFitness() const { return this->gBest.fitness; }
+
+  /**
+   * \brief Run the PSO solver
+   *
+   */
+  inline void run() { this->template __impl_run<PSO>(); }
 
  protected:
   static bool isBetterThan(double a, double b) {
@@ -255,7 +274,7 @@ class PSO<Var_t, DIM, true, FitnessOpt, RecordOpt, Arg_t, _iFun_, _fFun_>
     }
   }
 
-  virtual void updatePGBest() {
+  void __impl_updatePGBest() {
     Point_t* curGBest = &this->_population.front().pBest;
 
     for (Particle_t& i : this->_population) {
@@ -276,7 +295,7 @@ class PSO<Var_t, DIM, true, FitnessOpt, RecordOpt, Arg_t, _iFun_, _fFun_>
     }
   }
 
-  virtual void updatePopulation() {
+  void __impl_updatePopulation() {
 #ifdef EIGEN_HAS_OPENMP
     static const int32_t thN = Eigen::nbThreads();
 #pragma omp parallel for schedule(dynamic, this->_population.size() / thN)
