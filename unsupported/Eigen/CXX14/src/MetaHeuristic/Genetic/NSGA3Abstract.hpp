@@ -45,8 +45,10 @@ class NSGA3Abstract
   using Base_t = NSGABase<Var_t, ObjNum, FITNESS_LESS_BETTER, rOpt, Args_t, _iFun_, _fFun_, _cFun_, _mFun_>;
 
  public:
-  virtual ~NSGA3Abstract() {}
+  ~NSGA3Abstract() {}
   EIGEN_HEU_MAKE_NSGABASE_TYPES(Base_t)
+  friend class internal::GABase<Var_t, Fitness_t, DONT_RECORD_FITNESS, Args_t, _iFun_, _fFun_, _cFun_, _mFun_>;
+
   using RefPointIdx_t = size_t;
 
   /// Type of reference point(called RP in brief) matrix. Each coloumn is the coordinate of a RP.
@@ -111,7 +113,7 @@ class NSGA3Abstract
    *
    * \sa NSGA2
    */
-  void select() {
+  void __impl_select() {
     // population size before selection.
     const size_t popSizeBef = this->_population.size();
     std::vector<infoUnit3> pop;

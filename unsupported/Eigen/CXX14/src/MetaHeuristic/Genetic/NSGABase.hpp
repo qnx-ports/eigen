@@ -44,7 +44,7 @@ class NSGABase : public MOGABase<Var_t, ObjNum, fOpt, rOpt, Args_t, _iFun_, _fFu
   using Base_t = MOGABase<Var_t, ObjNum, fOpt, rOpt, Args_t, _iFun_, _fFun_, _cFun_, _mFun_>;
 
  public:
-  virtual ~NSGABase() {}
+  ~NSGABase() {}
   EIGEN_HEU_MAKE_GABASE_TYPES(Base_t)
   using Fitness_t = typename Base_t::Fitness_t;
 
@@ -117,7 +117,7 @@ class NSGABase : public MOGABase<Var_t, ObjNum, fOpt, rOpt, Args_t, _iFun_, _fFu
    * \brief Function to calculate infoUnitBase::domainedByNum of a population.
    *
    */
-  virtual void calculateDominatedNum() {
+  void calculateDominatedNum() {
     const size_t popSizeBefore = sortSpace.size();
 #ifdef EIGEN_HAS_OPENMP
     static const int32_t thN = Eigen::nbThreads();
@@ -148,7 +148,7 @@ class NSGABase : public MOGABase<Var_t, ObjNum, fOpt, rOpt, Args_t, _iFun_, _fFu
    * \brief Divide the sorted population (is sortSpace) into a few non-dominated layers.
    *
    */
-  virtual void divideLayers() {
+  void divideLayers() {
     std::sort(sortSpace.begin(), sortSpace.end(), sortByDominatedNum);
     pfLayers.clear();
     const size_t popSizeBef = sortSpace.size();

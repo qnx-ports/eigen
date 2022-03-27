@@ -52,7 +52,7 @@ class MOGAAbstract
   static_assert(ObjNum != 1, "You assigend 1 objective in multi-objective problems");
 
  public:
-  virtual ~MOGAAbstract(){};
+  ~MOGAAbstract(){};
   EIGEN_HEU_MAKE_GABASE_TYPES(Base_t)
 
   /**
@@ -117,7 +117,7 @@ class MOGAAbstract
    *
    * \return Fitness_t ideal point
    */
-  virtual Fitness_t bestFitness() const {
+  Fitness_t bestFitness() const {
     Fitness_t best = this->_population.front()._Fitness;
     for (const Gene& i : this->_population) {
       if (fOpt == FitnessOption::FITNESS_GREATER_BETTER) {
@@ -146,7 +146,7 @@ class MOGAAbstract
    * \return size_t The checksum of PF
    */
   /*
-  virtual size_t makePFCheckSum() const {
+  size_t makePFCheckSum() const {
     std::vector<const Gene*> pfvec;
     pfvec.reserve(_pfGenes.size());
     for (auto i : _pfGenes) {

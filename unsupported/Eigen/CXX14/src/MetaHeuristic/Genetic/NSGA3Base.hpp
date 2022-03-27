@@ -65,7 +65,7 @@ class NSGA3Base : public NSGA3Abstract<Var_t, ObjNum, rOpt, Args_t, _iFun_, _fFu
   using Base_t = NSGA3Abstract<Var_t, ObjNum, rOpt, Args_t, _iFun_, _fFun_, _cFun_, _mFun_>;
 
  public:
-  virtual ~NSGA3Base() {}
+  ~NSGA3Base() {}
   EIGEN_HEU_MAKE_NSGA3ABSTRACT_TYPES(Base_t)
 
   /**
@@ -149,7 +149,7 @@ class NSGA3Base<Var_t, ObjNum, rOpt, DOUBLE_LAYER, Args_t, _iFun_, _fFun_, _cFun
     _innerPrecision = 3;
     _outerPrecision = 4;
   };
-  virtual ~NSGA3Base() {}
+  ~NSGA3Base() {}
 
   /**
    * \brief Get the precison of inner layer

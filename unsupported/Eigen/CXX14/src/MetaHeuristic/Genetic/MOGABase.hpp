@@ -66,7 +66,7 @@ class MOGABase : public MOGAAbstract<Var_t, ObjNum, fOpt, rOpt, Args_t, _iFun_, 
   using Base_t = MOGAAbstract<Var_t, ObjNum, fOpt, rOpt, Args_t, _iFun_, _fFun_, _cFun_, _mFun_>;
 
  public:
-  virtual ~MOGABase() {}
+  ~MOGABase() {}
   EIGEN_HEU_MAKE_GABASE_TYPES(Base_t)
 
   /**
@@ -103,7 +103,7 @@ class MOGABase<Var_t, Eigen::Dynamic, fOpt, rOpt, Args_t, _iFun_, _fFun_, _cFun_
   EIGEN_HEU_MAKE_GABASE_TYPES(Base_t)
 
   MOGABase() { _objectiveNum = 0; }
-  virtual ~MOGABase() {}
+  ~MOGABase() {}
 
   /**
    * \brief Return the value of objecvites

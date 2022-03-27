@@ -62,8 +62,9 @@ class NSGA2 : public internal::NSGABase<Var_t, ObjNum, fOpt, rOpt, Args_t, _iFun
  private:
  public:
   NSGA2(){};
-  virtual ~NSGA2(){};
+  ~NSGA2(){};
   EIGEN_HEU_MAKE_NSGABASE_TYPES(Base_t)
+  friend class internal::GABase<Var_t, Fitness_t, DONT_RECORD_FITNESS, Args_t, _iFun_, _fFun_, _cFun_, _mFun_>;
 
   /**
    * \brief This struct is used to store nondomainance sorting-related informations in select operation. A pointer to
@@ -81,6 +82,8 @@ class NSGA2 : public internal::NSGABase<Var_t, ObjNum, fOpt, rOpt, Args_t, _iFun
      */
     double congestion;
   };
+
+  inline void run() { this->template __impl_run<NSGA2>(); }
 
  protected:
   /**
@@ -154,7 +157,7 @@ class NSGA2 : public internal::NSGABase<Var_t, ObjNum, fOpt, rOpt, Args_t, _iFun
    * attributes of a gene.
    *
    */
-  virtual void select() {
+  void __impl_select() {
     using cmpFun_t = bool (*)(const infoUnitBase_t *, const infoUnitBase_t *);
     static const size_t objCapacity = (ObjNum == Eigen::Dynamic) ? (EIGEN_HEU_MAX_RUNTIME_OBJNUM) : ObjNum;
     static const std::array<cmpFun_t, objCapacity> fitnessCmpFuns = expand<0, objCapacity - 1>();

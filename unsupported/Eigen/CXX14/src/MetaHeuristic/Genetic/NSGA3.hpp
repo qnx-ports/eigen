@@ -71,7 +71,7 @@ class NSGA3 : public internal::NSGA3Base<Var_t, ObjNum, rOpt, rpOpt, Args_t, _iF
 
  public:
   NSGA3() {}
-  virtual ~NSGA3() {}
+  ~NSGA3() {}
   EIGEN_HEU_MAKE_NSGA3ABSTRACT_TYPES(Base_t)
 
   /**
@@ -82,6 +82,8 @@ class NSGA3 : public internal::NSGA3Base<Var_t, ObjNum, rOpt, rpOpt, Args_t, _iF
     this->makeReferencePoses();
     Base_t::initializePop();
   }
+
+  void run() { this->template __impl_run<NSGA3>(); }
 };
 
 }  //  namespace Eigen

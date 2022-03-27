@@ -73,15 +73,7 @@ namespace Eigen {
  * - `fitnessFun fFun() const` returns the fitness function.
  * - `crossoverFun cFun() const` returns the crossover function.
  * - `mutateFun mFun() const` returns the mutation function.
- * - `virtual void customOptAfterInitialization()` this function can be reloaded if you want to customize the algorithm.
- * You can do anything to the solver and this function will be executed after the population is initialized.
- * - `virutal void customOptAfterEachGeneration()` is like `virtual void customOptAfterInitialization()` but it's
- * executed after each generation.
  *
- * If virtual functions above failed to satify yourself, function `calculateAll`, `select`, `crossover`, `mutate` are
- * all virtual functions. Just inherit a solver and reimplement it. By the way, these functions don't cause much
- * performance loss since they will only be runned for no more than maxGeneration times and this value rarely exceeds
- * 1000.
  *
  * ## APIs that all genetic solvers whose `Args_t` is not `void` have:
  * - `const Arg_t & args() const` returns a const-reference of args.
@@ -104,17 +96,19 @@ template <typename Var_t, FitnessOption fOpt = FITNESS_LESS_BETTER, RecordOption
 class SOGA : public internal::GABase<Var_t, double, Record, Args_t, _iFun_, _fFun_, _cFun_, _mFun_> {
  private:
   using Base_t = internal::GABase<Var_t, double, Record, Args_t, _iFun_, _fFun_, _cFun_, _mFun_>;
+  friend Base_t;
 
  public:
   EIGEN_HEU_MAKE_GABASE_TYPES(Base_t)
   SOGA() {}
-  virtual ~SOGA() {}
+  ~SOGA() {}
+
   /**
-   * \brief Return the best fitness of current population
+   * \brief Get the fitness value of best gene
    *
-   * \return double best fitness value.
+   * \return Fitness_t Best fitness
    */
-  virtual double bestFitness() const { return _eliteIt->_Fitness; }
+  double bestFitness() const { return _eliteIt->_Fitness; }
 
   /**
    * \brief Get result (Var_t).
@@ -131,6 +125,8 @@ class SOGA : public internal::GABase<Var_t, double, Record, Args_t, _iFun_, _fFu
     Base_t::initializePop();
     this->_eliteIt = this->_population.begin();
   }
+
+  inline void run() { this->template __impl_run<SOGA>(); }
 
  protected:
   GeneIt_t _eliteIt;  ///< Iterator the the elite
@@ -158,7 +154,7 @@ class SOGA : public internal::GABase<Var_t, double, Record, Args_t, _iFun_, _fFu
    * The best gene in population will be assigned to be elite.
    *
    */
-  virtual void select() {
+  void __impl_select() {
     const double prevEliteFitness = _eliteIt->_Fitness;
     std::vector<GeneIt_t> iterators;
     iterators.clear();

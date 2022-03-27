@@ -43,7 +43,7 @@ EIGEN_HEU_MAKE_FUNAREA(mFun, mFun, GA)
 template <typename Var_t, typename Fitness_t, class Args_t>
 class GAAbstract {
  public:
-  virtual ~GAAbstract(){};
+  ~GAAbstract(){};
   /// Function to initialize Var
   using initializeFun = void (*)(Var_t *, const Args_t *);
   /// Function to calculate fitness for Var
@@ -106,7 +106,7 @@ class GAAbstract {
 template <typename Var_t, typename Fitness_t>
 class GAAbstract<Var_t, Fitness_t, void> {
  public:
-  virtual ~GAAbstract(){};
+  ~GAAbstract(){};
 
   /// Function to initialize Var
   using initializeFun = void (*)(Var_t *);
