@@ -37,7 +37,7 @@ namespace Eigen {
  * @tparam _mFun_ Compile-time mFun, use nullptr for runtime
  *
  * \sa SOGA for APIs that all genetic solvers have.
- * \sa NSGA3
+ * \sa NSGA3 for many objective problems
  *
  * ## APIs that MOGA solvers have:
  * - `void paretoFront(std::vector<Fitness_t>& front) const` get pareto front of fitness values.
@@ -83,6 +83,10 @@ class NSGA2 : public internal::NSGABase<Var_t, ObjNum, fOpt, rOpt, Args_t, _iFun
     double congestion;
   };
 
+  /**
+   * \brief Run the solver.
+   *
+   */
   inline void run() { this->template __impl_run<NSGA2>(); }
 
  protected:

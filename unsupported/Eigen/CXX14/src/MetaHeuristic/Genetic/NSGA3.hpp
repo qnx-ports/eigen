@@ -83,6 +83,10 @@ class NSGA3 : public internal::NSGA3Base<Var_t, ObjNum, rOpt, rpOpt, Args_t, _iF
     Base_t::initializePop();
   }
 
+  /**
+   * \brief Run the solver.
+   *
+   */
   void run() { this->template __impl_run<NSGA3>(); }
 };
 

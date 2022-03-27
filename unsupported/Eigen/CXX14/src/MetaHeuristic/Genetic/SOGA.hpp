@@ -59,8 +59,8 @@ namespace Eigen {
  * ## APIs that **all** genetic solvers have:
  * - `void setOption(const GAOption&)` sets the option of solver.
  * - `void initializePop()` that initialized the population.
- * - `void run<>()` runs the genetic algorithm.
- * - `double bestFitness() const` returns the fitness of best solution in current population.
+ * - `void run()` runs the genetic algorithm.
+ * - `Fitness_t bestFitness() const` returns the fitness of best solution in current population.
  * - `size_t generation() const` returns the generation that solvers has passed.
  * - `size_t failTimes() const` returns the fail times of current population.
  * - `const std::list<Gene> & population() const` returns a const-reference to the population.
@@ -126,6 +126,10 @@ class SOGA : public internal::GABase<Var_t, double, Record, Args_t, _iFun_, _fFu
     this->_eliteIt = this->_population.begin();
   }
 
+  /**
+   * \brief Run the solver.
+   *
+   */
   inline void run() { this->template __impl_run<SOGA>(); }
 
  protected:

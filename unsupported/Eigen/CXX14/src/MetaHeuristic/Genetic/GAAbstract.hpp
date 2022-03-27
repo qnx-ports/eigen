@@ -25,10 +25,6 @@ EIGEN_HEU_MAKE_FUNAREA(cFun, cFun, GA)
 EIGEN_HEU_MAKE_FUNAREA(mFun, mFun, GA)
 
 /**
- * @brief The GAAbstract class declares 4 operator functions and related reloaded functions.
- */
-
-/**
  * \ingroup CXX14_METAHEURISTIC
  * \class GAAbstract
  * \brief Internal base class.

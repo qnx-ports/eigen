@@ -74,7 +74,7 @@ class MOGABase : public MOGAAbstract<Var_t, ObjNum, fOpt, rOpt, Args_t, _iFun_, 
    *
    * \return constexpr size_t Numbers of objecvites at compile time.
    */
-  inline constexpr size_t objectiveNum() const { return ObjNum; }
+  constexpr size_t objectiveNum() const { return ObjNum; }
 };
 
 /**
