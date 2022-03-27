@@ -156,7 +156,7 @@ class NSGA2 : public internal::NSGABase<Var_t, ObjNum, fOpt, rOpt, Args_t, _iFun
    */
   virtual void select() {
     using cmpFun_t = bool (*)(const infoUnitBase_t *, const infoUnitBase_t *);
-    static const size_t objCapacity = (ObjNum == Eigen::Dynamic) ? (Heu_MOGA_MaxRunTimeObjNum) : ObjNum;
+    static const size_t objCapacity = (ObjNum == Eigen::Dynamic) ? (EIGEN_HEU_MAX_RUNTIME_OBJNUM) : ObjNum;
     static const std::array<cmpFun_t, objCapacity> fitnessCmpFuns = expand<0, objCapacity - 1>();
 
     const size_t popSizeBefore = this->_population.size();

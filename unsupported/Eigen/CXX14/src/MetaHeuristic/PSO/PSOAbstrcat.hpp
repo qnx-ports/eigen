@@ -169,7 +169,7 @@ class PSOAbstract : public PSOParameterPack<Var_t, Fitness_t, Arg_t>,
    * \param vMax Maximum velocity absolute value
    */
   inline void setPVRange(double pMin, double pMax, double vMax) {
-    for (size_t i = 0; i < this->dimensions(); i++) {
+    for (int i = 0; i < this->_posMin.size(); i++) {
       this->_posMin[i] = pMin;
       this->_posMax[i] = pMax;
       this->_velocityMax[i] = vMax;
