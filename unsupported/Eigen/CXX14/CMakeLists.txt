@@ -1,0 +1,8 @@
+set(Eigen_CXX14_HEADERS Metaheuristic)
+
+install(FILES
+  ${Eigen_CXX14_HEADERS}
+  DESTINATION ${INCLUDE_INSTALL_DIR}/unsupported/Eigen/CXX14 COMPONENT Devel
+  )
+
+install(DIRECTORY src DESTINATION ${INCLUDE_INSTALL_DIR}/unsupported/Eigen/CXX14 COMPONENT Devel FILES_MATCHING PATTERN "*.h")
