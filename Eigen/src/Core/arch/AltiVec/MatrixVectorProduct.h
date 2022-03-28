@@ -503,7 +503,11 @@ EIGEN_ALWAYS_INLINE Packet1cd pconj2(const Packet1cd& a) {
 
 /** \internal packet conjugate with real & imaginary operation inverted */
 EIGEN_ALWAYS_INLINE Packet2cf pconjinv(const Packet2cf& a) {
+#ifdef __POWER8_VECTOR__
+    return Packet2cf(Packet4f(vec_neg(Packet2d(a.v))));
+#else
     return Packet2cf(pxor(a.v, reinterpret_cast<Packet4f>(p16uc_COMPLEX32_CONJ_XOR2)));
+#endif
 }
 
 EIGEN_ALWAYS_INLINE Packet1cd pconjinv(const Packet1cd& a) {

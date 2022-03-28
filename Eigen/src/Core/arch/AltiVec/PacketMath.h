@@ -102,11 +102,13 @@ static Packet16uc p16uc_COUNTDOWN = { 0, 1, 2, 3, 4, 5, 6, 7,
 
 static Packet16uc p16uc_REVERSE32 = { 12,13,14,15, 8,9,10,11, 4,5,6,7, 0,1,2,3 };
 static Packet16uc p16uc_REVERSE16 = { 14,15, 12,13, 10,11, 8,9, 6,7, 4,5, 2,3, 0,1 };
+#ifndef _ARCH_PWR9
 static Packet16uc p16uc_REVERSE8 = { 15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0 };
+#endif
 
+#ifdef _BIG_ENDIAN
 static Packet16uc p16uc_DUPLICATE32_HI = { 0,1,2,3, 0,1,2,3, 4,5,6,7, 4,5,6,7 };
-static Packet16uc p16uc_DUPLICATE16_HI = { 0,1,0,1, 2,3,2,3, 4,5,4,5, 6,7,6,7 };
-static Packet16uc p16uc_DUPLICATE8_HI = { 0,0, 1,1, 2,2, 3,3, 4,4, 5,5, 6,6, 7,7 };
+#endif
 static const Packet16uc p16uc_DUPLICATE16_EVEN= { 0,1 ,0,1, 4,5, 4,5, 8,9, 8,9, 12,13, 12,13 };
 static const Packet16uc p16uc_DUPLICATE16_ODD = { 2,3 ,2,3, 6,7, 6,7, 10,11, 10,11, 14,15, 14,15 };
 
@@ -1005,7 +1007,7 @@ template<typename Packet> EIGEN_STRONG_INLINE Packet ploaddup_common(const __UNP
   Packet p;
   if((std::ptrdiff_t(from) % 16) == 0)  p = pload<Packet>(from);
   else                                  p = ploadu<Packet>(from);
-  return vec_perm(p, p, p16uc_DUPLICATE32_HI);
+  return vec_mergeh(p, p);
 }
 template<> EIGEN_STRONG_INLINE Packet4f ploaddup<Packet4f>(const float*   from)
 {
@@ -1021,7 +1023,7 @@ template<> EIGEN_STRONG_INLINE Packet8s ploaddup<Packet8s>(const short int*     
   Packet8s p;
   if((std::ptrdiff_t(from) % 16) == 0)  p = pload<Packet8s>(from);
   else                                  p = ploadu<Packet8s>(from);
-  return vec_perm(p, p, p16uc_DUPLICATE16_HI);
+  return vec_mergeh(p, p);
 }
 
 template<> EIGEN_STRONG_INLINE Packet8us ploaddup<Packet8us>(const unsigned short int*     from)
@@ -1029,7 +1031,7 @@ template<> EIGEN_STRONG_INLINE Packet8us ploaddup<Packet8us>(const unsigned shor
   Packet8us p;
   if((std::ptrdiff_t(from) % 16) == 0)  p = pload<Packet8us>(from);
   else                                  p = ploadu<Packet8us>(from);
-  return vec_perm(p, p, p16uc_DUPLICATE16_HI);
+  return vec_mergeh(p, p);
 }
 
 template<> EIGEN_STRONG_INLINE Packet8s ploadquad<Packet8s>(const short int*     from)
@@ -1058,7 +1060,7 @@ template<> EIGEN_STRONG_INLINE Packet16c ploaddup<Packet16c>(const signed char* 
   Packet16c p;
   if((std::ptrdiff_t(from) % 16) == 0)  p = pload<Packet16c>(from);
   else                                  p = ploadu<Packet16c>(from);
-  return vec_perm(p, p, p16uc_DUPLICATE8_HI);
+  return vec_mergeh(p, p);
 }
 
 template<> EIGEN_STRONG_INLINE Packet16uc ploaddup<Packet16uc>(const unsigned char*     from)
@@ -1066,7 +1068,7 @@ template<> EIGEN_STRONG_INLINE Packet16uc ploaddup<Packet16uc>(const unsigned ch
   Packet16uc p;
   if((std::ptrdiff_t(from) % 16) == 0)  p = pload<Packet16uc>(from);
   else                                  p = ploadu<Packet16uc>(from);
-  return vec_perm(p, p, p16uc_DUPLICATE8_HI);
+  return vec_mergeh(p, p);
 }
 
 template<typename Packet> EIGEN_STRONG_INLINE void pstoreu_common(__UNPACK_TYPE__(Packet)*  to, const Packet& from)
@@ -1168,11 +1170,19 @@ template<> EIGEN_STRONG_INLINE Packet8us preverse(const Packet8us& a)
 }
 template<> EIGEN_STRONG_INLINE Packet16c preverse(const Packet16c& a)
 {
+#ifdef _ARCH_PWR9
+  return vec_revb(a);
+#else
   return vec_perm(a, a, p16uc_REVERSE8);
+#endif
 }
 template<> EIGEN_STRONG_INLINE Packet16uc preverse(const Packet16uc& a)
 {
+#ifdef _ARCH_PWR9
+  return vec_revb(a);
+#else
   return vec_perm(a, a, p16uc_REVERSE8);
+#endif
 }
 template<> EIGEN_STRONG_INLINE Packet8bf preverse(const Packet8bf& a)
 {
