@@ -15,16 +15,6 @@
 #define EIGEN_ALTIVEC_USE_CUSTOM_PACK    1
 #endif
 
-#if 1
-
-#define TEST_VERBOSE   // Report timings and gemm type, MMA, rows, depth and cols
-
-#ifdef TEST_VERBOSE
-#include <cstdio>
-#include <iostream>
-#include <sys/platform/ppc.h>
-#endif
-
 #include "MatrixProductCommon.h"
 
 #if !defined(EIGEN_ALTIVEC_DISABLE_MMA)
@@ -1802,8 +1792,6 @@ EIGEN_ALWAYS_INLINE void gemm_cols(
   }
 }
 
-#define NEW_EXTRA_COL
-
 #define MICRO_EXTRA_COLS(N) \
   gemm_cols<Scalar, Packet, DataMapper, Index, N, accCols>(res, blockA, blockB, depth, strideA, offsetA, strideB, offsetB, col, rows, remaining_rows, pAlpha, pMask);
 
@@ -1824,13 +1812,7 @@ EIGEN_STRONG_INLINE void gemm_extra_cols(
   const Packet& pAlpha,
   const Packet& pMask)
 {
-#ifdef NEW_EXTRA_COL
   MICRO_EXTRA(MICRO_EXTRA_COLS, cols-col, true)
-#else
-  do {
-    MICRO_EXTRA_COLS(1)
-  } while (++col != cols);
-#endif
 }
 
 /****************
@@ -1839,10 +1821,6 @@ EIGEN_STRONG_INLINE void gemm_extra_cols(
 template<typename Scalar, typename Index, typename Packet, typename RhsPacket, typename DataMapper, const Index accRows, const Index accCols>
 EIGEN_STRONG_INLINE void gemm(const DataMapper& res, const Scalar* blockA, const Scalar* blockB, Index rows, Index depth, Index cols, Scalar alpha, Index strideA, Index strideB, Index offsetA, Index offsetB)
 {
-#ifdef TEST_VERBOSE
-      uint64_t start, end;
-      start = __ppc_get_timebase();
-#endif
       const Index remaining_rows = rows % accCols;
 
       if( strideA == -1 ) strideA = depth;
@@ -1861,10 +1839,6 @@ EIGEN_STRONG_INLINE void gemm(const DataMapper& res, const Scalar* blockA, const
       {
         gemm_extra_cols<Scalar, Packet, DataMapper, Index, accCols>(res, blockA, blockB, depth, strideA, offsetA, strideB, offsetB, col, rows, cols, remaining_rows, pAlpha, pMask);
       }
-#ifdef TEST_VERBOSE
-      end = __ppc_get_timebase();
-      printf("gemm time = %16ld\n", end - start);
-#endif
 }
 
 #define accColsC (accCols / 2)
@@ -2273,22 +2247,12 @@ EIGEN_STRONG_INLINE void gemm_complex_extra_cols(
   const Packet& pAlphaImag,
   const Packet& pMask)
 {
-#ifdef NEW_EXTRA_COL
   MICRO_EXTRA(MICRO_COMPLEX_EXTRA_COLS, cols-col, true)
-#else
-  do {
-    MICRO_COMPLEX_EXTRA_COLS(1)
-  } while (++col != cols);
-#endif
 }
 
 template<typename LhsScalar, typename RhsScalar, typename Scalarc, typename Scalar, typename Index, typename Packet, typename Packetc, typename RhsPacket, typename DataMapper, const Index accRows, const Index accCols, bool ConjugateLhs, bool ConjugateRhs, bool LhsIsReal, bool RhsIsReal>
 EIGEN_STRONG_INLINE void gemm_complex(const DataMapper& res, const LhsScalar* blockAc, const RhsScalar* blockBc, Index rows, Index depth, Index cols, Scalarc alpha, Index strideA, Index strideB, Index offsetA, Index offsetB)
 {
-#ifdef TEST_VERBOSE
-      uint64_t start, end;
-      start = __ppc_get_timebase();
-#endif
       const Index remaining_rows = rows % accCols;
 
       if( strideA == -1 ) strideA = depth;
@@ -2311,10 +2275,6 @@ EIGEN_STRONG_INLINE void gemm_complex(const DataMapper& res, const LhsScalar* bl
       {
         gemm_complex_extra_cols<Scalar, Packet, Packetc, DataMapper, Index, accCols, ConjugateLhs, ConjugateRhs, LhsIsReal, RhsIsReal>(res, blockA, blockB, depth, strideA, offsetA, strideB, offsetB, col, rows, cols, remaining_rows, pAlphaReal, pAlphaImag, pMask);
       }
-#ifdef TEST_VERBOSE
-      end = __ppc_get_timebase();
-      printf("gemm complex time = %16ld\n", end - start);
-#endif
 }
 
 #undef accColsC
@@ -2860,7 +2820,5 @@ void gebp_kernel<double, std::complex<double>, Index, DataMapper, mr, nr, Conjug
 } // end namespace internal
 
 } // end namespace Eigen
-
-#endif
 
 #endif // EIGEN_MATRIX_PRODUCT_ALTIVEC_H

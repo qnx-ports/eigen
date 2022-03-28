@@ -383,10 +383,6 @@ EIGEN_STRONG_INLINE void gemv_col(
     ResScalar* res, Index resIncr,
     ResScalar alpha)
 {
-#ifdef TEST_VERBOSE
-    uint64_t start, end;
-    start = __ppc_get_timebase();
-#endif
     typedef gemv_traits<LhsScalar, RhsScalar> Traits;
 
     typedef typename Traits::LhsPacket LhsPacket;
@@ -469,14 +465,6 @@ EIGEN_STRONG_INLINE void gemv_col(
             res[i] += alpha * d0;
         }
     }
-#ifdef TEST_VERBOSE
-    end = __ppc_get_timebase();
-    printf("gemv ");
-#ifdef USE_GEMV_MMA
-    printf("MMA ");
-#endif
-    printf("time = %16ld\n", end - start);
-#endif
 }
 
 const Packet16uc p16uc_COMPLEX32_XORFLIP = { 0x44,0x55,0x66,0x77, 0x00,0x11,0x22,0x33, 0xcc,0xdd,0xee,0xff, 0x88,0x99,0xaa,0xbb };
@@ -1627,10 +1615,6 @@ EIGEN_STRONG_INLINE void gemv_complex_col(
     ResScalar* res, Index resIncr,
     ResScalar alpha)
 {
-#ifdef TEST_VERBOSE
-    uint64_t start, end;
-    start = __ppc_get_timebase();
-#endif
     typedef gemv_traits<LhsScalar, RhsScalar> Traits;
 
     typedef typename Traits::LhsPacket LhsPacket;
@@ -1728,18 +1712,6 @@ EIGEN_STRONG_INLINE void gemv_complex_col(
             res[i] += alpha * d0;
         }
     }
-#ifdef TEST_VERBOSE
-    end = __ppc_get_timebase();
-    printf("gemv ");
-#ifdef USE_GEMV_COL_COMPLEX_MMA
-    printf("MMA ");
-#elif defined(USE_GEMV_MMA) && (__GNUC__ > 10)
-    if (sizeof(Scalar) != sizeof(LhsPacket)) {
-        printf("MMA ");
-    }
-#endif
-    printf("complex time = %16ld\n", end - start);
-#endif
 }
 
 template <typename Scalar, int N> struct ScalarBlock {
@@ -1984,10 +1956,6 @@ EIGEN_STRONG_INLINE void gemv_row(
     ResScalar* res, Index resIncr,
     ResScalar alpha)
 {
-#ifdef TEST_VERBOSE
-    uint64_t start, end;
-    start = __ppc_get_timebase();
-#endif
     typedef gemv_traits<LhsScalar, RhsScalar> Traits;
 
     typedef typename Traits::LhsPacket LhsPacket;
@@ -2049,14 +2017,6 @@ EIGEN_STRONG_INLINE void gemv_row(
         }
         res[i * resIncr] += alpha * dd0;
     }
-#ifdef TEST_VERBOSE
-    end = __ppc_get_timebase();
-    printf("gemv ");
-#ifdef USE_GEMV_MMA
-    printf("MMA ");
-#endif
-    printf("time = %16ld\n", end - start);
-#endif
 }
 
 #define EIGEN_POWER_GEMV_REAL_SPECIALIZE_COL(Scalar) \
@@ -2315,10 +2275,6 @@ EIGEN_STRONG_INLINE void gemv_complex_row(
     ResScalar* res, Index resIncr,
     ResScalar alpha)
 {
-#ifdef TEST_VERBOSE
-    uint64_t start, end;
-    start = __ppc_get_timebase();
-#endif
     typedef gemv_traits<LhsScalar, RhsScalar> Traits;
 
     typedef typename Traits::LhsPacket LhsPacket;
@@ -2388,14 +2344,6 @@ EIGEN_STRONG_INLINE void gemv_complex_row(
         }
         res[i * resIncr] += alpha * dd0;
     }
-#ifdef TEST_VERBOSE
-    end = __ppc_get_timebase();
-    printf("gemv ");
-#ifdef USE_GEMV_MMA
-    printf("MMA ");
-#endif
-    printf("complex time = %16ld\n", end - start);
-#endif
 }
 
 #define EIGEN_POWER_GEMV_COMPLEX_SPECIALIZE_COL(Scalar, LhsScalar, RhsScalar) \

@@ -98,12 +98,9 @@ EIGEN_ALWAYS_INLINE void bscalec(PacketBlock<Packet,N>& aReal, PacketBlock<Packe
 template<typename Packet, typename Packetc, int N, const bool full>
 EIGEN_ALWAYS_INLINE void bcouple(PacketBlock<Packet,N>& taccReal, PacketBlock<Packet,N>& taccImag, PacketBlock<Packetc,N*2>& tRes, PacketBlock<Packetc, N>& acc1, PacketBlock<Packetc, N>& acc2);
 
-#define NEW_EXTRA
-
 #define MICRO_NORMAL(iter) \
   (accCols == accCols2) || (unroll_factor != (iter + 1))
 
-#ifdef NEW_EXTRA
 #define MICRO_UNROLL_ITER(func, N) \
   switch (remaining_rows) { \
     default: \
@@ -123,10 +120,6 @@ EIGEN_ALWAYS_INLINE void bcouple(PacketBlock<Packet,N>& taccReal, PacketBlock<Pa
       } \
       break; \
   }
-#else
-#define MICRO_UNROLL_ITER(func, N) \
-  func(N, 0)
-#endif
 
 #define MICRO_NORMAL_COLS(iter, a, b) ((MICRO_NORMAL(iter)) ? a : b)
 
