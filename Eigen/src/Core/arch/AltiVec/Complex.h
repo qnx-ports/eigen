@@ -115,17 +115,7 @@ template<> EIGEN_STRONG_INLINE Packet2cf pset1<Packet2cf>(const std::complex<flo
 {
   Packet2cf res;
 #ifdef __VSX__
-#if defined(__GNUC__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Warray-bounds"
-#endif
-  // This load accesses memory beyond the end of the object
-  // but should be optimized away with the vec_splat
-  res.v = vec_xl(0, (const float *)&from);
-#if defined(__GNUC__)
-#pragma GCC diagnostic pop
-#endif
-  res.v = Packet4f(vec_splat(Packet2d(res.v), 0));
+  __asm__ ("lxvdsx %x0,%y1" : "=wa" (res.v) : "Z" (from));
 #else
   if((std::ptrdiff_t(&from) % 16) == 0)
     res.v = pload<Packet4f>((const float *)&from);
