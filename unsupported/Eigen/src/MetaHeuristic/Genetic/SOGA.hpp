@@ -86,7 +86,7 @@ namespace Eigen {
  * ## APIs that SOGA solvers have:
  * - `const Var_t& result() const` returns a const-reference the the final result decision variable.
  *
- * \sa NSGA2 NSGA3
+ * \sa GAOption NSGA2 NSGA3
  */
 template <typename Var_t, FitnessOption fOpt = FITNESS_LESS_BETTER, RecordOption Record = DONT_RECORD_FITNESS,
           class Args_t = void, typename internal::GAAbstract<Var_t, double, Args_t>::initializeFun _iFun_ = nullptr,

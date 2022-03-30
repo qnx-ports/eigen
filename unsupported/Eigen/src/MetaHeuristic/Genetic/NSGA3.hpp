@@ -38,6 +38,7 @@ namespace Eigen {
  * \tparam _cFun_ Crossover function (nullptr)
  * \tparam _mFun_ Mutation function (nullptr)
  *
+ * \sa GAOption for ga running parameters
  * \sa SOGA for APIs that all genetic solvers have
  * \sa NSGA2 for APIs that all MOGA solvers have
  *

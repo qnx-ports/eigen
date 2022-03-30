@@ -36,6 +36,7 @@ namespace Eigen {
  * @tparam _cFun_ Compile-time cFun, use nullptr for runtime
  * @tparam _mFun_ Compile-time mFun, use nullptr for runtime
  *
+ * \sa GAOption for ga running parameters
  * \sa SOGA for APIs that all genetic solvers have.
  * \sa NSGA3 for many objective problems
  *
