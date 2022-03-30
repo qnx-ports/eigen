@@ -1,0 +1,42 @@
+// This file is part of Eigen, a lightweight C++ template library
+// for linear algebra.
+//
+// Copyright (C) 2022 Shawn Li <tokinobug@163.com>
+//
+// This Source Code Form is subject to the terms of the Mozilla
+// Public License v. 2.0. If a copy of the MPL was not distributed
+// with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+#ifndef EIGEN_HEU_METAHEURISTIC_
+#define EIGEN_HEU_METAHEURISTIC_
+
+/**
+ * \file Metaheuristic
+ * \author Shawn Li (tokinobug@163.com)
+ * \brief Header file for metaheuristic algorithms
+ * \date 2022-03-25
+ */
+
+/**
+ * \defgroup CXX14_METAHEURISTIC Metaheuristic optimization algorithms
+ * Metaheuristic algorithms are computational intelligence paradigms especially used for sophisticated solving
+ * optimization problems.
+ *
+ * This module implements single objective genetic algorithm (GA), non-dominated sorting GA II (NSGA-II) for
+ * multi-objective and non-dominated sorting GA III (NSGA-III) for many objective problems. Also there are single
+ * objective Particle Swarm Optimization (PSO)
+ *
+ * To include this module, use
+ * \code {.cpp}
+ * #include <unsupported/Eigen/CXX14/MetaHeuristic>
+ * \endcode
+ *
+ * \sa Eigen::SOGA Eigen::NSGA2 Eigen::NSGA3 Eigen::PSO
+ */
+
+#include "src/MetaHeuristic/Global/Global"
+#include "src/MetaHeuristic/EAGlobal/EAGlobal"
+#include "src/MetaHeuristic/Genetic/Genetic"
+#include "src/MetaHeuristic/PSO/PSO"
+
+#endif  //  EIGEN_HEU_METAHEURISTIC_

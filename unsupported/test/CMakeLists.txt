@@ -399,3 +399,13 @@ if (EIGEN_TEST_HIP)
 
 endif()
 
+ei_add_test(metaheursitic_Boxes)
+ei_add_test(metaheursitic_NSGA2_Binh_And_Korn)
+ei_add_test(metaheursitic_NSGA2_Kursawe)
+ei_add_test(metaheursitic_NSGA2_ZDT3)
+ei_add_test(metaheursitic_NSGA3_DTLZ7)
+ei_add_test(metaheursitic_PSO_RastriginFun)
+ei_add_test(metaheursitic_PSO_testPSOBase)
+ei_add_test(metaheursitic_PSO_TSP)
+ei_add_test(metaheursitic_SOGA_Ackley)
+ei_add_test(metaheursitic_SOGA_TSP)

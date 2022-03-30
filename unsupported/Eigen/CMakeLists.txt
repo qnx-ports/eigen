@@ -21,6 +21,7 @@ set(Eigen_HEADERS
   SparseExtra
   SpecialFunctions
   Splines
+  MetaHeuristic
   )
 
 install(FILES
