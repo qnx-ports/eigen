@@ -31,7 +31,7 @@ void DTLZ7(const Eigen::Array<double, N, 1>* x, Eigen::Array<double, M, 1>* f) {
   f->operator[](M - 1) = (1 + g) * h;
 }
 
-// DTLZ1 is also provided here
+// DTLZ1 is also provided here, it's PF is a continous hyperplane
 template <size_t M, size_t N>
 void DTLZ1(const Eigen::Array<double, N, 1>* x, Eigen::Array<double, M, 1>* f) {
   f->resize(M, 1);
@@ -61,7 +61,7 @@ void testNSGA3_DTLZ7() {
   // Note that NSGA3 supports only FITNESS_LESS_BETTER
   using solver_t = NSGA3<Eigen::Array<double, N, 1>, M,
                          // FITNESS_LESS_BETTER,
-                         DONT_RECORD_FITNESS, SINGLE_LAYER, void>;
+                         DONT_RECORD_FITNESS, DOUBLE_LAYER, void>;
 
   using Var_t = Eigen::Array<double, N, 1>;
   // using Fitness_t = solver_t::Fitness_t;
@@ -80,6 +80,8 @@ void testNSGA3_DTLZ7() {
   };
 
   GAOption opt;
+  opt.maxGenerations = 1000;
+  opt.populationSize = 400;
   cout << "maxGenerations=";
   cin >> opt.maxGenerations;
 
@@ -96,11 +98,11 @@ void testNSGA3_DTLZ7() {
   solver.setcFun(cFun);
   solver.setmFun(mFun);
   solver.setOption(opt);
-  solver.setReferencePointPrecision(10);
+  solver.setReferencePointPrecision(3, 4);
   cout << "RPCount=" << solver.referencePointCount() << endl;
   solver.initializePop();
 
-  cout << "RP=[" << solver.referencePoints() << "]';\n\n\n" << endl;
+  // cout << "RP=[" << solver.referencePoints() << "]';\n\n\n" << endl;
 
   clock_t c = clock();
   solver.run();
