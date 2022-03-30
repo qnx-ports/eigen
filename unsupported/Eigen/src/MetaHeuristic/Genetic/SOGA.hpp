@@ -96,7 +96,7 @@ template <typename Var_t, FitnessOption fOpt = FITNESS_LESS_BETTER, RecordOption
 class SOGA : public internal::GABase<Var_t, double, Record, Args_t, _iFun_, _fFun_, _cFun_, _mFun_> {
  private:
   using Base_t = internal::GABase<Var_t, double, Record, Args_t, _iFun_, _fFun_, _cFun_, _mFun_>;
-  friend Base_t;
+  friend class internal::GABase<Var_t, double, DONT_RECORD_FITNESS, Args_t, _iFun_, _fFun_, _cFun_, _mFun_>;
 
  public:
   EIGEN_HEU_MAKE_GABASE_TYPES(Base_t)

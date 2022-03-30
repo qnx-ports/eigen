@@ -21,6 +21,7 @@ set(Eigen_HEADERS
   SparseExtra
   SpecialFunctions
   Splines
+  MetaHeuristic
   )
 
 install(FILES
@@ -31,4 +32,3 @@ install(FILES
 install(DIRECTORY src DESTINATION ${INCLUDE_INSTALL_DIR}/unsupported/Eigen COMPONENT Devel FILES_MATCHING PATTERN "*.h")
 
 add_subdirectory(CXX11)
-add_subdirectory(CXX14)

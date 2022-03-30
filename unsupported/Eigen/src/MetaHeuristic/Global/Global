@@ -10,7 +10,7 @@
 #ifndef EIGEN_HEU_GLOBAL_
 #define EIGEN_HEU_GLOBAL_
 
-#include "../../../../../../Eigen/Dense"
+#include <Eigen/Dense>
 
 #include "Threading.hpp"
 #include "FunBody.hpp"

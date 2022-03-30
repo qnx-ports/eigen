@@ -14,7 +14,7 @@
 #include <assert.h>
 
 #include "InternalHeaderCheck.h"
-#include <unsupported/Eigen/CXX14/src/MetaHeuristic/Global/Global>
+#include <unsupported/Eigen/src/MetaHeuristic/Global/Global>
 
 /**
  * This file has implementation for different min() and max()
