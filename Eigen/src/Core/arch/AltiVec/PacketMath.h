@@ -83,8 +83,10 @@ static EIGEN_DECLARE_CONST_FAST_Packet4i(MINUS16,-16); //{ -16, -16, -16, -16}
 static EIGEN_DECLARE_CONST_FAST_Packet4i(MINUS1,-1); //{ -1, -1, -1, -1}
 static EIGEN_DECLARE_CONST_FAST_Packet4ui(SIGN, 0x80000000u);
 static EIGEN_DECLARE_CONST_FAST_Packet4ui(PREV0DOT5, 0x3EFFFFFFu);
+#ifndef __POWER8_VECTOR__
 static EIGEN_DECLARE_CONST_FAST_Packet8us(ONE,1); //{ 1, 1, 1, 1, 1, 1, 1, 1}
 static EIGEN_DECLARE_CONST_FAST_Packet16uc(ONE,1);
+#endif
 static Packet4f p4f_MZERO = (Packet4f) vec_sl((Packet4ui)p4i_MINUS1, (Packet4ui)p4i_MINUS1); //{ 0x80000000, 0x80000000, 0x80000000, 0x80000000}
 #ifndef __VSX__
 static Packet4f p4f_ONE = vec_ctf(p4i_ONE, 0); //{ 1.0, 1.0, 1.0, 1.0}
@@ -2116,7 +2118,11 @@ ptranspose(PacketBlock<Packet16uc,16>& kernel) {
 template<typename Packet> EIGEN_STRONG_INLINE
 Packet pblend4(const Selector<4>& ifPacket, const Packet& thenPacket, const Packet& elsePacket) {
   Packet4ui select = { ifPacket.select[0], ifPacket.select[1], ifPacket.select[2], ifPacket.select[3] };
+#ifdef __POWER8_VECTOR__
+  Packet4ui mask = reinterpret_cast<Packet4ui>(vec_neg(reinterpret_cast<Packet4i>(select)));
+#else
   Packet4ui mask = reinterpret_cast<Packet4ui>(vec_cmpeq(reinterpret_cast<Packet4ui>(select), reinterpret_cast<Packet4ui>(p4i_ONE)));
+#endif
   return vec_sel(elsePacket, thenPacket, mask);
 }
 
@@ -2131,7 +2137,11 @@ template<> EIGEN_STRONG_INLINE Packet4f pblend(const Selector<4>& ifPacket, cons
 template<> EIGEN_STRONG_INLINE Packet8s pblend(const Selector<8>& ifPacket, const Packet8s& thenPacket, const Packet8s& elsePacket) {
   Packet8us select = { ifPacket.select[0], ifPacket.select[1], ifPacket.select[2], ifPacket.select[3],
                        ifPacket.select[4], ifPacket.select[5], ifPacket.select[6], ifPacket.select[7] };
+#ifdef __POWER8_VECTOR__
+  Packet8us mask = reinterpret_cast<Packet8us>(vec_neg(reinterpret_cast<Packet8s>(select)));
+#else
   Packet8us mask = reinterpret_cast<Packet8us>(vec_cmpeq(select, p8us_ONE));
+#endif
   Packet8s result = vec_sel(elsePacket, thenPacket, mask);
   return result;
 }
@@ -2139,7 +2149,11 @@ template<> EIGEN_STRONG_INLINE Packet8s pblend(const Selector<8>& ifPacket, cons
 template<> EIGEN_STRONG_INLINE Packet8us pblend(const Selector<8>& ifPacket, const Packet8us& thenPacket, const Packet8us& elsePacket) {
   Packet8us select = { ifPacket.select[0], ifPacket.select[1], ifPacket.select[2], ifPacket.select[3],
                        ifPacket.select[4], ifPacket.select[5], ifPacket.select[6], ifPacket.select[7] };
+#ifdef __POWER8_VECTOR__
+  Packet8us mask = reinterpret_cast<Packet8us>(vec_neg(reinterpret_cast<Packet8s>(select)));
+#else
   Packet8us mask = reinterpret_cast<Packet8us>(vec_cmpeq(reinterpret_cast<Packet8us>(select), p8us_ONE));
+#endif
   return vec_sel(elsePacket, thenPacket, mask);
 }
 
@@ -2153,7 +2167,11 @@ template<> EIGEN_STRONG_INLINE Packet16c pblend(const Selector<16>& ifPacket, co
                        ifPacket.select[8], ifPacket.select[9], ifPacket.select[10], ifPacket.select[11],
                        ifPacket.select[12], ifPacket.select[13], ifPacket.select[14], ifPacket.select[15] };
 
+#ifdef __POWER8_VECTOR__
+  Packet16uc mask = reinterpret_cast<Packet16uc>(vec_neg(reinterpret_cast<Packet16c>(select)));
+#else
   Packet16uc mask = reinterpret_cast<Packet16uc>(vec_cmpeq(reinterpret_cast<Packet16uc>(select), p16uc_ONE));
+#endif
   return vec_sel(elsePacket, thenPacket, mask);
 }
 
@@ -2163,7 +2181,11 @@ template<> EIGEN_STRONG_INLINE Packet16uc pblend(const Selector<16>& ifPacket, c
                        ifPacket.select[8], ifPacket.select[9], ifPacket.select[10], ifPacket.select[11],
                        ifPacket.select[12], ifPacket.select[13], ifPacket.select[14], ifPacket.select[15] };
 
+#ifdef __POWER8_VECTOR__
+  Packet16uc mask = reinterpret_cast<Packet16uc>(vec_neg(reinterpret_cast<Packet16c>(select)));
+#else
   Packet16uc mask = reinterpret_cast<Packet16uc>(vec_cmpeq(reinterpret_cast<Packet16uc>(select), p16uc_ONE));
+#endif
   return vec_sel(elsePacket, thenPacket, mask);
 }
 
@@ -2713,8 +2735,8 @@ template<> EIGEN_STRONG_INLINE double predux_max<Packet2d>(const Packet2d& a)
 EIGEN_DEVICE_FUNC inline void
 ptranspose(PacketBlock<Packet2d,2>& kernel) {
   Packet2d t0, t1;
-  t0 = vec_perm(kernel.packet[0], kernel.packet[1], p16uc_TRANSPOSE64_HI);
-  t1 = vec_perm(kernel.packet[0], kernel.packet[1], p16uc_TRANSPOSE64_LO);
+  t0 = vec_mergeh(kernel.packet[0], kernel.packet[1]);
+  t1 = vec_mergel(kernel.packet[0], kernel.packet[1]);
   kernel.packet[0] = t0;
   kernel.packet[1] = t1;
 }
