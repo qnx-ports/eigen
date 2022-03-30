@@ -19,10 +19,10 @@ namespace Eigen {
 
 namespace internal {
 
-EIGEN_HEU_MAKE_FUNAREA(iFun, iFun, GA)
-EIGEN_HEU_MAKE_FUNAREA(fFun, fFun, GA)
-EIGEN_HEU_MAKE_FUNAREA(cFun, cFun, GA)
-EIGEN_HEU_MAKE_FUNAREA(mFun, mFun, GA)
+EIGEN_HEU_MAKE_FUNAREA(iFun, GA)
+EIGEN_HEU_MAKE_FUNAREA(mFun, GA)
+EIGEN_HEU_MAKE_FUNAREA(fFun, GA)
+EIGEN_HEU_MAKE_FUNAREA(cFun, GA)
 
 /**
  * \ingroup CXX14_METAHEURISTIC
@@ -58,7 +58,7 @@ class GAAbstract {
    * \tparam i Initialization function ptr.
    */
   template <initializeFun i>
-  using iFunBody = typename iFunArea_GA<void, Var_t *, const Args_t *>::template funBody<i>;
+  using iFunBody = typename iFunArea_GA<Var_t *, const Args_t *>::template funBody<i>;
 
   /**
    * \class fFunBody
@@ -67,7 +67,7 @@ class GAAbstract {
    * \tparam f Fitness function ptr.
    */
   template <fitnessFun f>
-  using fFunBody = typename fFunArea_GA<void, const Var_t *, const Args_t *, Fitness_t *>::template funBody<f>;
+  using fFunBody = typename fFunArea_GA<const Var_t *, const Args_t *, Fitness_t *>::template funBody<f>;
 
   /**
    * \class cFunBody
@@ -77,7 +77,7 @@ class GAAbstract {
    */
   template <crossoverFun c>
   using cFunBody =
-      typename cFunArea_GA<void, const Var_t *, const Var_t *, Var_t *, Var_t *, const Args_t *>::template funBody<c>;
+      typename cFunArea_GA<const Var_t *, const Var_t *, Var_t *, Var_t *, const Args_t *>::template funBody<c>;
 
   /**
    * \class mFunBody
@@ -86,7 +86,7 @@ class GAAbstract {
    * \tparam m Mutation function ptr.
    */
   template <mutateFun m>
-  using mFunBody = typename mFunArea_GA<void, const Var_t *, Var_t *, const Args_t *>::template funBody<m>;
+  using mFunBody = typename mFunArea_GA<const Var_t *, Var_t *, const Args_t *>::template funBody<m>;
 
   const Args_t &args() const { return _args; }  ///< Const reference to the other parameters
 
@@ -116,16 +116,16 @@ class GAAbstract<Var_t, Fitness_t, void> {
   using ArgsType = void;
 
   template <initializeFun i>
-  using iFunBody = typename iFunArea_GA<void, Var_t *>::template funBody<i>;
+  using iFunBody = typename iFunArea_GA<Var_t *>::template funBody<i>;
 
   template <fitnessFun f>
-  using fFunBody = typename fFunArea_GA<void, const Var_t *, Fitness_t *>::template funBody<f>;
+  using fFunBody = typename fFunArea_GA<const Var_t *, Fitness_t *>::template funBody<f>;
 
   template <crossoverFun c>
-  using cFunBody = typename cFunArea_GA<void, const Var_t *, const Var_t *, Var_t *, Var_t *>::template funBody<c>;
+  using cFunBody = typename cFunArea_GA<const Var_t *, const Var_t *, Var_t *, Var_t *>::template funBody<c>;
 
   template <mutateFun m>
-  using mFunBody = typename mFunArea_GA<void, const Var_t *, Var_t *>::template funBody<m>;
+  using mFunBody = typename mFunArea_GA<const Var_t *, Var_t *>::template funBody<m>;
 
   static const bool HasParameters = false;
 };

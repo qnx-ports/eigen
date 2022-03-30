@@ -17,8 +17,8 @@ namespace Eigen {
 
 namespace internal {
 
-EIGEN_HEU_MAKE_FUNAREA(iFun, iFun, PSO)
-EIGEN_HEU_MAKE_FUNAREA(fFun, fFun, PSO)
+EIGEN_HEU_MAKE_FUNAREA(iFun, PSO)
+EIGEN_HEU_MAKE_FUNAREA(fFun, PSO)
 
 /**
  * \ingroup CXX14_METAHEURISTIC
@@ -67,11 +67,11 @@ class PSOParameterPack {
   using fFun_t = void (*)(const Var_t *pos, const Args_t *, Fitness_t *f);
 
   template <iFun_t _i>
-  using iFunBody = typename iFunArea_PSO<void, Var_t *, Var_t *, const Var_t *, const Var_t *, const Var_t *,
+  using iFunBody = typename iFunArea_PSO<Var_t *, Var_t *, const Var_t *, const Var_t *, const Var_t *,
                                          const Args_t *>::template funBody<_i>;
 
   template <fFun_t _i>
-  using fFunBody = typename fFunArea_PSO<void, const Var_t *, const Args_t *, Fitness_t *>::template funBody<_i>;
+  using fFunBody = typename fFunArea_PSO<const Var_t *, const Args_t *, Fitness_t *>::template funBody<_i>;
 
   /**
    * \brief Set the Args object
@@ -123,10 +123,10 @@ class PSOParameterPack<Var_t, Fitness_t, void> {
 
   template <iFun_t _i>
   using iFunBody =
-      typename iFunArea_PSO<void, Var_t *, Var_t *, const Var_t *, const Var_t *, const Var_t *>::template funBody<_i>;
+      typename iFunArea_PSO<Var_t *, Var_t *, const Var_t *, const Var_t *, const Var_t *>::template funBody<_i>;
 
   template <fFun_t _i>
-  using fFunBody = typename fFunArea_PSO<void, const Var_t *, Fitness_t *>::template funBody<_i>;
+  using fFunBody = typename fFunArea_PSO<const Var_t *, Fitness_t *>::template funBody<_i>;
 
   static const bool HasParameters = false;
 };

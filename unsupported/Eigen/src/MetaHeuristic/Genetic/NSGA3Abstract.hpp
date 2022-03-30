@@ -72,6 +72,8 @@ class NSGA3Abstract
     size_t closestRefPoint;
     /// Distance to the closet RP
     double distance;
+
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF(Base_t::fitnessTypeVectorizable)
   };
 
  protected:

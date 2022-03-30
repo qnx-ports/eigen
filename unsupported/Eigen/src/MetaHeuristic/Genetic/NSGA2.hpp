@@ -82,6 +82,8 @@ class NSGA2 : public internal::NSGABase<Var_t, ObjNum, fOpt, rOpt, Args_t, _iFun
      *
      */
     double congestion;
+
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF(Base_t::fitnessTypeVectorizable)
   };
 
   /**

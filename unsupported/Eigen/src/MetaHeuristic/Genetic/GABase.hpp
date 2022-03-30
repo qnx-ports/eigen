@@ -65,6 +65,13 @@ class GABase : public GAAbstract<Var_t, Fitness_t, Args_t>,
  private:
   using Base_t = GAAbstract<Var_t, Fitness_t, Args_t>;
 
+ protected:
+#if __cplusplus < 201703L
+  static constexpr bool shouldGeneAlignExplicitly = (sizeof(Var_t) % 16 == 0) || (sizeof(Fitness_t) % 16 == 0);
+#else
+  static constexpr bool shouldGeneAlignExplicitly = false;
+#endif
+
  public:
   EIGEN_HEU_MAKE_GAABSTRACT_TYPES(Base_t)
 
@@ -91,11 +98,17 @@ class GABase : public GAAbstract<Var_t, Fitness_t, Args_t>,
     bool isCalculated() const { return _isCalculated; }  ///< If the fitness is computed
     void setUncalculated() { _isCalculated = false; }    ///< Set the fitness to be uncomputed
     fastFitness_t fitness() const { return _Fitness; }   ///< Get fitness
+
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF(shouldGeneAlignExplicitly)
   };
   /// list iterator to Gene
-  using GeneIt_t = typename std::list<Gene>::iterator;
+
+ protected:
+  using poplist_t = typename std::conditional<shouldGeneAlignExplicitly,
+                                              std::list<Gene, Eigen::aligned_allocator<Gene>>, std::list<Gene>>::type;
 
  public:
+  using GeneIt_t = typename poplist_t::iterator;
   /**
    * \brief Set the option object
    *
@@ -128,7 +141,7 @@ class GABase : public GAAbstract<Var_t, Fitness_t, Args_t>,
    *
    * \return const std::list<Gene>& Const reference the the population
    */
-  inline const std::list<Gene> &population() const { return _population; }
+  inline const poplist_t &population() const { return _population; }
 
   /**
    * \brief Get the population that has been used.
@@ -145,8 +158,8 @@ class GABase : public GAAbstract<Var_t, Fitness_t, Args_t>,
   inline size_t failTimes() const { return _failTimes; }
 
  protected:
-  std::list<Gene> _population;  ///< Population stored in list
-  GAOption _option;             ///< Option of GA solver
+  poplist_t _population;  ///< Population stored in list
+  GAOption _option;       ///< Option of GA solver
 
   size_t _generation;  ///< Current generation
   size_t _failTimes;   ///< Current failtimes

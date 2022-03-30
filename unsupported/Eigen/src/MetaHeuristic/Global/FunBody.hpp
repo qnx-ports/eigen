@@ -26,18 +26,18 @@ namespace Eigen {
  * at runtime.
  *
  */
-#define EIGEN_HEU_MAKE_FUNAREA(funFlag, FunFlag, Suffix)                                          \
-  template <typename return_t = void, typename... a>                                              \
+#define EIGEN_HEU_MAKE_FUNAREA(funFlag, Suffix)                                                   \
+  template <typename... a>                                                                        \
   class funFlag##Area_##Suffix {                                                                  \
    public:                                                                                        \
-    using funPtr_t = return_t (*)(a...);                                                          \
+    using funPtr_t = void (*)(a...);                                                              \
                                                                                                   \
    private:                                                                                       \
-    template <return_t (*_fun)(a...)>                                                             \
+    template <void (*_fun)(a...)>                                                                 \
     class funBodyCT {                                                                             \
      public:                                                                                      \
       inline constexpr funPtr_t funFlag() const { return _fun; }                                  \
-      inline return_t run##FunFlag(a... _a) const { return _fun(_a...); }                         \
+      inline void run##funFlag(a... _a) const { _fun(_a...); }                                    \
                                                                                                   \
      private:                                                                                     \
       static_assert(_fun != nullptr, "Template function mustn't be nullptr");                     \
@@ -47,15 +47,15 @@ namespace Eigen {
      public:                                                                                      \
       funBodyRT() { _funPtr = nullptr; }                                                          \
       inline funPtr_t funFlag() const { return _funPtr; }                                         \
-      inline return_t run##FunFlag(a... _a) const { return _funPtr(_a...); }                      \
-      inline void set##FunFlag(funPtr_t __) { _funPtr = __; }                                     \
+      inline void run##funFlag(a... _a) const { _funPtr(_a...); }                                 \
+      inline void set##funFlag(funPtr_t __) { _funPtr = __; }                                     \
                                                                                                   \
      protected:                                                                                   \
       funPtr_t _funPtr;                                                                           \
     };                                                                                            \
                                                                                                   \
    public:                                                                                        \
-    template <return_t (*_fun)(a...)>                                                             \
+    template <void (*_fun)(a...)>                                                                 \
     using funBody = typename std::conditional<_fun == nullptr, funBodyRT, funBodyCT<_fun>>::type; \
   };
 

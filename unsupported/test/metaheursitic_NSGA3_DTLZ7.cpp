@@ -101,7 +101,7 @@ void testNSGA3_DTLZ7() {
   solver.setReferencePointPrecision(3, 4);
   cout << "RPCount=" << solver.referencePointCount() << endl;
   solver.initializePop();
-
+  cout << "Population initialized." << endl;
   // cout << "RP=[" << solver.referencePoints() << "]';\n\n\n" << endl;
 
   clock_t c = clock();

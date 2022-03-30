@@ -73,6 +73,8 @@ class NSGABase : public MOGABase<Var_t, ObjNum, fOpt, rOpt, Args_t, _iFun_, _fFu
      * \brief Iterator to related gene
      */
     GeneIt_t iterator;
+
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF(Base_t::fitnessTypeVectorizable)
   };  //  infoUnitBase
 
   /**

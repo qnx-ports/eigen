@@ -132,6 +132,11 @@ class MOGAAbstract
  protected:
   std::unordered_set<const Gene*> _pfGenes;  ///< A hash set to store the whole PF
 
+  /**
+   * \brief Whether Fitness_t is vectorizable.
+   *
+   */
+  static constexpr bool fitnessTypeVectorizable = (ObjNum > 0) && (sizeof(Fitness_t) % 16 == 0);
   /*
    * \brief Compute the hash checksum of current PF
    *
