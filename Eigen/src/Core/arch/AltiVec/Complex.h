@@ -226,8 +226,8 @@ template<> EIGEN_STRONG_INLINE Packet2cf pcplxflip<Packet2cf>(const Packet2cf& x
 
 EIGEN_STRONG_INLINE void ptranspose(PacketBlock<Packet2cf,2>& kernel)
 {
-  Packet4f tmp = vec_perm(kernel.packet[0].v, kernel.packet[1].v, p16uc_TRANSPOSE64_HI);
-  kernel.packet[1].v = vec_perm(kernel.packet[0].v, kernel.packet[1].v, p16uc_TRANSPOSE64_LO);
+  Packet4f tmp = reinterpret_cast<Packet4f>(vec_mergeh(reinterpret_cast<Packet2d>(kernel.packet[0].v), reinterpret_cast<Packet2d>(kernel.packet[1].v)));
+  kernel.packet[1].v = reinterpret_cast<Packet4f>(vec_mergel(reinterpret_cast<Packet2d>(kernel.packet[0].v), reinterpret_cast<Packet2d>(kernel.packet[1].v)));
   kernel.packet[0].v = tmp;
 }
 
@@ -388,8 +388,8 @@ EIGEN_STRONG_INLINE Packet1cd pcplxflip/*<Packet1cd>*/(const Packet1cd& x)
 
 EIGEN_STRONG_INLINE void ptranspose(PacketBlock<Packet1cd,2>& kernel)
 {
-  Packet2d tmp = vec_perm(kernel.packet[0].v, kernel.packet[1].v, p16uc_TRANSPOSE64_HI);
-  kernel.packet[1].v = vec_perm(kernel.packet[0].v, kernel.packet[1].v, p16uc_TRANSPOSE64_LO);
+  Packet2d tmp = vec_mergeh(kernel.packet[0].v, kernel.packet[1].v);
+  kernel.packet[1].v = vec_mergel(kernel.packet[0].v, kernel.packet[1].v);
   kernel.packet[0].v = tmp;
 }
 
