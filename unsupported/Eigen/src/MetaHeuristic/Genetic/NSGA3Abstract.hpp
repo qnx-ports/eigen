@@ -143,7 +143,7 @@ class NSGA3Abstract
     selected.reserve(this->_option.populationSize);
 
     // pointer to undertermined layer Fl
-    std::vector<infoUnit3*>* FlPtr = nullptr;
+    std::vector<infoUnitBase_t*>* FlPtr = nullptr;
 
     // if need to use RP in this selection
     bool needRefPoint;
@@ -158,7 +158,7 @@ class NSGA3Abstract
       // We need to select part of members in Fl and eliminate the rest
       if (selected.size() + this->pfLayers.front().size() > this->_option.populationSize) {
         needRefPoint = true;
-        FlPtr = (decltype(FlPtr))&this->pfLayers.front();
+        FlPtr = &this->pfLayers.front();
         break;
       }
 
@@ -228,7 +228,7 @@ class NSGA3Abstract
    * intercept of this hyperplane. If the matrix is singular, use the diagonal line as intercept.
    * 6. Update the translateFitness : gene.translatedFitness/=intercept.
    */
-  void normalize(const std::unordered_set<infoUnit3*>& selected, const std::vector<infoUnit3*>& Fl) const {
+  void normalize(const std::unordered_set<infoUnit3*>& selected, const std::vector<infoUnitBase_t*>& Fl) const {
     const size_t M = this->objectiveNum();
     stdContainer<const infoUnit3*, ObjNum> extremePtrs;
     heu_initializeSize<ObjNum>::template resize<decltype(extremePtrs)>(&extremePtrs, M);
@@ -244,7 +244,7 @@ class NSGA3Abstract
     ideal.setConstant(pinfD);
 
     for (size_t c = 0; c < M; c++) {
-      extremePtrs[c] = *(Fl.begin());
+      extremePtrs[c] = static_cast<infoUnit3*>(Fl[0]);
       extremePoints.col(c) = extremePtrs[c]->fitnessCache;
     }
 
@@ -261,7 +261,7 @@ class NSGA3Abstract
       ideal = ideal.min(i->fitnessCache);
       for (size_t objIdx = 0; objIdx < M; objIdx++) {
         if (i->fitnessCache[objIdx] > extremePtrs[objIdx]->fitnessCache[objIdx]) {
-          extremePtrs[objIdx] = i;
+          extremePtrs[objIdx] = static_cast<infoUnit3*>(i);
         }
       }
     }
@@ -283,7 +283,7 @@ class NSGA3Abstract
     }
 
     for (auto i : Fl) {
-      i->translatedFitness = (i->fitnessCache - ideal) / intercepts;
+      static_cast<infoUnit3*>(i)->translatedFitness = (i->fitnessCache - ideal) / intercepts;
     }
   }  //  normalize
 
@@ -337,9 +337,10 @@ class NSGA3Abstract
    * \param Fl_src Source of Fl
    * \param Fl_dst Destination of Fl
    */
-  void associate(const std::vector<infoUnit3*>& Fl_src,
+  void associate(const std::vector<infoUnitBase_t*>& Fl_src,
                  std::unordered_multimap<RefPointIdx_t, infoUnit3*>* Fl_dst) const {
-    for (auto i : Fl_src) {
+    for (auto j : Fl_src) {
+      infoUnit3* i = static_cast<infoUnit3*>(j);
       RefPointIdx_t idx = findNearest(i->translatedFitness, &i->distance);
       i->closestRefPoint = idx;
       Fl_dst->emplace(idx, i);
