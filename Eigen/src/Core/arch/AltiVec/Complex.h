@@ -115,6 +115,10 @@ template<> EIGEN_STRONG_INLINE Packet2cf pset1<Packet2cf>(const std::complex<flo
 {
   Packet2cf res;
 #ifdef __VSX__
+  // Load a single std::complex<float> from memory and duplicate
+  //
+  // Using pload would read past the end of the reference in this case
+  // Using vec_xl_len + vec_splat, generates poor assembly
   __asm__ ("lxvdsx %x0,%y1" : "=wa" (res.v) : "Z" (from));
 #else
   if((std::ptrdiff_t(&from) % 16) == 0)
@@ -137,6 +141,7 @@ EIGEN_STRONG_INLINE Packet2cf pload2(const std::complex<float>& from0, const std
 {
   Packet4f res0, res1;
 #ifdef __VSX__
+  // Load two std::complex<float> from memory and combine
   __asm__ ("lxsdx %x0,%y1" : "=wa" (res0) : "Z" (from0));
   __asm__ ("lxsdx %x0,%y1" : "=wa" (res1) : "Z" (from1));
 #ifdef _BIG_ENDIAN
