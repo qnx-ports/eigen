@@ -1166,6 +1166,8 @@ EIGEN_ALWAYS_INLINE void bscalec(PacketBlock<Packet,N>& aReal, PacketBlock<Packe
 }
 
 // Load a PacketBlock, the N parameters make tunning gemm easier so we can add more accumulators as needed.
+//
+// full = operate (load) on the entire PacketBlock or only half
 template<typename DataMapper, typename Packet, typename Index, const Index accCols, int StorageOrder, bool Complex, int N, const bool full>
 EIGEN_ALWAYS_INLINE void bload(PacketBlock<Packet,N*(Complex?2:1)>& acc, const DataMapper& res, Index row, Index col)
 {
@@ -1234,19 +1236,19 @@ EIGEN_ALWAYS_INLINE void bstore(PacketBlock<Packet,N>& acc, const DataMapper& re
 }
 
 #ifdef _ARCH_PWR10
-#define USE_NEW_P10 (EIGEN_COMP_LLVM || (__GNUC__ >= 11))
+#define USE_P10_AND_PVIPR2_0 (EIGEN_COMP_LLVM || (__GNUC__ >= 11))
 #else
-#define USE_NEW_P10 0
+#define USE_P10_AND_PVIPR2_0 0
 #endif
 
-#if !USE_NEW_P10
+#if !USE_P10_AND_PVIPR2_0
 const static Packet4i mask4[4] = { {  0,  0,  0,  0 }, { -1,  0,  0,  0 }, { -1, -1,  0,  0 }, { -1, -1, -1,  0 } };
 #endif
 
 template<typename Packet, typename Index>
 EIGEN_ALWAYS_INLINE Packet bmask(const Index remaining_rows)
 {
-#if USE_NEW_P10
+#if USE_P10_AND_PVIPR2_0
 #ifdef _BIG_ENDIAN
   return Packet(vec_reve(vec_genwm((1 << remaining_rows) - 1)));
 #else
@@ -1260,7 +1262,7 @@ EIGEN_ALWAYS_INLINE Packet bmask(const Index remaining_rows)
 template<>
 EIGEN_ALWAYS_INLINE Packet2d bmask<Packet2d,Index>(const Index remaining_rows)
 {
-#if USE_NEW_P10
+#if USE_P10_AND_PVIPR2_0
   Packet2d mask2 = Packet2d(vec_gendm(remaining_rows));
 #ifdef _BIG_ENDIAN
   return preverse(mask2);
