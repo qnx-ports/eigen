@@ -1249,12 +1249,10 @@ EIGEN_ALWAYS_INLINE void pbroadcastN(const __UNPACK_TYPE__(Packet) *ap0,
 }
 
 template<> EIGEN_ALWAYS_INLINE void
-pbroadcastN<Packet4f,4,true>(const float *ap0, const float *ap1, const float *ap2,
+pbroadcastN<Packet4f,4,true>(const float *ap0, const float *, const float *,
                              Packet4f& a0, Packet4f& a1, Packet4f& a2, Packet4f& a3)
 {
   pbroadcast4<Packet4f>(ap0, a0, a1, a2, a3);
-  EIGEN_UNUSED_VARIABLE(ap1);
-  EIGEN_UNUSED_VARIABLE(ap2);
 }
 
 template<> EIGEN_ALWAYS_INLINE void
@@ -1265,8 +1263,8 @@ pbroadcastN<Packet4f,4,false>(const float *ap0, const float *ap1, const float *a
 }
 
 template<>
-EIGEN_ALWAYS_INLINE void pbroadcastN<Packet2d,4,false>(const double* ap0, const double *ap1,
-    const double *ap2, Packet2d& a0, Packet2d& a1, Packet2d& a2, Packet2d& a3)
+EIGEN_ALWAYS_INLINE void pbroadcastN<Packet2d,4,false>(const double* ap0, const double *,
+    const double *, Packet2d& a0, Packet2d& a1, Packet2d& a2, Packet2d& a3)
 {
   a1 = pload<Packet2d>(ap0);
   a3 = pload<Packet2d>(ap0 + 2);
@@ -1274,8 +1272,6 @@ EIGEN_ALWAYS_INLINE void pbroadcastN<Packet2d,4,false>(const double* ap0, const 
   a1 = vec_splat(a1, 1);
   a2 = vec_splat(a3, 0);
   a3 = vec_splat(a3, 1);
-  EIGEN_UNUSED_VARIABLE(ap1);
-  EIGEN_UNUSED_VARIABLE(ap2);
 }
 
 // Grab two decouples real/imaginary PacketBlocks and return two coupled (real/imaginary pairs) PacketBlocks.
