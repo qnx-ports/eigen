@@ -1030,26 +1030,12 @@ EIGEN_ALWAYS_INLINE void pger_common(PacketBlock<Packet,N>* acc, const Packet& l
 {
   if(NegativeAccumulate)
   {
-    acc->packet[0] = vec_nmsub(lhsV, rhsV[0], acc->packet[0]);
-    if (N > 1) {
-      acc->packet[1] = vec_nmsub(lhsV, rhsV[1], acc->packet[1]);
-    }
-    if (N > 2) {
-      acc->packet[2] = vec_nmsub(lhsV, rhsV[2], acc->packet[2]);
-    }
-    if (N > 3) {
-      acc->packet[3] = vec_nmsub(lhsV, rhsV[3], acc->packet[3]);
+    for (int M = 0; M < N; M++) {
+      acc->packet[M] = vec_nmsub(lhsV, rhsV[M], acc->packet[M]);
     }
   } else {
-    acc->packet[0] = vec_madd(lhsV, rhsV[0], acc->packet[0]);
-    if (N > 1) {
-      acc->packet[1] = vec_madd(lhsV, rhsV[1], acc->packet[1]);
-    }
-    if (N > 2) {
-      acc->packet[2] = vec_madd(lhsV, rhsV[2], acc->packet[2]);
-    }
-    if (N > 3) {
-      acc->packet[3] = vec_madd(lhsV, rhsV[3], acc->packet[3]);
+    for (int M = 0; M < N; M++) {
+      acc->packet[M] = vec_madd(lhsV, rhsV[M], acc->packet[M]);
     }
   }
 }
@@ -1103,45 +1089,24 @@ EIGEN_ALWAYS_INLINE Packet ploadLhs(const __UNPACK_TYPE__(Packet)* lhs)
 template<typename Packet, int N>
 EIGEN_ALWAYS_INLINE void bsetzero(PacketBlock<Packet,N>& acc)
 {
-  acc.packet[0] = pset1<Packet>((__UNPACK_TYPE__(Packet))0);
-  if (N > 1) {
-    acc.packet[1] = pset1<Packet>((__UNPACK_TYPE__(Packet))0);
-  }
-  if (N > 2) {
-    acc.packet[2] = pset1<Packet>((__UNPACK_TYPE__(Packet))0);
-  }
-  if (N > 3) {
-    acc.packet[3] = pset1<Packet>((__UNPACK_TYPE__(Packet))0);
+  for (int M = 0; M < N; M++) {
+    acc.packet[M] = pset1<Packet>((__UNPACK_TYPE__(Packet))0);
   }
 }
 
 template<typename Packet, int N>
 EIGEN_ALWAYS_INLINE void bscalec_common(PacketBlock<Packet,N>& acc, PacketBlock<Packet,N>& accZ, const Packet& pAlpha)
 {
-  acc.packet[0] = vec_mul(accZ.packet[0], pAlpha);
-  if (N > 1) {
-    acc.packet[1] = vec_mul(accZ.packet[1], pAlpha);
-  }
-  if (N > 2) {
-    acc.packet[2] = vec_mul(accZ.packet[2], pAlpha);
-  }
-  if (N > 3) {
-    acc.packet[3] = vec_mul(accZ.packet[3], pAlpha);
+  for (int M = 0; M < N; M++) {
+    acc.packet[M] = vec_mul(accZ.packet[M], pAlpha);
   }
 }
 
 template<typename Packet, int N>
 EIGEN_ALWAYS_INLINE void band(PacketBlock<Packet,N>& acc, const Packet& pMask)
 {
-  acc.packet[0] = pand<Packet>(acc.packet[0], pMask);
-  if (N > 1) {
-    acc.packet[1] = pand<Packet>(acc.packet[1], pMask);
-  }
-  if (N > 2) {
-    acc.packet[2] = pand<Packet>(acc.packet[2], pMask);
-  }
-  if (N > 3) {
-    acc.packet[3] = pand<Packet>(acc.packet[3], pMask);
+  for (int M = 0; M < N; M++) {
+    acc.packet[M] = pand<Packet>(acc.packet[M], pMask);
   }
 }
 
@@ -1172,49 +1137,21 @@ template<typename DataMapper, typename Packet, typename Index, const Index accCo
 EIGEN_ALWAYS_INLINE void bload(PacketBlock<Packet,N*(Complex?2:1)>& acc, const DataMapper& res, Index row, Index col)
 {
   if (StorageOrder == RowMajor) {
-    acc.packet[0] = res.template loadPacket<Packet>(row + 0, col);
-    if (N > 1) {
-      acc.packet[1] = res.template loadPacket<Packet>(row + 1, col);
-    }
-    if (N > 2) {
-      acc.packet[2] = res.template loadPacket<Packet>(row + 2, col);
-    }
-    if (N > 3) {
-      acc.packet[3] = res.template loadPacket<Packet>(row + 3, col);
+    for (int M = 0; M < N; M++) {
+      acc.packet[M] = res.template loadPacket<Packet>(row + M, col);
     }
     if (Complex) {
-      acc.packet[0+N] = res.template loadPacket<Packet>(row + 0, col + accCols);
-      if (N > 1) {
-        acc.packet[1+N] = res.template loadPacket<Packet>(row + 1, col + accCols);
-      }
-      if (N > 2) {
-        acc.packet[2+N] = res.template loadPacket<Packet>(row + 2, col + accCols);
-      }
-      if (N > 3) {
-        acc.packet[3+N] = res.template loadPacket<Packet>(row + 3, col + accCols);
+      for (int M = 0; M < N; M++) {
+        acc.packet[M+N] = res.template loadPacket<Packet>(row + M, col + accCols);
       }
     }
   } else {
-    acc.packet[0] = res.template loadPacket<Packet>(row, col + 0);
-    if (N > 1) {
-      acc.packet[1] = res.template loadPacket<Packet>(row, col + 1);
-    }
-    if (N > 2) {
-      acc.packet[2] = res.template loadPacket<Packet>(row, col + 2);
-    }
-    if (N > 3) {
-      acc.packet[3] = res.template loadPacket<Packet>(row, col + 3);
+    for (int M = 0; M < N; M++) {
+      acc.packet[M] = res.template loadPacket<Packet>(row, col + M);
     }
     if (Complex && full) {
-      acc.packet[0+N] = res.template loadPacket<Packet>(row + accCols, col + 0);
-      if (N > 1) {
-        acc.packet[1+N] = res.template loadPacket<Packet>(row + accCols, col + 1);
-      }
-      if (N > 2) {
-        acc.packet[2+N] = res.template loadPacket<Packet>(row + accCols, col + 2);
-      }
-      if (N > 3) {
-        acc.packet[3+N] = res.template loadPacket<Packet>(row + accCols, col + 3);
+      for (int M = 0; M < N; M++) {
+        acc.packet[M+N] = res.template loadPacket<Packet>(row + accCols, col + M);
       }
     }
   }
@@ -1223,15 +1160,8 @@ EIGEN_ALWAYS_INLINE void bload(PacketBlock<Packet,N*(Complex?2:1)>& acc, const D
 template<typename DataMapper, typename Packet, typename Index, int N>
 EIGEN_ALWAYS_INLINE void bstore(PacketBlock<Packet,N>& acc, const DataMapper& res, Index row)
 {
-  res.template storePacket<Packet>(row, 0, acc.packet[0]);
-  if (N > 1) {
-    res.template storePacket<Packet>(row, 1, acc.packet[1]);
-  }
-  if (N > 2) {
-    res.template storePacket<Packet>(row, 2, acc.packet[2]);
-  }
-  if (N > 3) {
-    res.template storePacket<Packet>(row, 3, acc.packet[3]);
+  for (int M = 0; M < N; M++) {
+    res.template storePacket<Packet>(row, M, acc.packet[M]);
   }
 }
 
@@ -1285,15 +1215,8 @@ EIGEN_ALWAYS_INLINE void bscale(PacketBlock<Packet,N>& acc, PacketBlock<Packet,N
     EIGEN_UNUSED_VARIABLE(pMask);
   }
 
-  acc.packet[0] = pmadd<Packet>(pAlpha, accZ.packet[0], acc.packet[0]);
-  if (N > 1) {
-    acc.packet[1] = pmadd<Packet>(pAlpha, accZ.packet[1], acc.packet[1]);
-  }
-  if (N > 2) {
-    acc.packet[2] = pmadd<Packet>(pAlpha, accZ.packet[2], acc.packet[2]);
-  }
-  if (N > 3) {
-    acc.packet[3] = pmadd<Packet>(pAlpha, accZ.packet[3], acc.packet[3]);
+  for (int M = 0; M < N; M++) {
+    acc.packet[M] = pmadd<Packet>(pAlpha, accZ.packet[M], acc.packet[M]);
   }
 }
 
@@ -1359,27 +1282,13 @@ EIGEN_ALWAYS_INLINE void pbroadcastN<Packet2d,4,false>(const double* ap0, const 
 template<typename Packet, typename Packetc, int N, bool full>
 EIGEN_ALWAYS_INLINE void bcouple_common(PacketBlock<Packet,N>& taccReal, PacketBlock<Packet,N>& taccImag, PacketBlock<Packetc, N>& acc1, PacketBlock<Packetc, N>& acc2)
 {
-  acc1.packet[0].v = vec_mergeh(taccReal.packet[0], taccImag.packet[0]);
-  if (N > 1) {
-    acc1.packet[1].v = vec_mergeh(taccReal.packet[1], taccImag.packet[1]);
-  }
-  if (N > 2) {
-    acc1.packet[2].v = vec_mergeh(taccReal.packet[2], taccImag.packet[2]);
-  }
-  if (N > 3) {
-    acc1.packet[3].v = vec_mergeh(taccReal.packet[3], taccImag.packet[3]);
+  for (int M = 0; M < N; M++) {
+    acc1.packet[M].v = vec_mergeh(taccReal.packet[M], taccImag.packet[M]);
   }
 
   if (full) {
-    acc2.packet[0].v = vec_mergel(taccReal.packet[0], taccImag.packet[0]);
-    if (N > 1) {
-      acc2.packet[1].v = vec_mergel(taccReal.packet[1], taccImag.packet[1]);
-    }
-    if (N > 2) {
-      acc2.packet[2].v = vec_mergel(taccReal.packet[2], taccImag.packet[2]);
-    }
-    if (N > 3) {
-      acc2.packet[3].v = vec_mergel(taccReal.packet[3], taccImag.packet[3]);
+    for (int M = 0; M < N; M++) {
+      acc2.packet[M].v = vec_mergel(taccReal.packet[M], taccImag.packet[M]);
     }
   }
 }
@@ -1389,27 +1298,13 @@ EIGEN_ALWAYS_INLINE void bcouple(PacketBlock<Packet,N>& taccReal, PacketBlock<Pa
 {
   bcouple_common<Packet, Packetc, N, full>(taccReal, taccImag, acc1, acc2);
 
-  acc1.packet[0] = padd<Packetc>(tRes.packet[0], acc1.packet[0]);
-  if (N > 1) {
-    acc1.packet[1] = padd<Packetc>(tRes.packet[1], acc1.packet[1]);
-  }
-  if (N > 2) {
-    acc1.packet[2] = padd<Packetc>(tRes.packet[2], acc1.packet[2]);
-  }
-  if (N > 3) {
-    acc1.packet[3] = padd<Packetc>(tRes.packet[3], acc1.packet[3]);
+  for (int M = 0; M < N; M++) {
+    acc1.packet[M] = padd<Packetc>(tRes.packet[M], acc1.packet[M]);
   }
 
   if (full) {
-    acc2.packet[0] = padd<Packetc>(tRes.packet[0+N], acc2.packet[0]);
-    if (N > 1) {
-      acc2.packet[1] = padd<Packetc>(tRes.packet[1+N], acc2.packet[1]);
-    }
-    if (N > 2) {
-      acc2.packet[2] = padd<Packetc>(tRes.packet[2+N], acc2.packet[2]);
-    }
-    if (N > 3) {
-      acc2.packet[3] = padd<Packetc>(tRes.packet[3+N], acc2.packet[3]);
+    for (int M = 0; M < N; M++) {
+      acc2.packet[M] = padd<Packetc>(tRes.packet[M+N], acc2.packet[M]);
     }
   }
 }
