@@ -83,7 +83,7 @@ EIGEN_STRONG_INLINE void gemm_complex_extra_cols(
 template<typename Packet>
 EIGEN_ALWAYS_INLINE Packet ploadLhs(const __UNPACK_TYPE__(Packet)* lhs);
 
-template<typename DataMapper, typename Packet, typename Index, const Index accCols, int StorageOrder, bool Complex, int N, const bool full = true>
+template<typename DataMapper, typename Packet, typename Index, const Index accCols, int StorageOrder, bool Complex, int N, bool full = true>
 EIGEN_ALWAYS_INLINE void bload(PacketBlock<Packet,N*(Complex?2:1)>& acc, const DataMapper& res, Index row, Index col);
 
 template<typename DataMapper, typename Packet, typename Index, int N>
@@ -95,7 +95,7 @@ EIGEN_ALWAYS_INLINE void bscale(PacketBlock<Packet,N>& acc, PacketBlock<Packet,N
 template<typename Packet, int N, bool mask>
 EIGEN_ALWAYS_INLINE void bscalec(PacketBlock<Packet,N>& aReal, PacketBlock<Packet,N>& aImag, const Packet& bReal, const Packet& bImag, PacketBlock<Packet,N>& cReal, PacketBlock<Packet,N>& cImag, const Packet& pMask);
 
-template<typename Packet, typename Packetc, int N, const bool full>
+template<typename Packet, typename Packetc, int N, bool full>
 EIGEN_ALWAYS_INLINE void bcouple(PacketBlock<Packet,N>& taccReal, PacketBlock<Packet,N>& taccImag, PacketBlock<Packetc,N*2>& tRes, PacketBlock<Packetc, N>& acc1, PacketBlock<Packetc, N>& acc2);
 
 #define MICRO_NORMAL(iter) \
