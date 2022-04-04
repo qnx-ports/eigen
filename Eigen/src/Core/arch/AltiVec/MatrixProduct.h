@@ -1133,7 +1133,7 @@ EIGEN_ALWAYS_INLINE void bscalec(PacketBlock<Packet,N>& aReal, PacketBlock<Packe
 // Load a PacketBlock, the N parameters make tunning gemm easier so we can add more accumulators as needed.
 //
 // full = operate (load) on the entire PacketBlock or only half
-template<typename DataMapper, typename Packet, typename Index, const Index accCols, int StorageOrder, bool Complex, int N, const bool full>
+template<typename DataMapper, typename Packet, typename Index, const Index accCols, int StorageOrder, bool Complex, int N, bool full>
 EIGEN_ALWAYS_INLINE void bload(PacketBlock<Packet,N*(Complex?2:1)>& acc, const DataMapper& res, Index row, Index col)
 {
   if (StorageOrder == RowMajor) {
@@ -1289,7 +1289,7 @@ EIGEN_ALWAYS_INLINE void bcouple_common(PacketBlock<Packet,N>& taccReal, PacketB
   }
 }
 
-template<typename Packet, typename Packetc, int N, const bool full>
+template<typename Packet, typename Packetc, int N, bool full>
 EIGEN_ALWAYS_INLINE void bcouple(PacketBlock<Packet,N>& taccReal, PacketBlock<Packet,N>& taccImag, PacketBlock<Packetc,N*2>& tRes, PacketBlock<Packetc, N>& acc1, PacketBlock<Packetc, N>& acc2)
 {
   bcouple_common<Packet, Packetc, N, full>(taccReal, taccImag, acc1, acc2);
