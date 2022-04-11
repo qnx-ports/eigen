@@ -121,7 +121,7 @@ EIGEN_ALWAYS_INLINE void storeMaddData(ResScalar* res, ResScalar& alpha, ResScal
 #else
 #define GEMV_LOADPAIR_COL_MMA(iter1, iter2) \
   const LhsScalar& src##iter1 = lhs(i + 0, j); \
-  __asm__ ("lxvp %x0,%1(%2)" : "=wa" (b##iter1) : "K" (iter1 * 32), "a" (&src##iter1));
+  b##iter1 = *reinterpret_cast<__vector_pair *>(reinterpret_cast<unsigned char *>(const_cast<LhsScalar *>(&src##iter1)) + (iter1 * 32));
 #endif
 
 #define GEMV_LOAD1A_COL_MMA(iter, N) \
@@ -1413,7 +1413,7 @@ EIGEN_ALWAYS_INLINE void disassembleResults(__vector_quad* c0, PacketBlock<Scala
 #define GEMV_LOADPAIR_COL_COMPLEX_MMA(iter1, iter2) \
   if (sizeof(LhsPacket) == 16) { \
     const LhsScalar& src = lhs(i + 0, j); \
-    __asm__ ("lxvp %x0,%1(%2)" : "=wa" (a##iter1) : "K" (iter1 * 32), "a" (&src)); \
+    a##iter1 = *reinterpret_cast<__vector_pair *>(reinterpret_cast<unsigned char *>(const_cast<LhsScalar *>(&src)) + (iter1 * 32)); \
     EIGEN_UNUSED_VARIABLE(f##iter1); \
   } else { \
     f##iter1 = lhs.template load<PLhsPacket, Unaligned>(i + ((iter2) * ResPacketSize), j); \
@@ -1727,8 +1727,19 @@ EIGEN_ALWAYS_INLINE ScalarBlock<ResScalar, 2> predux_real(__vector_quad* acc0, _
     PacketBlock<ResPacket, 4> result0, result1;
     __builtin_mma_disassemble_acc(&result0.packet, acc0);
     __builtin_mma_disassemble_acc(&result1.packet, acc1);
-    cc0.scalar[0] = result0.packet[0][0] + result0.packet[1][1] + result0.packet[2][2] + result0.packet[3][3];
-    cc0.scalar[1] = result1.packet[0][0] + result1.packet[1][1] + result1.packet[2][2] + result1.packet[3][3];
+    result0.packet[0] += vec_sld(result0.packet[2], result0.packet[2], 8);
+    result0.packet[1] += vec_sld(result0.packet[3], result0.packet[3], 8);
+    result1.packet[0] += vec_sld(result1.packet[2], result1.packet[2], 8);
+    result1.packet[1] += vec_sld(result1.packet[3], result1.packet[3], 8);
+#ifdef _BIG_ENDIAN
+    result0.packet[0] += vec_sld(result0.packet[1], result0.packet[1], 4);
+    result1.packet[0] += vec_sld(result1.packet[1], result1.packet[1], 4);
+#else
+    result0.packet[0] += vec_sld(result0.packet[1], result0.packet[1], 12);
+    result1.packet[0] += vec_sld(result1.packet[1], result1.packet[1], 12);
+#endif
+    cc0.scalar[0] = result0.packet[0][0];
+    cc0.scalar[1] = result1.packet[0][0];
     return cc0;
 }
 
