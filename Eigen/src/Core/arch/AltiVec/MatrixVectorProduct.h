@@ -120,8 +120,8 @@ EIGEN_ALWAYS_INLINE void storeMaddData(ResScalar* res, ResScalar& alpha, ResScal
   GEMV_BUILDPAIR_MMA(b##iter1, GEMV_LOADPACKET_COL(iter2), GEMV_LOADPACKET_COL((iter2) + 1));
 #else
 #define GEMV_LOADPAIR_COL_MMA(iter1, iter2) \
-  const LhsScalar& src##iter1 = lhs(i + 0, j); \
-  b##iter1 = *reinterpret_cast<__vector_pair *>(reinterpret_cast<unsigned char *>(const_cast<LhsScalar *>(&src##iter1)) + (iter1 * 32));
+  const LhsScalar& src##iter1 = lhs(i + ((iter1 * 32) / sizeof(LhsScalar)), j); \
+  b##iter1 = *reinterpret_cast<__vector_pair *>(const_cast<LhsScalar *>(&src##iter1));
 #endif
 
 #define GEMV_LOAD1A_COL_MMA(iter, N) \
@@ -1412,8 +1412,8 @@ EIGEN_ALWAYS_INLINE void disassembleResults(__vector_quad* c0, PacketBlock<Scala
 #else
 #define GEMV_LOADPAIR_COL_COMPLEX_MMA(iter1, iter2) \
   if (sizeof(LhsPacket) == 16) { \
-    const LhsScalar& src = lhs(i + 0, j); \
-    a##iter1 = *reinterpret_cast<__vector_pair *>(reinterpret_cast<unsigned char *>(const_cast<LhsScalar *>(&src)) + (iter1 * 32)); \
+    const LhsScalar& src = lhs(i + ((32 * iter1) / sizeof(LhsScalar)), j); \
+    a##iter1 = *reinterpret_cast<__vector_pair *>(const_cast<LhsScalar *>(&src)); \
     EIGEN_UNUSED_VARIABLE(f##iter1); \
   } else { \
     f##iter1 = lhs.template load<PLhsPacket, Unaligned>(i + ((iter2) * ResPacketSize), j); \
