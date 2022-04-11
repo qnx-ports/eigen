@@ -1719,28 +1719,26 @@ template <typename Scalar, int N> struct ScalarBlock {
 };
 
 #ifdef USE_GEMV_MMA
+static Packet16uc p16uc_ELEMENT_3 = { 0x0c,0x0d,0x0e,0x0f, 0x1c,0x1d,0x1e,0x1f, 0x0c,0x0d,0x0e,0x0f, 0x1c,0x1d,0x1e,0x1f };
+
 /** \internal predux (add elements of a vector) from a MMA accumulator - real results */
 template<typename ResScalar, typename ResPacket>
 EIGEN_ALWAYS_INLINE ScalarBlock<ResScalar, 2> predux_real(__vector_quad* acc0, __vector_quad* acc1)
 {
-    ScalarBlock<ResScalar, 2> cc0;
+    union {
+      ScalarBlock<ResScalar, 2> cs;
+      double                    cd;
+    } cc0;
     PacketBlock<ResPacket, 4> result0, result1;
     __builtin_mma_disassemble_acc(&result0.packet, acc0);
     __builtin_mma_disassemble_acc(&result1.packet, acc1);
-    result0.packet[0] += vec_sld(result0.packet[2], result0.packet[2], 8);
-    result0.packet[1] += vec_sld(result0.packet[3], result0.packet[3], 8);
-    result1.packet[0] += vec_sld(result1.packet[2], result1.packet[2], 8);
-    result1.packet[1] += vec_sld(result1.packet[3], result1.packet[3], 8);
-#ifdef _BIG_ENDIAN
-    result0.packet[0] += vec_sld(result0.packet[1], result0.packet[1], 4);
-    result1.packet[0] += vec_sld(result1.packet[1], result1.packet[1], 4);
-#else
-    result0.packet[0] += vec_sld(result0.packet[1], result0.packet[1], 12);
-    result1.packet[0] += vec_sld(result1.packet[1], result1.packet[1], 12);
-#endif
-    cc0.scalar[0] = result0.packet[0][0];
-    cc0.scalar[1] = result1.packet[0][0];
-    return cc0;
+    result0.packet[0] = vec_mergeh(result0.packet[0], result1.packet[0]);
+    result0.packet[1] = vec_mergeo(result0.packet[1], result1.packet[1]);
+    result0.packet[2] = vec_mergel(result0.packet[2], result1.packet[2]);
+    result0.packet[3] = vec_perm(result0.packet[3], result1.packet[3], p16uc_ELEMENT_3);
+    result0.packet[0] = vec_add(vec_add(result0.packet[0], result0.packet[2]), vec_add(result0.packet[1], result0.packet[3]));
+    cc0.cd = pfirst(reinterpret_cast<Packet2d>(result0.packet[0]));
+    return cc0.cs;
 }
 
 template<>
