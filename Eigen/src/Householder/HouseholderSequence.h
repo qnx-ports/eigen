@@ -406,8 +406,12 @@ template<typename VectorsType, typename CoeffsType, int Side> class HouseholderS
         {
           Index actual_k = m_reverse ? k : m_length-k-1;
           Index dstStart = rows()-m_shift-actual_k;
+        if (dst.cols() == 1)
+          dst.tail(dstStart).applyHouseholderOnTheLeft(essentialVector(actual_k), m_coeffs.coeff(actual_k),
+                                                       workspace.data());
+        else
           dst.bottomRightCorner(dstStart, inputIsIdentity ? dstStart : dst.cols())
-            .applyHouseholderOnTheLeft(essentialVector(actual_k), m_coeffs.coeff(actual_k), workspace.data());
+              .applyHouseholderOnTheLeft(essentialVector(actual_k), m_coeffs.coeff(actual_k), workspace.data());
         }
       }
     }
