@@ -391,17 +391,16 @@ template<typename VectorsType, typename CoeffsType, int Side> class HouseholderS
                                                                    Side==OnTheRight ? m_vectors.cols()-start : bs);
           std::conditional_t<Side==OnTheRight, Transpose<SubVectorsType>, SubVectorsType&> sub_vecs(sub_vecs1);
 
-          Index dstStart = dst.rows()-rows()+m_shift+k;
           Index dstRows  = rows()-m_shift-k;
 
           if(inputIsIdentity)
           {
-            Block<Dest,Dynamic,Dynamic> sub_dst(dst, dstStart, dstStart, dstRows, dstRows);
+            Block<Dest,Dynamic,Dynamic> sub_dst = dst.bottomRightCorner(dstRows, dstRows);
             apply_block_householder_on_the_left(sub_dst, sub_vecs, m_coeffs.segment(k, bs), !m_reverse);
           }
           else
           {
-            Block<Dest, Dynamic,Dest::ColsAtCompileTime> sub_dst(dst, dstStart, 0, dstRows, dst.cols());
+            Block<Dest, Dynamic,Dest::ColsAtCompileTime> sub_dst = dst.bottomRows(dstRows);
             apply_block_householder_on_the_left(sub_dst, sub_vecs, m_coeffs.segment(k, bs), !m_reverse);
           }
         }
@@ -416,13 +415,13 @@ template<typename VectorsType, typename CoeffsType, int Side> class HouseholderS
 
           if(inputIsIdentity)
           {
-            dst.bottomRightCorner(dstRows, dstRows)
-            .applyHouseholderOnTheLeft(essentialVector(actual_k), m_coeffs.coeff(actual_k), workspace.data());
+            Block<Dest, Dynamic, Dynamic> sub_dst = dst.bottomRightCorner(dstRows, dstRows);
+            sub_dst.applyHouseholderOnTheLeft(essentialVector(actual_k), m_coeffs.coeff(actual_k), workspace.data());
           }
           else
           {
-            dst.bottomRows(dstRows)
-            .applyHouseholderOnTheLeft(essentialVector(actual_k), m_coeffs.coeff(actual_k), workspace.data());
+            Block<Dest, Dynamic, Dest::ColsAtCompileTime> sub_dst = dst.bottomRows(dstRows);
+            sub_dst.applyHouseholderOnTheLeft(essentialVector(actual_k), m_coeffs.coeff(actual_k), workspace.data());
           }
         }
       }
