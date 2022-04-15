@@ -403,6 +403,7 @@ template<typename VectorsType, typename CoeffsType, int Side> class HouseholderS
             Block<Dest, Dynamic, Dest::ColsAtCompileTime> sub_dst = dst.bottomRows(dstRows);
             apply_block_householder_on_the_left(sub_dst, sub_vecs, m_coeffs.segment(k, bs), !m_reverse);
           }
+        }
       }
       else
       {
