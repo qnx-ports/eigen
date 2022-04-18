@@ -1337,17 +1337,17 @@ EIGEN_ALWAYS_INLINE void disassembleResults2(__vector_quad* c0, PacketBlock<Scal
             result0.packet[0] = tmp0;
 
             if (ConjugateLhs) {
-                result0.packet[0] = convertReal(pconj2(convertComplex(result0.packet[0])));
-                result0.packet[2] = convertReal(pconj2(convertComplex(result0.packet[2])));
+                result0.packet[0] = pconj2(convertComplex(result0.packet[0])).v;
+                result0.packet[2] = pconj2(convertComplex(result0.packet[2])).v;
             } else if (ConjugateRhs) {
-                result0.packet[1] = convertReal(pconj2(convertComplex(result0.packet[1])));
-                result0.packet[3] = convertReal(pconj2(convertComplex(result0.packet[3])));
+                result0.packet[1] = pconj2(convertComplex(result0.packet[1])).v;
+                result0.packet[3] = pconj2(convertComplex(result0.packet[3])).v;
             } else {
-                result0.packet[1] = convertReal(pconjinv(convertComplex(result0.packet[1])));
-                result0.packet[3] = convertReal(pconjinv(convertComplex(result0.packet[3])));
-           }
-           result0.packet[0] = vec_add(result0.packet[0], result0.packet[1]);
-           result0.packet[2] = vec_add(result0.packet[2], result0.packet[3]);
+                result0.packet[1] = pconjinv(convertComplex(result0.packet[1])).v;
+                result0.packet[3] = pconjinv(convertComplex(result0.packet[3])).v;
+            }
+            result0.packet[0] = vec_add(result0.packet[0], result0.packet[1]);
+            result0.packet[2] = vec_add(result0.packet[2], result0.packet[3]);
         } else {
             result0.packet[0][1] = result0.packet[1][1];
             result0.packet[2][1] = result0.packet[3][1];
@@ -1361,19 +1361,19 @@ EIGEN_ALWAYS_INLINE void disassembleResults4(__vector_quad* c0, PacketBlock<Scal
     __builtin_mma_disassemble_acc(&result0.packet, c0);
     if (GEMV_IS_COMPLEX_COMPLEX) {
         if (ConjugateLhs) {
-            result0.packet[0] = convertReal(pconj2(convertComplex(result0.packet[0])));
-            result0.packet[1] = convertReal(pcplxflip2(convertComplex(result0.packet[1])));
+            result0.packet[0] = pconj2(convertComplex(result0.packet[0])).v;
+            result0.packet[1] = pcplxflip2(convertComplex(result0.packet[1])).v;
         } else {
             if (ConjugateRhs) {
-                result0.packet[1] = convertReal(pcplxconjflip(convertComplex(result0.packet[1])));
+                result0.packet[1] = pcplxconjflip(convertComplex(result0.packet[1])).v;
             } else {
-                result0.packet[1] = convertReal(pcplxflipconj(convertComplex(result0.packet[1])));
+                result0.packet[1] = pcplxflipconj(convertComplex(result0.packet[1])).v;
             }
         }
         result0.packet[0] = vec_add(result0.packet[0], result0.packet[1]);
     } else if (sizeof(LhsPacket) == sizeof(std::complex<float>)) {
         if (ConjugateLhs) {
-            result0.packet[0] = convertReal(pconj2(convertComplex(result0.packet[0])));
+            result0.packet[0] = pconj2(convertComplex(result0.packet[0])).v;
         }
     } else {
         result0.packet[0] = vec_mergee(result0.packet[0], result0.packet[1]);
@@ -1444,7 +1444,7 @@ EIGEN_ALWAYS_INLINE void disassembleResults(__vector_quad* c0, PacketBlock<Scala
   }
 
 #define GEMV_LOADPAIR2_COL_COMPLEX_MMA(iter1, iter2) \
-  GEMV_BUILDPAIR_MMA(a##iter1, GEMV_LOADPACKET_COL_COMPLEX_DATA(iter2), GEMV_LOADPACKET_COL_COMPLEX_DATA((iter2) + 1)); \
+  GEMV_BUILDPAIR_MMA(a##iter1, GEMV_LOADPACKET_COL_COMPLEX_DATA(iter2), GEMV_LOADPACKET_COL_COMPLEX_DATA((iter2) + 1));
 
 #define GEMV_LOAD2_COL_COMPLEX_MMA(iter1, iter2, iter3, N) \
   if (GEMV_GETN_COMPLEX(N) > iter1) { \
@@ -1498,7 +1498,7 @@ EIGEN_ALWAYS_INLINE void disassembleResults(__vector_quad* c0, PacketBlock<Scala
 #endif
 
 #define GEMV_DISASSEMBLE_COMPLEX_MMA(iter) \
-  disassembleResults<Scalar, ScalarPacket, ResPacketSize, LhsPacket, RhsPacket, ConjugateLhs, ConjugateRhs>(&e0##iter, result0##iter); \
+  disassembleResults<Scalar, ScalarPacket, ResPacketSize, LhsPacket, RhsPacket, ConjugateLhs, ConjugateRhs>(&e0##iter, result0##iter);
 
 #define GEMV_STORE_COL_COMPLEX_MMA(iter, N) \
   if (GEMV_GETN_COMPLEX(N) > iter) { \
@@ -1744,13 +1744,15 @@ EIGEN_ALWAYS_INLINE ScalarBlock<ResScalar, 2> predux_real(__vector_quad* acc0, _
 template<>
 EIGEN_ALWAYS_INLINE ScalarBlock<double, 2> predux_real<double, Packet2d>(__vector_quad* acc0, __vector_quad* acc1)
 {
-    ScalarBlock<double, 2> cc0;
+    union {
+      ScalarBlock<double, 2> cs;
+      Packet2d               cp;
+    } cc0;
     PacketBlock<Packet2d, 4> result0, result1;
     __builtin_mma_disassemble_acc(&result0.packet, acc0);
     __builtin_mma_disassemble_acc(&result1.packet, acc1);
-    cc0.scalar[0] = result0.packet[0][0] + result0.packet[1][1];
-    cc0.scalar[1] = result1.packet[0][0] + result1.packet[1][1];
-    return cc0;
+    cc0.cp = vec_add(vec_mergeh(result0.packet[0], result1.packet[0]), vec_mergel(result0.packet[1], result1.packet[1]));
+    return cc0.cs;
 }
 
 /** \internal add complex results together */
@@ -1766,17 +1768,17 @@ EIGEN_ALWAYS_INLINE ScalarBlock<std::complex<float>, 2> addComplexResults(Packet
         result0.packet[3] = reinterpret_cast<Packet4f>(vec_mergel(reinterpret_cast<Packet2d>(result0.packet[3]), reinterpret_cast<Packet2d>(result1.packet[3])));
         result0.packet[1] = vec_add(result0.packet[1], result0.packet[3]);
         if (ConjugateLhs) {
-            result0.packet[0] = convertReal(pconj2(convertComplex(result0.packet[0])));
-            result0.packet[1] = convertReal(pcplxflip2(convertComplex(result0.packet[1])));
+            result0.packet[0] = pconj2(convertComplex(result0.packet[0])).v;
+            result0.packet[1] = pcplxflip2(convertComplex(result0.packet[1])).v;
         } else if (ConjugateRhs) {
-            result0.packet[1] = convertReal(pcplxconjflip(convertComplex(result0.packet[1])));
+            result0.packet[1] = pcplxconjflip(convertComplex(result0.packet[1])).v;
         } else {
-            result0.packet[1] = convertReal(pcplxflipconj(convertComplex(result0.packet[1])));
+            result0.packet[1] = pcplxflipconj(convertComplex(result0.packet[1])).v;
         }
         result0.packet[0] = vec_add(result0.packet[0], result0.packet[1]);
     } else {
         if (ConjugateLhs && (sizeof(LhsPacket) == sizeof(std::complex<float>))) {
-            result0.packet[0] = convertReal(pconj2(convertComplex(result0.packet[0])));
+            result0.packet[0] = pconj2(convertComplex(result0.packet[0])).v;
         }
     }
     cc0.scalar[0].real(result0.packet[0][0]);
@@ -1807,12 +1809,14 @@ EIGEN_ALWAYS_INLINE ScalarBlock<ResScalar, 2> predux_complex(__vector_quad* acc0
 template<typename ResScalar, typename ResPacket>
 EIGEN_ALWAYS_INLINE ScalarBlock<ResScalar, 2> predux_real(__vector_quad* acc0)
 {
-    ScalarBlock<ResScalar, 2> cc0;
+    union {
+      ScalarBlock<ResScalar, 2> cs;
+      ResPacket                 cp;
+    } cc0;
     PacketBlock<ResPacket, 4> result0;
     __builtin_mma_disassemble_acc(&result0.packet, acc0);
-    cc0.scalar[0] = result0.packet[0][0] + result0.packet[1][1];
-    cc0.scalar[1] = result0.packet[2][0] + result0.packet[3][1];
-    return cc0;
+    cc0.cp = vec_add(vec_mergeh(result0.packet[0], result0.packet[2]), vec_mergel(result0.packet[1], result0.packet[3]));
+    return cc0.cs;
 }
 
 template<typename ResScalar, typename ResPacket, typename LhsPacket, typename RhsPacket, bool ConjugateLhs, bool ConjugateRhs>
@@ -1823,25 +1827,25 @@ EIGEN_ALWAYS_INLINE ScalarBlock<ResScalar, 2> predux_complex(__vector_quad* acc0
     __builtin_mma_disassemble_acc(&result0.packet, acc0);
     if (GEMV_IS_COMPLEX_COMPLEX) {
         if (ConjugateLhs) {
-            result0.packet[1] = convertReal(pconjinv(convertComplex(result0.packet[1])));
-            result0.packet[3] = convertReal(pconjinv(convertComplex(result0.packet[3])));
+            result0.packet[1] = pconjinv(convertComplex(result0.packet[1])).v;
+            result0.packet[3] = pconjinv(convertComplex(result0.packet[3])).v;
         } else if (ConjugateRhs) {
-            result0.packet[0] = convertReal(pconj2(convertComplex(result0.packet[0])));
-            result0.packet[2] = convertReal(pconj2(convertComplex(result0.packet[2])));
+            result0.packet[0] = pconj2(convertComplex(result0.packet[0])).v;
+            result0.packet[2] = pconj2(convertComplex(result0.packet[2])).v;
         } else {
-            result0.packet[1] = convertReal(pconj2(convertComplex(result0.packet[1])));
-            result0.packet[3] = convertReal(pconj2(convertComplex(result0.packet[3])));
+            result0.packet[1] = pconj2(convertComplex(result0.packet[1])).v;
+            result0.packet[3] = pconj2(convertComplex(result0.packet[3])).v;
         }
-        cc0.scalar[0].real(result0.packet[0][0] + result0.packet[1][1]);
-        cc0.scalar[0].imag(result0.packet[0][1] + result0.packet[1][0]);
-        cc0.scalar[1].real(result0.packet[2][0] + result0.packet[3][1]);
-        cc0.scalar[1].imag(result0.packet[2][1] + result0.packet[3][0]);
+        result0.packet[0] = vec_add(result0.packet[0], __builtin_vsx_xxpermdi(result0.packet[1], result0.packet[1], 2));
+        result0.packet[2] = vec_add(result0.packet[2], __builtin_vsx_xxpermdi(result0.packet[3], result0.packet[3], 2));
     } else {
-        cc0.scalar[0].real(result0.packet[0][0]);
-        cc0.scalar[0].imag(result0.packet[1][1]);
-        cc0.scalar[1].real(result0.packet[2][0]);
-        cc0.scalar[1].imag(result0.packet[3][1]);
+        result0.packet[0] = __builtin_vsx_xxpermdi(result0.packet[0], result0.packet[1], 1);
+        result0.packet[2] = __builtin_vsx_xxpermdi(result0.packet[2], result0.packet[3], 1);
     }
+    cc0.scalar[0].real(result0.packet[0][0]);
+    cc0.scalar[0].imag(result0.packet[0][1]);
+    cc0.scalar[1].real(result0.packet[2][0]);
+    cc0.scalar[1].imag(result0.packet[2][1]);
     return cc0;
 }
 #endif

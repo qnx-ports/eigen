@@ -138,7 +138,7 @@ EIGEN_ALWAYS_INLINE void ploadRhsMMA(const double* rhs, __vector_pair& rhsV)
     reinterpret_cast<__vector unsigned char>(ploadRhs<Packet2d>(rhs + (sizeof(Packet2d) / sizeof(double)))),
     reinterpret_cast<__vector unsigned char>(ploadRhs<Packet2d>(rhs)));
 #else
-  __asm__ ("lxvp %x0,%1" : "=wa" (rhsV) : "Y" (*rhs));
+  rhsV = *reinterpret_cast<__vector_pair *>(const_cast<double *>(rhs));
 #endif
 }
 
@@ -146,6 +146,10 @@ EIGEN_ALWAYS_INLINE void ploadLhsMMA(const double* lhs, __vector_pair& lhsV)
 {
   ploadRhsMMA(lhs, lhsV);
 }
+
+#if (EIGEN_COMP_LLVM || (__GNUC__ >= 11))
+#define VECTOR_PAIR_LOADS_LHS
+#endif
 
 // PEEL_MMA loop factor.
 #define PEEL_MMA 7
@@ -159,12 +163,13 @@ EIGEN_ALWAYS_INLINE void ploadLhsMMA(const double* lhs, __vector_pair& lhsV)
 
 #define MICRO_MMA_WORK_ONE(iter, type, peel) \
   if (unroll_factor > iter) { \
-    pgerMMA<Packet, type, false>(&accZero##iter, rhsV##peel, lhsV##iter); \
+    pgerMMA<Packet, type, false>(&accZero##iter, rhsV[peel], lhsV##iter); \
   }
 
+#ifdef VECTOR_PAIR_LOADS_LHS
 #define MICRO_MMA_WORK_TWO(iter, type, peel) \
   if (unroll_factor > iter) { \
-    pgerMMA<Packet, type, false>(&accZero##iter, rhsV##peel, lhsV2##iter.packet[peel & 1]); \
+    pgerMMA<Packet, type, false>(&accZero##iter, rhsV[peel], lhsV2##iter.packet[peel & 1]); \
   }
 
 #define MICRO_MMA_LOAD1_TWO(lhs_ptr, iter) \
@@ -185,50 +190,70 @@ EIGEN_ALWAYS_INLINE void ploadLhsMMA(const double* lhs, __vector_pair& lhsV)
   }
 
 #define MICRO_MMA_LOAD_TWO(iter) MICRO_MMA_LOAD1_TWO(lhs_ptr, iter)
+#endif
 
 #define MICRO_MMA_TYPE_PEEL(funcw, funcl, type, peel) \
   if (PEEL_MMA > peel) { \
     Packet lhsV0, lhsV1, lhsV2, lhsV3, lhsV4, lhsV5, lhsV6, lhsV7; \
-    ploadRhsMMA(rhs_ptr + (accRows * peel), rhsV##peel); \
+    ploadRhsMMA(rhs_ptr + (accRows * peel), rhsV[peel]); \
     MICRO_MMA_UNROLL(funcl) \
     MICRO_MMA_WORK(funcw, type, peel) \
-  } else { \
-    EIGEN_UNUSED_VARIABLE(rhsV##peel); \
   }
 
+#ifndef VECTOR_PAIR_LOADS_LHS
+#define MICRO_MMA_UNROLL_TYPE_PEEL(funcw, funcl, type) \
+  type rhsV[8]; \
+  MICRO_MMA_TYPE_PEEL(funcw,funcl,type,0) MICRO_MMA_TYPE_PEEL(funcw,funcl,type,1) \
+  MICRO_MMA_TYPE_PEEL(funcw,funcl,type,2) MICRO_MMA_TYPE_PEEL(funcw,funcl,type,3) \
+  MICRO_MMA_TYPE_PEEL(funcw,funcl,type,4) MICRO_MMA_TYPE_PEEL(funcw,funcl,type,5) \
+  MICRO_MMA_TYPE_PEEL(funcw,funcl,type,6) MICRO_MMA_TYPE_PEEL(funcw,funcl,type,7)
+#else
 #define MICRO_MMA_TYPE_PEEL2(funcw1, funcl1, funcw2, funcl2, type, peel1, peel2) \
   if (PEEL_MMA > peel2) { \
     PacketBlock<Packet,2> lhsV20, lhsV21, lhsV22, lhsV23, lhsV24, lhsV25, lhsV26, lhsV27; \
     __vector_pair plhsV0, plhsV1, plhsV2, plhsV3, plhsV4, plhsV5, plhsV6, plhsV7; \
-    ploadRhsMMA(rhs_ptr + (accRows * peel1), rhsV##peel1); \
-    ploadRhsMMA(rhs_ptr + (accRows * peel2), rhsV##peel2); \
+    if (sizeof(type) == 16) { \
+      ploadRhsMMA(reinterpret_cast<const double*>(rhs_ptr + (accRows * peel1)), prhsV##peel1); \
+      __builtin_vsx_disassemble_pair(reinterpret_cast<void*>(&rhsV[peel1]), &prhsV##peel1); \
+    } else { \
+      EIGEN_UNUSED_VARIABLE(prhsV##peel1); \
+      ploadRhsMMA(rhs_ptr + (accRows * peel1), rhsV[peel1]); \
+      ploadRhsMMA(rhs_ptr + (accRows * peel2), rhsV[peel2]); \
+    } \
     MICRO_MMA_UNROLL(funcl2) \
     MICRO_MMA_WORK(funcw2, type, peel1) \
     MICRO_MMA_WORK(funcw2, type, peel2) \
   } else { \
+    EIGEN_UNUSED_VARIABLE(prhsV##peel1); \
     MICRO_MMA_TYPE_PEEL(funcw1, funcl1, type, peel1) \
   }
 
 #define MICRO_MMA_UNROLL_TYPE_PEEL2(funcw1, funcl1, funcw2, funcl2, type) \
-  type rhsV0, rhsV1, rhsV2, rhsV3, rhsV4, rhsV5, rhsV6, rhsV7; \
+  type rhsV[8]; \
+  __vector_pair prhsV0, prhsV2, prhsV4, prhsV6; \
   MICRO_MMA_TYPE_PEEL2(funcw1,funcl1,funcw2,funcl2,type,0,1) \
   MICRO_MMA_TYPE_PEEL2(funcw1,funcl1,funcw2,funcl2,type,2,3) \
   MICRO_MMA_TYPE_PEEL2(funcw1,funcl1,funcw2,funcl2,type,4,5) \
   MICRO_MMA_TYPE_PEEL2(funcw1,funcl1,funcw2,funcl2,type,6,7)
+#endif
 
 #define MICRO_MMA_UNROLL_TYPE_ONE(funcw, funcl, type) \
-  type rhsV0; \
+  type rhsV[1]; \
   MICRO_MMA_TYPE_PEEL(funcw,funcl,type,0)
 
 #define MICRO_MMA_UNROLL_TYPE(MICRO_MMA_TYPE, size) \
   MICRO_MMA_TYPE(MICRO_MMA_WORK_ONE, MICRO_LOAD_ONE, RhsPacket) \
   rhs_ptr += (accRows * size);
 
+#ifndef VECTOR_PAIR_LOADS_LHS
+#define MICRO_MMA_ONE_PEEL MICRO_MMA_UNROLL_TYPE(MICRO_MMA_UNROLL_TYPE_PEEL, PEEL_MMA)
+#else
 #define MICRO_MMA_UNROLL_TYPE2(MICRO_MMA_TYPE, size) \
- MICRO_MMA_TYPE(MICRO_MMA_WORK_ONE, MICRO_LOAD_ONE, MICRO_MMA_WORK_TWO, MICRO_MMA_LOAD_TWO, RhsPacket) \
+  MICRO_MMA_TYPE(MICRO_MMA_WORK_ONE, MICRO_LOAD_ONE, MICRO_MMA_WORK_TWO, MICRO_MMA_LOAD_TWO, RhsPacket) \
   rhs_ptr += (accRows * size);
 
 #define MICRO_MMA_ONE_PEEL MICRO_MMA_UNROLL_TYPE2(MICRO_MMA_UNROLL_TYPE_PEEL2, PEEL_MMA)
+#endif
 
 #define MICRO_MMA_ONE MICRO_MMA_UNROLL_TYPE(MICRO_MMA_UNROLL_TYPE_ONE, 1)
 
@@ -403,12 +428,13 @@ void gemmMMA(const DataMapper& res, const Scalar* blockA, const Scalar* blockB, 
 
 #define MICRO_COMPLEX_MMA_WORK_ONE(iter, type, peel) \
   if (unroll_factor > iter) { \
-    pgercMMA<Packet, type, ConjugateLhs, ConjugateRhs, LhsIsReal, RhsIsReal>(&accReal##iter, &accImag##iter, lhsV##iter, lhsVi##iter, rhsV##peel, rhsVi##peel); \
+    pgercMMA<Packet, type, ConjugateLhs, ConjugateRhs, LhsIsReal, RhsIsReal>(&accReal##iter, &accImag##iter, lhsV##iter, lhsVi##iter, rhsV[peel], rhsVi[peel]); \
   }
 
+#ifdef VECTOR_PAIR_LOADS_LHS
 #define MICRO_COMPLEX_MMA_WORK_TWO(iter, type, peel) \
   if (unroll_factor > iter) { \
-    pgercMMA<Packet, type, ConjugateLhs, ConjugateRhs, LhsIsReal, RhsIsReal>(&accReal##iter, &accImag##iter, lhsV2##iter.packet[peel & 1], lhsVi2##iter.packet[peel & 1], rhsV##peel, rhsVi##peel); \
+    pgercMMA<Packet, type, ConjugateLhs, ConjugateRhs, LhsIsReal, RhsIsReal>(&accReal##iter, &accImag##iter, lhsV2##iter.packet[peel & 1], lhsVi2##iter.packet[peel & 1], rhsV[peel], rhsVi[peel]); \
   }
 
 #define MICRO_COMPLEX_MMA_LOAD1_TWO(lhs_ptr, iter) \
@@ -428,54 +454,70 @@ void gemmMMA(const DataMapper& res, const Scalar* blockA, const Scalar* blockB, 
   MICRO_MMA_LOAD1_TWO(lhs_ptr_real, iter)
 
 #define MICRO_COMPLEX_MMA_LOAD_TWO(iter) MICRO_COMPLEX_MMA_LOAD1_TWO(lhs_ptr, iter)
+#endif
 
 #define MICRO_COMPLEX_MMA_TYPE_PEEL(funcw, funcl, type, peel) \
   if (PEEL_COMPLEX_MMA > peel) { \
     Packet lhsV0, lhsV1, lhsV2, lhsV3; \
     Packet lhsVi0, lhsVi1, lhsVi2, lhsVi3; \
-    ploadRhsMMA(rhs_ptr_real + (accRows * peel), rhsV##peel); \
+    ploadRhsMMA(rhs_ptr_real + (accRows * peel), rhsV[peel]); \
     if(!RhsIsReal) { \
-      ploadRhsMMA(rhs_ptr_imag + (accRows * peel), rhsVi##peel); \
-    } else { \
-      EIGEN_UNUSED_VARIABLE(rhsVi##peel); \
+      ploadRhsMMA(rhs_ptr_imag + (accRows * peel), rhsVi[peel]); \
     } \
     MICRO_COMPLEX_MMA_UNROLL(funcl) \
     MICRO_COMPLEX_MMA_WORK(funcw, type, peel) \
-  } else { \
-    EIGEN_UNUSED_VARIABLE(rhsV##peel); \
-    EIGEN_UNUSED_VARIABLE(rhsVi##peel); \
   }
 
+#ifndef VECTOR_PAIR_LOADS_LHS
+#define MICRO_COMPLEX_MMA_UNROLL_TYPE_PEEL(funcw, funcl, type) \
+  type rhsV[4], rhsVi[4]; \
+  MICRO_COMPLEX_MMA_TYPE_PEEL(funcw,funcl,type,0) MICRO_COMPLEX_MMA_TYPE_PEEL(funcw,funcl,type,1) \
+  MICRO_COMPLEX_MMA_TYPE_PEEL(funcw,funcl,type,2) MICRO_COMPLEX_MMA_TYPE_PEEL(funcw,funcl,type,3)
+#else
 #define MICRO_COMPLEX_MMA_TYPE_PEEL2(funcw1, funcl1, funcw2, funcl2, type, peel1, peel2) \
   if (PEEL_COMPLEX_MMA > peel2) { \
     PacketBlock<Packet,2> lhsV20, lhsV21, lhsV22, lhsV23; \
     PacketBlock<Packet,2> lhsVi20, lhsVi21, lhsVi22, lhsVi23; \
     __vector_pair plhsV0, plhsV1, plhsV2, plhsV3; \
     __vector_pair plhsVi0, plhsVi1, plhsVi2, plhsVi3; \
-    ploadRhsMMA(rhs_ptr_real + (accRows * peel1), rhsV##peel1); \
-    ploadRhsMMA(rhs_ptr_real + (accRows * peel2), rhsV##peel2); \
-    if(!RhsIsReal) { \
-      ploadRhsMMA(rhs_ptr_imag + (accRows * peel1), rhsVi##peel1); \
-      ploadRhsMMA(rhs_ptr_imag + (accRows * peel2), rhsVi##peel2); \
+    if (sizeof(type) == 16) { \
+      ploadRhsMMA(reinterpret_cast<const double*>(rhs_ptr_real + (accRows * peel1)), prhsV##peel1); \
+      __builtin_vsx_disassemble_pair(reinterpret_cast<void*>(&rhsV[peel1]), &prhsV##peel1); \
+      if(!RhsIsReal) { \
+        ploadRhsMMA(reinterpret_cast<const double*>(rhs_ptr_imag + (accRows * peel1)), prhsVi##peel1); \
+        __builtin_vsx_disassemble_pair(reinterpret_cast<void*>(&rhsVi[peel1]), &prhsVi##peel1); \
+      } else { \
+        EIGEN_UNUSED_VARIABLE(prhsVi##peel1); \
+      } \
     } else { \
-      EIGEN_UNUSED_VARIABLE(rhsVi##peel1); \
-      EIGEN_UNUSED_VARIABLE(rhsVi##peel2); \
+      EIGEN_UNUSED_VARIABLE(prhsV##peel1); \
+      EIGEN_UNUSED_VARIABLE(prhsVi##peel1); \
+      ploadRhsMMA(rhs_ptr_real + (accRows * peel1), rhsV[peel1]); \
+      ploadRhsMMA(rhs_ptr_real + (accRows * peel2), rhsV[peel2]); \
+      if(!RhsIsReal) { \
+        ploadRhsMMA(rhs_ptr_imag + (accRows * peel1), rhsVi[peel1]); \
+        ploadRhsMMA(rhs_ptr_imag + (accRows * peel2), rhsVi[peel2]); \
+      } \
     } \
     MICRO_COMPLEX_MMA_UNROLL(funcl2) \
     MICRO_COMPLEX_MMA_WORK(funcw2, type, peel1) \
     MICRO_COMPLEX_MMA_WORK(funcw2, type, peel2) \
   } else { \
+    EIGEN_UNUSED_VARIABLE(prhsV##peel1); \
+    EIGEN_UNUSED_VARIABLE(prhsVi##peel1); \
     MICRO_COMPLEX_MMA_TYPE_PEEL(funcw1, funcl1, type, peel1) \
   }
 
 #define MICRO_COMPLEX_MMA_UNROLL_TYPE_PEEL2(funcw1, funcl1, funcw2, funcl2, type) \
-  type rhsV0, rhsV1, rhsV2, rhsV3; \
-  type rhsVi0, rhsVi1, rhsVi2, rhsVi3; \
+  type rhsV[4], rhsVi[4]; \
+  __vector_pair prhsV0, prhsV2; \
+  __vector_pair prhsVi0, prhsVi2; \
   MICRO_COMPLEX_MMA_TYPE_PEEL2(funcw1,funcl1,funcw2,funcl2,type,0,1) \
   MICRO_COMPLEX_MMA_TYPE_PEEL2(funcw1,funcl1,funcw2,funcl2,type,2,3)
+#endif
 
 #define MICRO_COMPLEX_MMA_UNROLL_TYPE_ONE(funcw, funcl, type) \
-  type rhsV0, rhsVi0; \
+  type rhsV[1], rhsVi[1]; \
   MICRO_COMPLEX_MMA_TYPE_PEEL(funcw,funcl,type,0)
 
 #define MICRO_COMPLEX_MMA_UNROLL_TYPE(MICRO_COMPLEX_MMA_TYPE, size) \
@@ -483,12 +525,16 @@ void gemmMMA(const DataMapper& res, const Scalar* blockA, const Scalar* blockB, 
   rhs_ptr_real += (accRows * size); \
   if(!RhsIsReal) rhs_ptr_imag += (accRows * size);
 
+#ifndef VECTOR_PAIR_LOADS_LHS
+#define MICRO_COMPLEX_MMA_ONE_PEEL MICRO_COMPLEX_MMA_UNROLL_TYPE(MICRO_COMPLEX_MMA_UNROLL_TYPE_PEEL, PEEL_COMPLEX_MMA)
+#else
 #define MICRO_COMPLEX_MMA_UNROLL_TYPE2(MICRO_COMPLEX_MMA_TYPE, size) \
- MICRO_COMPLEX_MMA_TYPE(MICRO_COMPLEX_MMA_WORK_ONE, MICRO_COMPLEX_LOAD_ONE, MICRO_COMPLEX_MMA_WORK_TWO, MICRO_COMPLEX_MMA_LOAD_TWO, RhsPacket) \
+  MICRO_COMPLEX_MMA_TYPE(MICRO_COMPLEX_MMA_WORK_ONE, MICRO_COMPLEX_LOAD_ONE, MICRO_COMPLEX_MMA_WORK_TWO, MICRO_COMPLEX_MMA_LOAD_TWO, RhsPacket) \
   rhs_ptr_real += (accRows * size); \
   if(!RhsIsReal) rhs_ptr_imag += (accRows * size);
 
 #define MICRO_COMPLEX_MMA_ONE_PEEL MICRO_COMPLEX_MMA_UNROLL_TYPE2(MICRO_COMPLEX_MMA_UNROLL_TYPE_PEEL2, PEEL_COMPLEX_MMA)
+#endif
 
 #define MICRO_COMPLEX_MMA_ONE MICRO_COMPLEX_MMA_UNROLL_TYPE(MICRO_COMPLEX_MMA_UNROLL_TYPE_ONE, 1)
 
