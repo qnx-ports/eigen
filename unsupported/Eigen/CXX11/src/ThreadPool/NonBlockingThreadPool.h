@@ -53,11 +53,21 @@ class ThreadPoolTempl : public Eigen::ThreadPoolInterface {
 #ifndef EIGEN_THREAD_LOCAL
     init_barrier_.reset(new Barrier(num_threads_));
 #endif
+    int nNumGroups = GetActiveProcessorGroupCount();
     thread_data_.resize(num_threads_);
     for (int i = 0; i < num_threads_; i++) {
       SetStealPartition(i, EncodePartition(0, num_threads_));
-      thread_data_[i].thread.reset(
-          env_.CreateThread([this, i]() { WorkerLoop(i); }));
+      Eigen::StlThreadEnvironment::EnvThread* envthr = env_.CreateThread([this, i]() { WorkerLoop(i); });
+
+      GROUP_AFFINITY oldaffinity;
+      GetThreadGroupAffinity(envthr->get_handle(), &oldaffinity);
+      GROUP_AFFINITY affinity;
+      affinity = oldaffinity;
+      if (nNumGroups > 1) {
+        affinity.Group = unsigned short(i % nNumGroups);
+        SetThreadGroupAffinity(envthr->get_handle(), &affinity, nullptr);
+      }
+      thread_data_[i].thread.reset(envthr);
     }
 #ifndef EIGEN_THREAD_LOCAL
     // Wait for workers to initialize per_thread_map_. Otherwise we might race
