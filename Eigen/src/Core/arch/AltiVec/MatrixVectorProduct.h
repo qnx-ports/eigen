@@ -375,7 +375,7 @@ EIGEN_ALWAYS_INLINE void pger_vecMMA_acc(__vector_quad* acc, __vector_pair& a, c
 }
 #endif
 
-template<typename Index, typename LhsScalar, typename LhsMapper, typename RhsScalar, typename RhsMapper, typename ResScalar>
+template<typename LhsScalar, typename LhsMapper, typename RhsScalar, typename RhsMapper, typename ResScalar>
 EIGEN_STRONG_INLINE void gemv_col(
     Index rows, Index cols,
     const LhsMapper& alhs,
@@ -927,7 +927,7 @@ EIGEN_ALWAYS_INLINE void pstoreu_pmadd_complex(PResPacket& c0, AlphaData& b0, Re
     }
 }
 
-template<typename Index, typename ScalarPacket, typename PResPacket, typename ResPacket, typename ResScalar, typename AlphaData, Index ResPacketSize, Index iter2>
+template<typename ScalarPacket, typename PResPacket, typename ResPacket, typename ResScalar, typename AlphaData, Index ResPacketSize, Index iter2>
 EIGEN_ALWAYS_INLINE void pstoreu_pmadd_complex(PResPacket& c0, PResPacket& c1, AlphaData& b0, ResScalar* res)
 {
     PResPacket c2 = pcplxflipconj(c0);
@@ -953,7 +953,7 @@ EIGEN_ALWAYS_INLINE void pstoreu_pmadd_complex(PResPacket& c0, PResPacket& c1, A
 }
 
 /** \internal load lhs packet */
-template<typename Scalar, typename LhsScalar, typename LhsMapper, typename LhsPacket, typename Index>
+template<typename Scalar, typename LhsScalar, typename LhsMapper, typename LhsPacket>
 EIGEN_ALWAYS_INLINE LhsPacket loadLhsPacket(LhsMapper& lhs, Index i, Index j)
 {
     if (sizeof(Scalar) == sizeof(LhsScalar)) {
@@ -1394,7 +1394,7 @@ EIGEN_ALWAYS_INLINE void disassembleResults(__vector_quad* c0, PacketBlock<Scala
 #define GEMV_GETN_COMPLEX(N) (((N) * ResPacketSize) >> 1)
 
 #define GEMV_LOADPACKET_COL_COMPLEX(iter) \
-  loadLhsPacket<Scalar, LhsScalar, LhsMapper, PLhsPacket, Index>(lhs, i + ((iter) * ResPacketSize), j)
+  loadLhsPacket<Scalar, LhsScalar, LhsMapper, PLhsPacket>(lhs, i + ((iter) * ResPacketSize), j)
 
 #define GEMV_LOADPACKET_COL_COMPLEX_DATA(iter) \
   convertReal(GEMV_LOADPACKET_COL_COMPLEX(iter))
@@ -1520,13 +1520,13 @@ EIGEN_ALWAYS_INLINE void disassembleResults(__vector_quad* c0, PacketBlock<Scala
     c0##iter2 = PResPacket(result0##iter2.packet[0]); \
     if (GEMV_IS_COMPLEX_FLOAT) { \
       c0##iter3 = PResPacket(result0##iter3.packet[0]); \
-      pstoreu_pmadd_complex<Index, ScalarPacket, PResPacket, ResPacket, ResScalar, AlphaData, ResPacketSize, iter2>(c0##iter2, c0##iter3, alpha_data, res + i); \
+      pstoreu_pmadd_complex<ScalarPacket, PResPacket, ResPacket, ResScalar, AlphaData, ResPacketSize, iter2>(c0##iter2, c0##iter3, alpha_data, res + i); \
     } else { \
       c0##iter3 = PResPacket(result0##iter2.packet[2]); \
-      pstoreu_pmadd_complex<Index, ScalarPacket, PResPacket, ResPacket, ResScalar, AlphaData, ResPacketSize, iter2 << 1>(c0##iter2, c0##iter3, alpha_data, res + i); \
+      pstoreu_pmadd_complex<ScalarPacket, PResPacket, ResPacket, ResScalar, AlphaData, ResPacketSize, iter2 << 1>(c0##iter2, c0##iter3, alpha_data, res + i); \
       c0##iter2 = PResPacket(result0##iter3.packet[0]); \
       c0##iter3 = PResPacket(result0##iter3.packet[2]); \
-      pstoreu_pmadd_complex<Index, ScalarPacket, PResPacket, ResPacket, ResScalar, AlphaData, ResPacketSize, iter3 << 1>(c0##iter2, c0##iter3, alpha_data, res + i); \
+      pstoreu_pmadd_complex<ScalarPacket, PResPacket, ResPacket, ResScalar, AlphaData, ResPacketSize, iter3 << 1>(c0##iter2, c0##iter3, alpha_data, res + i); \
     } \
   }
 
@@ -1607,7 +1607,7 @@ EIGEN_ALWAYS_INLINE void disassembleResults(__vector_quad* c0, PacketBlock<Scala
 #endif
 #endif
 
-template<typename Index, typename Scalar, typename LhsScalar, typename LhsMapper, bool ConjugateLhs, bool LhsIsReal, typename RhsScalar, typename RhsMapper, bool ConjugateRhs, bool RhsIsReal, typename ResScalar>
+template<typename Scalar, typename LhsScalar, typename LhsMapper, bool ConjugateLhs, bool LhsIsReal, typename RhsScalar, typename RhsMapper, bool ConjugateRhs, bool RhsIsReal, typename ResScalar>
 EIGEN_STRONG_INLINE void gemv_complex_col(
     Index rows, Index cols,
     const LhsMapper& alhs,
@@ -1961,7 +1961,7 @@ EIGEN_ALWAYS_INLINE ScalarBlock<ResScalar, 2> predux_complex(ResPacket& a, ResPa
     GEMV_UNROLL_ROW_HALF(GEMV_STORE_ROW, (N >> 1)) \
   }
 
-template<typename Index, typename LhsScalar, typename LhsMapper, typename RhsScalar, typename RhsMapper, typename ResScalar>
+template<typename LhsScalar, typename LhsMapper, typename RhsScalar, typename RhsMapper, typename ResScalar>
 EIGEN_STRONG_INLINE void gemv_row(
     Index rows, Index cols,
     const LhsMapper& alhs,
@@ -2044,7 +2044,7 @@ struct general_matrix_vector_product<Index, Scalar, LhsMapper, ColMajor, Conjuga
         const RhsMapper& rhs, \
         ResScalar* res, Index resIncr, \
         ResScalar alpha) { \
-        gemv_col<Index, Scalar, LhsMapper, Scalar, RhsMapper, ResScalar>(rows, cols, lhs, rhs, res, resIncr, alpha); \
+        gemv_col<Scalar, LhsMapper, Scalar, RhsMapper, ResScalar>(rows, cols, lhs, rhs, res, resIncr, alpha); \
     } \
 };
 
@@ -2060,7 +2060,7 @@ struct general_matrix_vector_product<Index, Scalar, LhsMapper, RowMajor, Conjuga
         const RhsMapper& rhs, \
         ResScalar* res, Index resIncr, \
         ResScalar alpha) { \
-        gemv_row<Index, Scalar, LhsMapper, Scalar, RhsMapper, ResScalar>(rows, cols, lhs, rhs, res, resIncr, alpha); \
+        gemv_row<Scalar, LhsMapper, Scalar, RhsMapper, ResScalar>(rows, cols, lhs, rhs, res, resIncr, alpha); \
     } \
 };
 
@@ -2080,7 +2080,7 @@ EIGEN_ALWAYS_INLINE ScalarBlock<ResScalar, 2> predux_complex(PResPacket& a0, PRe
 }
 
 #define GEMV_LOADPACKET_ROW_COMPLEX(iter) \
-  loadLhsPacket<Scalar, LhsScalar, LhsMapper, PLhsPacket, Index>(lhs, i + (iter), j)
+  loadLhsPacket<Scalar, LhsScalar, LhsMapper, PLhsPacket>(lhs, i + (iter), j)
 
 #define GEMV_LOADPACKET_ROW_COMPLEX_DATA(iter) \
   convertReal(GEMV_LOADPACKET_ROW_COMPLEX(iter))
@@ -2280,7 +2280,7 @@ EIGEN_ALWAYS_INLINE ScalarBlock<ResScalar, 2> predux_complex(PResPacket& a0, PRe
   GEMV_PROCESS_ROW_COMPLEX_ONE(N)
 #endif
 
-template<typename Index, typename Scalar, typename LhsScalar, typename LhsMapper, bool ConjugateLhs, bool LhsIsReal, typename RhsScalar, typename RhsMapper, bool ConjugateRhs, bool RhsIsReal, typename ResScalar>
+template<typename Scalar, typename LhsScalar, typename LhsMapper, bool ConjugateLhs, bool LhsIsReal, typename RhsScalar, typename RhsMapper, bool ConjugateRhs, bool RhsIsReal, typename ResScalar>
 EIGEN_STRONG_INLINE void gemv_complex_row(
     Index rows, Index cols,
     const LhsMapper& alhs,
@@ -2371,7 +2371,7 @@ struct general_matrix_vector_product<Index, LhsScalar, LhsMapper, ColMajor, Conj
         const RhsMapper& rhs, \
         ResScalar* res, Index resIncr, \
         ResScalar alpha) { \
-        gemv_complex_col<Index, Scalar, LhsScalar, LhsMapper, ConjugateLhs, sizeof(Scalar) == sizeof(LhsScalar), RhsScalar, RhsMapper, ConjugateRhs, sizeof(Scalar) == sizeof(RhsScalar), ResScalar>(rows, cols, lhs, rhs, res, resIncr, alpha); \
+        gemv_complex_col<Scalar, LhsScalar, LhsMapper, ConjugateLhs, sizeof(Scalar) == sizeof(LhsScalar), RhsScalar, RhsMapper, ConjugateRhs, sizeof(Scalar) == sizeof(RhsScalar), ResScalar>(rows, cols, lhs, rhs, res, resIncr, alpha); \
     } \
 };
 
@@ -2387,7 +2387,7 @@ struct general_matrix_vector_product<Index, LhsScalar, LhsMapper, RowMajor, Conj
         const RhsMapper& rhs, \
         ResScalar* res, Index resIncr, \
         ResScalar alpha) { \
-        gemv_complex_row<Index, Scalar, LhsScalar, LhsMapper, ConjugateLhs, sizeof(Scalar) == sizeof(LhsScalar), RhsScalar, RhsMapper, ConjugateRhs, sizeof(Scalar) == sizeof(RhsScalar), ResScalar>(rows, cols, lhs, rhs, res, resIncr, alpha); \
+        gemv_complex_row<Scalar, LhsScalar, LhsMapper, ConjugateLhs, sizeof(Scalar) == sizeof(LhsScalar), RhsScalar, RhsMapper, ConjugateRhs, sizeof(Scalar) == sizeof(RhsScalar), ResScalar>(rows, cols, lhs, rhs, res, resIncr, alpha); \
     } \
 };
 
