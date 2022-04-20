@@ -56,7 +56,7 @@ EIGEN_ALWAYS_INLINE void storeAccumulator(Index i, const DataMapper& data, const
 template<typename DataMapper, typename Packet, typename Packetc, const Index accCols, const Index accCols2>
 EIGEN_ALWAYS_INLINE void storeComplexAccumulator(Index i, const DataMapper& data, const Packet& alphaReal, const Packet& alphaImag, const Packet& pMask, __vector_quad* accReal, __vector_quad* accImag)
 {
-  const bool full = (accCols2 > accColsC);
+  constexpr bool full = (accCols2 > accColsC);
   PacketBlock<Packet, 4> resultReal, resultImag;
   __builtin_mma_disassemble_acc(&resultReal.packet, accReal);
   __builtin_mma_disassemble_acc(&resultImag.packet, accImag);

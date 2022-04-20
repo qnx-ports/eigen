@@ -1891,7 +1891,7 @@ EIGEN_ALWAYS_INLINE void gemm_unrolled_complex_row_iteration(
     MICRO_COMPLEX_EXTRA_ROW<Scalar, Packet, accRows, ConjugateLhs, ConjugateRhs, LhsIsReal, RhsIsReal, remaining_rows>(lhs_ptr_real, lhs_ptr_imag, rhs_ptr_real0, rhs_ptr_real1, rhs_ptr_real2, rhs_ptr_imag0, rhs_ptr_imag1, rhs_ptr_imag2, accReal0, accImag0);
   }
 
-  const bool full = (remaining_rows > accColsC);
+  constexpr bool full = (remaining_rows > accColsC);
   bload<DataMapper, Packetc, accColsC, ColMajor, true, accRows, full>(tRes, res, row, 0);
   if ((accRows == 1) || (rows >= accCols))
   {
@@ -1998,7 +1998,7 @@ EIGEN_ALWAYS_INLINE void gemm_complex_extra_row(
 
 #define MICRO_COMPLEX_STORE_ONE(iter) \
   if (unroll_factor > iter) { \
-    const bool full = ((MICRO_NORMAL(iter)) || (accCols2 > accColsC)); \
+    constexpr bool full = ((MICRO_NORMAL(iter)) || (accCols2 > accColsC)); \
     bload<DataMapper, Packetc, accColsC, ColMajor, true, accRows, full>(tRes, res, row + iter*accCols, 0); \
     bscalec<Packet,accRows,!(MICRO_NORMAL(iter))>(accReal##iter, accImag##iter, pAlphaReal, pAlphaImag, taccReal, taccImag, pMask); \
     bcouple<Packet, Packetc, accRows, full>(taccReal, taccImag, tRes, acc0, acc1); \
