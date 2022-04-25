@@ -1725,10 +1725,6 @@ static Packet16uc p16uc_ELEMENT_3 = { 0x0c,0x0d,0x0e,0x0f, 0x1c,0x1d,0x1e,0x1f, 
 template<typename ResScalar, typename ResPacket>
 EIGEN_ALWAYS_INLINE ScalarBlock<ResScalar, 2> predux_real(__vector_quad* acc0, __vector_quad* acc1)
 {
-    union {
-      ScalarBlock<ResScalar, 2> cs;
-      double                    cd;
-    } cc0;
     PacketBlock<ResPacket, 4> result0, result1;
     __builtin_mma_disassemble_acc(&result0.packet, acc0);
     __builtin_mma_disassemble_acc(&result1.packet, acc1);
@@ -1737,22 +1733,17 @@ EIGEN_ALWAYS_INLINE ScalarBlock<ResScalar, 2> predux_real(__vector_quad* acc0, _
     result0.packet[2] = vec_mergel(result0.packet[2], result1.packet[2]);
     result0.packet[3] = vec_perm(result0.packet[3], result1.packet[3], p16uc_ELEMENT_3);
     result0.packet[0] = vec_add(vec_add(result0.packet[0], result0.packet[2]), vec_add(result0.packet[1], result0.packet[3]));
-    cc0.cd = pfirst(reinterpret_cast<Packet2d>(result0.packet[0]));
-    return cc0.cs;
+    return *reinterpret_cast<ScalarBlock<ResScalar, 2> *>(&result0.packet[0]);
 }
 
 template<>
 EIGEN_ALWAYS_INLINE ScalarBlock<double, 2> predux_real<double, Packet2d>(__vector_quad* acc0, __vector_quad* acc1)
 {
-    union {
-      ScalarBlock<double, 2> cs;
-      Packet2d               cp;
-    } cc0;
     PacketBlock<Packet2d, 4> result0, result1;
     __builtin_mma_disassemble_acc(&result0.packet, acc0);
     __builtin_mma_disassemble_acc(&result1.packet, acc1);
-    cc0.cp = vec_add(vec_mergeh(result0.packet[0], result1.packet[0]), vec_mergel(result0.packet[1], result1.packet[1]));
-    return cc0.cs;
+    result0.packet[0] = vec_add(vec_mergeh(result0.packet[0], result1.packet[0]), vec_mergel(result0.packet[1], result1.packet[1]));
+    return *reinterpret_cast<ScalarBlock<double, 2> *>(&result0.packet[0]);
 }
 
 /** \internal add complex results together */
@@ -1809,14 +1800,10 @@ EIGEN_ALWAYS_INLINE ScalarBlock<ResScalar, 2> predux_complex(__vector_quad* acc0
 template<typename ResScalar, typename ResPacket>
 EIGEN_ALWAYS_INLINE ScalarBlock<ResScalar, 2> predux_real(__vector_quad* acc0)
 {
-    union {
-      ScalarBlock<ResScalar, 2> cs;
-      ResPacket                 cp;
-    } cc0;
     PacketBlock<ResPacket, 4> result0;
     __builtin_mma_disassemble_acc(&result0.packet, acc0);
-    cc0.cp = vec_add(vec_mergeh(result0.packet[0], result0.packet[2]), vec_mergel(result0.packet[1], result0.packet[3]));
-    return cc0.cs;
+    result0.packet[0] = vec_add(vec_mergeh(result0.packet[0], result0.packet[2]), vec_mergel(result0.packet[1], result0.packet[3]));
+    return *reinterpret_cast<ScalarBlock<ResScalar, 2> *>(&result0.packet[0]);
 }
 
 template<typename ResScalar, typename ResPacket, typename LhsPacket, typename RhsPacket, bool ConjugateLhs, bool ConjugateRhs>
