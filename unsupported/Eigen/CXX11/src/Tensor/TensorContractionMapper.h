@@ -485,6 +485,13 @@ class TensorContractionSubMapper {
     return LinearMapper(m_base_mapper, i + m_vert_offset, j + m_horiz_offset);
   }
 
+  EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE Self getSubMapper(Index i, Index j) const {
+    if (UseDirectOffsets) {
+      return Self(m_base_mapper, i, j);
+    }
+    return Self(m_base_mapper, i + m_vert_offset, j + m_horiz_offset);
+  }
+
   template <typename PacketT, int AlignmentType>
   EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE PacketT load(Index i) const {
     EIGEN_STATIC_ASSERT((internal::is_same<PacketT, PacketT>::value), YOU_MADE_A_PROGRAMMING_MISTAKE);
