@@ -60,6 +60,8 @@ else()
   ei_add_property(EIGEN_MISSING_BACKENDS "MPFR C++, ")
 endif()
 
+ei_add_test(NNLS)
+
 ei_add_test(sparse_extra   "" "")
 
 find_package(FFTW)
@@ -73,6 +75,17 @@ if(FFTW_FOUND)
   endif()
 else()
   ei_add_property(EIGEN_MISSING_BACKENDS "fftw, ")
+endif()
+
+find_path(POCKETFFT  pocketfft_hdronly.h)
+if(POCKETFFT)
+  if(EIGEN_TEST_CXX11)
+    ei_add_property(EIGEN_TESTED_BACKENDS "pocketfft, ")
+    include_directories( ${POCKETFFT} )
+    ei_add_test(pocketfft "-pthread" "${CMAKE_THREAD_LIBS_INIT}" "-DEIGEN_POCKETFFT_DEFAULT" )  
+  endif()  
+else()
+  ei_add_property(EIGEN_MISSING_BACKENDS "pocketfft, ")
 endif()
 
 option(EIGEN_TEST_OPENGL "Enable OpenGL support in unit tests" OFF)
