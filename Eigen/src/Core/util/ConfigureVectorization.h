@@ -419,6 +419,7 @@ extern "C" {
 
 #define EIGEN_VECTORIZE
 #define EIGEN_VECTORIZE_HVX
+#define EIGEN_VECTORIZE_PARTIAL
 #include <hexagon_types.h>
 
 #endif
@@ -500,6 +501,8 @@ inline static const char *SimdInstructionSetsInUse(void) {
   return "S390X ZVECTOR";
 #elif defined(EIGEN_VECTORIZE_MSA)
   return "MIPS MSA";
+#elif defined(EIGEN_VECTORIZE_HVX)
+  return "HEXAGON HVX";
 #else
   return "None";
 #endif
