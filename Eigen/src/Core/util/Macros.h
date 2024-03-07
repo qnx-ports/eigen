@@ -363,10 +363,34 @@
 #endif
 
 /// \internal EIGEN_OS_QNX set to 1 if the OS is QNX
+/// \internal EIGEN_OS_QNX_VERSION set to the numeric version of QNX
 #if defined(__QNX__)
   #define EIGEN_OS_QNX 1
+
+  #if __QNX__ >= 800
+    // on QNX 8.0.0 or later, the __QNX__ macro itself contains the version
+    #define EIGEN_OS_QNX_VERSION __QNX__
+  #else
+    // Acquire the _NTO_VERSION macro
+    // Recent QNX platforms use GCC, which supports the __has_include macro
+    #if defined(__has_include)
+      #if __has_include(<sys/nto_version.h>)
+        #include <sys/nto_version.h>
+      #elif __has_include(<sys/neutrino.h>)
+        #include <sys/neutrino.h>
+      #endif
+    #endif
+
+    #if defined(_NTO_VERSION)
+      #define EIGEN_OS_QNX_VERSION _NTO_VERSION
+    #else
+      // This QNX version is too old for us to do anything about it
+      #define EIGEN_OS_QNX_VERSION 000
+    #endif
+  #endif
 #else
   #define EIGEN_OS_QNX 0
+  #define EIGEN_OS_QNX_VERSION 000
 #endif
 
 /// \internal EIGEN_OS_WIN set to 1 if the OS is Windows based
