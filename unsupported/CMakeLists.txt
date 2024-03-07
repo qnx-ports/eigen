@@ -3,7 +3,7 @@ if(EIGEN_BUILD_DOC)
   add_subdirectory(doc EXCLUDE_FROM_ALL)
 endif()
 if(EIGEN_BUILD_TESTING)
-  if(EIGEN_LEAVE_TEST_IN_ALL_TARGET)
+  if(EIGEN_LEAVE_TEST_IN_ALL_TARGET OR EIGEN_INSTALLED_TESTS)
     add_subdirectory(test) # can't do EXCLUDE_FROM_ALL here, breaks CTest
   else()
     add_subdirectory(test EXCLUDE_FROM_ALL)

@@ -511,13 +511,13 @@ if(EIGEN_BUILD_DOC)
   add_subdirectory(doc EXCLUDE_FROM_ALL)
 endif()
 
-
 cmake_dependent_option(BUILD_TESTING "Enable creation of tests." ON "PROJECT_IS_TOP_LEVEL" OFF)
 option(EIGEN_BUILD_TESTING "Enable creation of Eigen tests." ${BUILD_TESTING})
+option(EIGEN_INSTALLED_TESTS "Enable installation of Eigen tests." OFF)
 if(EIGEN_BUILD_TESTING)
   include(EigenConfigureTesting)
 
-  if(EIGEN_LEAVE_TEST_IN_ALL_TARGET)
+  if(EIGEN_LEAVE_TEST_IN_ALL_TARGET OR EIGEN_INSTALLED_TESTS)
     add_subdirectory(test) # can't do EXCLUDE_FROM_ALL here, breaks CTest
   else()
     add_subdirectory(test EXCLUDE_FROM_ALL)

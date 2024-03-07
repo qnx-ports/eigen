@@ -112,6 +112,9 @@ macro(ei_add_test_internal testname testname_with_suffix)
   endif()
 
   add_test(${testname_with_suffix} "${targetname}")
+  if(EIGEN_INSTALLED_TESTS)
+    install(TARGETS ${targetname} DESTINATION ${CMAKE_INSTALL_BINDIR}/eigen_tests)
+  endif()
 
   # Specify target and test labels according to EIGEN_CURRENT_SUBPROJECT
   get_property(current_subproject GLOBAL PROPERTY EIGEN_CURRENT_SUBPROJECT)
