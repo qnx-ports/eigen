@@ -822,7 +822,7 @@ struct random_default_impl<Scalar, false, false>
 {
   static inline Scalar run(const Scalar& x, const Scalar& y)
   {
-    return x + (y-x) * Scalar(std::rand()) / Scalar(RAND_MAX);
+    return x + (y-x) * Scalar(std::rand()) / Scalar((int) RAND_MAX);
   }
   static inline Scalar run()
   {
