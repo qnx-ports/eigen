@@ -193,10 +193,13 @@ class MatrixMarketIterator
         std::string curfile;
         curfile = m_folder + "/" + m_curs_id->d_name;
         // Discard if it is a folder
+#ifdef DT_DIR
         if (m_curs_id->d_type == DT_DIR) continue; //FIXME This may not be available on non BSD systems
-//         struct stat st_buf; 
-//         stat (curfile.c_str(), &st_buf);
-//         if (S_ISDIR(st_buf.st_mode)) continue;
+#else
+        struct stat st_buf;
+        stat (curfile.c_str(), &st_buf);
+        if (S_ISDIR(st_buf.st_mode)) continue;
+#endif
         
         // Determine from the header if it is a matrix or a right hand side 
         bool isvector,iscomplex=false;
