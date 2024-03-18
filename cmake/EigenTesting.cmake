@@ -486,7 +486,11 @@ macro(ei_get_compilerver VAR)
       set(EIGEN_CXX_FLAG_VERSION "--version")
     endif()
 
-    execute_process(COMMAND ${CMAKE_CXX_COMPILER} ${EIGEN_CXX_FLAG_VERSION}
+    if(NOT DEFINED EIGEN_REAL_CXX_COMPILER)
+      set(EIGEN_REAL_CXX_COMPILER ${CMAKE_CXX_COMPILER})
+    endif()
+
+    execute_process(COMMAND ${EIGEN_REAL_CXX_COMPILER} ${EIGEN_CXX_FLAG_VERSION}
                     OUTPUT_VARIABLE eigen_cxx_compiler_version_string OUTPUT_STRIP_TRAILING_WHITESPACE)
     string(REGEX REPLACE "^[ \n\r]+" "" eigen_cxx_compiler_version_string ${eigen_cxx_compiler_version_string})
     string(REGEX REPLACE "[\n\r].*"  ""  eigen_cxx_compiler_version_string  ${eigen_cxx_compiler_version_string})
