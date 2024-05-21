@@ -640,7 +640,7 @@ class DenseStorage<T, Dynamic, Dynamic, Cols_, Options_> {
       EIGEN_INTERNAL_DENSE_STORAGE_CTOR_PLUGIN({})
     }
     m_rows = rows;
-  }constexpr 
+  }
   EIGEN_DEVICE_FUNC constexpr const T* data() const { return m_data; }
   EIGEN_DEVICE_FUNC constexpr T* data() { return m_data; }
 };
