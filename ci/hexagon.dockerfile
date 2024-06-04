@@ -1,4 +1,4 @@
-# see URLs below to create QPM login and download QPM deb package needed to build this image
+# see URLs below to create QPM login, download QPM deb package, and sign agreements needed to build this image
 # build image with your Qualcomm credentials via "docker build --build-arg QPM_USER=foo --build-arg QPM_PASS=bar -t eigen-hex ."
 # run eigen test suite with hexagon simulator via "docker run --rm -it eigen-hex"
 
@@ -17,7 +17,7 @@ RUN apt-get update && \
 ADD qpm3.deb /
 RUN dpkg -i qpm3.deb
 
-# login to qpm and hexagon sdk 5.x
+# login to qpm and install hexagon sdk 5.x
 # sign agreements at https://www.qualcomm.com/agreements
 # hexagon installs to /local/mnt/workspace/Qualcomm/...
 RUN mkdir -p /local/mnt/workspace
@@ -26,7 +26,7 @@ RUN mkdir -p /local/mnt/workspace
 RUN apt-get update && \
     apt-get install -y --no-install-recommends python-is-python3 unzip && \
     rm -rf /var/lib/apt/lists/*
-RUN qpm-cli --login $QPM_USER $QPM_PASS && \    
+RUN qpm-cli --login $QPM_USER $QPM_PASS && \
     qpm-cli --license-activate hexagonsdk5.x && \
     echo y | qpm-cli --install hexagonsdk5.x && \
     rm -rf /tmp/*
@@ -43,7 +43,7 @@ RUN apt-get update && \
 
 # clone repo, compile tests
 SHELL ["/bin/bash", "-c"]
-RUN git clone --filter=blob:none -b master https://gitlab.com/libeigen/eigen.git /eigen && \
+RUN git clone --filter=blob:none -b add_build_for_hexagon_dsp https://gitlab.com/ShichuangChen/eigen.git /eigen && \
     mkdir /build  && \
     cd /build &&\
     source /local/mnt/workspace/Qualcomm/Hexagon_SDK/5.5.0.1/setup_sdk_env.source && \

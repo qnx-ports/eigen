@@ -1,7 +1,3 @@
-# ===============================================================================
-#     Copyright 2018 Qualcomm Technologies, Inc.  All rights reserved.
-#     Confidential & Proprietary
-# ===============================================================================
 
 if(HEXAGON_TOOLCHAIN_INCLUDED)
   return()
