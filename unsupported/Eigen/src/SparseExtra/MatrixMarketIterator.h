@@ -172,7 +172,7 @@ class MatrixMarketIterator {
       curfile = m_folder + "/" + m_curs_id->d_name;
       // Discard if it is a folder
 
-#if EIGEN_OS_QURT   //
+#if EIGEN_OS_QURT  // EIGEN_OS_QURT didn't define DT_DIR
       struct stat st_buf;
       stat(curfile.c_str(), &st_buf);
       if (S_ISDIR(st_buf.st_mode)) continue;
