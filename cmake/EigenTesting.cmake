@@ -109,7 +109,11 @@ macro(ei_add_test_internal testname testname_with_suffix)
     endif()
   endif()
 
-  add_test(${testname_with_suffix} "${targetname}")
+  if(HEXAGON)
+    add_test(NAME ${testname_with_suffix} COMMAND "${targetname}")
+  else()
+    add_test(${testname_with_suffix} "${targetname}")
+  endif()
 
   # Specify target and test labels according to EIGEN_CURRENT_SUBPROJECT
   get_property(current_subproject GLOBAL PROPERTY EIGEN_CURRENT_SUBPROJECT)

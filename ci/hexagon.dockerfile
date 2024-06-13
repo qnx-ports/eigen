@@ -43,7 +43,7 @@ RUN apt-get update && \
 
 # clone repo, compile tests
 SHELL ["/bin/bash", "-c"]
-RUN git clone --filter=blob:none -b add_build_for_hexagon_dsp https://gitlab.com/ShichuangChen/eigen.git /eigen && \
+RUN git clone --filter=blob:none https://gitlab.com/libeigen/eigen.git /eigen && \
     mkdir /build  && \
     cd /build &&\
     source /local/mnt/workspace/Qualcomm/Hexagon_SDK/5.5.0.1/setup_sdk_env.source && \
