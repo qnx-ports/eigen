@@ -53,8 +53,7 @@ struct traits<BDCSVD<MatrixType_, Options> > : svd_traits<MatrixType_, Options> 
 template <typename MatrixType, int Options>
 struct allocate_small_svd {
   static void run(JacobiSVD<MatrixType, Options>& smallSvd, Index rows, Index cols, unsigned int computationOptions) {
-    (void)computationOptions;
-    smallSvd = JacobiSVD<MatrixType, Options>(rows, cols);
+    internal::construct_at(&smallSvd, rows, cols);
   }
 };
 
