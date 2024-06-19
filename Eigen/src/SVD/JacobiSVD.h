@@ -76,14 +76,14 @@ class qr_preconditioner_impl<MatrixType, Options, FullPivHouseholderQRPreconditi
       internal::destroy_at(&m_qr);
       internal::construct_at(&m_qr, svd.rows(), svd.cols());
     }
-    if (svd.m_computeFullU) m_workspace.resize(svd.rows());
+    if (svd.ShouldComputeFullU) m_workspace.resize(svd.rows());
   }
   template <typename Xpr>
   bool run(SVDType& svd, const Xpr& matrix) {
     if (matrix.rows() > matrix.cols()) {
       m_qr.compute(matrix);
       svd.m_workMatrix = m_qr.matrixQR().block(0, 0, matrix.cols(), matrix.cols()).template triangularView<Upper>();
-      if (svd.m_computeFullU) m_qr.matrixQ().evalTo(svd.m_matrixU, m_workspace);
+      if (svd.ShouldComputeFullU) m_qr.matrixQ().evalTo(svd.m_matrixU, m_workspace);
       if (svd.computeV()) svd.m_matrixV = m_qr.colsPermutation();
       return true;
     }
@@ -120,7 +120,7 @@ class qr_preconditioner_impl<MatrixType, Options, FullPivHouseholderQRPreconditi
       internal::destroy_at(&m_qr);
       internal::construct_at(&m_qr, svd.cols(), svd.rows());
     }
-    if (svd.m_computeFullV) m_workspace.resize(svd.cols());
+    if (svd.ShouldComputeFullV) m_workspace.resize(svd.cols());
   }
   template <typename Xpr>
   bool run(SVDType& svd, const Xpr& matrix) {
@@ -128,7 +128,7 @@ class qr_preconditioner_impl<MatrixType, Options, FullPivHouseholderQRPreconditi
       m_qr.compute(matrix.adjoint());
       svd.m_workMatrix =
           m_qr.matrixQR().block(0, 0, matrix.rows(), matrix.rows()).template triangularView<Upper>().adjoint();
-      if (svd.m_computeFullV) m_qr.matrixQ().evalTo(svd.m_matrixV, m_workspace);
+      if (svd.ShouldComputeFullV) m_qr.matrixQ().evalTo(svd.m_matrixV, m_workspace);
       if (svd.computeU()) svd.m_matrixU = m_qr.colsPermutation();
       return true;
     } else
@@ -162,9 +162,9 @@ class qr_preconditioner_impl<MatrixType, Options, ColPivHouseholderQRPreconditio
       internal::destroy_at(&m_qr);
       internal::construct_at(&m_qr, svd.rows(), svd.cols());
     }
-    if (svd.m_computeFullU)
+    if (svd.ShouldComputeFullU)
       m_workspace.resize(svd.rows());
-    else if (svd.m_computeThinU)
+    else if (svd.ShouldComputeThinU)
       m_workspace.resize(svd.cols());
   }
   template <typename Xpr>
@@ -172,9 +172,9 @@ class qr_preconditioner_impl<MatrixType, Options, ColPivHouseholderQRPreconditio
     if (matrix.rows() > matrix.cols()) {
       m_qr.compute(matrix);
       svd.m_workMatrix = m_qr.matrixQR().block(0, 0, matrix.cols(), matrix.cols()).template triangularView<Upper>();
-      if (svd.m_computeFullU)
+      if (svd.ShouldComputeFullU)
         m_qr.householderQ().evalTo(svd.m_matrixU, m_workspace);
-      else if (svd.m_computeThinU) {
+      else if (svd.ShouldComputeThinU) {
         svd.m_matrixU.setIdentity(matrix.rows(), matrix.cols());
         m_qr.householderQ().applyThisOnTheLeft(svd.m_matrixU, m_workspace);
       }
@@ -218,9 +218,9 @@ class qr_preconditioner_impl<MatrixType, Options, ColPivHouseholderQRPreconditio
       internal::destroy_at(&m_qr);
       internal::construct_at(&m_qr, svd.cols(), svd.rows());
     }
-    if (svd.m_computeFullV)
+    if (svd.ShouldComputeFullV)
       m_workspace.resize(svd.cols());
-    else if (svd.m_computeThinV)
+    else if (svd.ShouldComputeThinV)
       m_workspace.resize(svd.rows());
   }
   template <typename Xpr>
@@ -230,9 +230,9 @@ class qr_preconditioner_impl<MatrixType, Options, ColPivHouseholderQRPreconditio
 
       svd.m_workMatrix =
           m_qr.matrixQR().block(0, 0, matrix.rows(), matrix.rows()).template triangularView<Upper>().adjoint();
-      if (svd.m_computeFullV)
+      if (svd.ShouldComputeFullV)
         m_qr.householderQ().evalTo(svd.m_matrixV, m_workspace);
-      else if (svd.m_computeThinV) {
+      else if (svd.ShouldComputeThinV) {
         svd.m_matrixV.setIdentity(matrix.cols(), matrix.rows());
         m_qr.householderQ().applyThisOnTheLeft(svd.m_matrixV, m_workspace);
       }
@@ -268,9 +268,9 @@ class qr_preconditioner_impl<MatrixType, Options, HouseholderQRPreconditioner, P
       internal::destroy_at(&m_qr);
       internal::construct_at(&m_qr, svd.rows(), svd.cols());
     }
-    if (svd.m_computeFullU)
+    if (svd.ShouldComputeFullU)
       m_workspace.resize(svd.rows());
-    else if (svd.m_computeThinU)
+    else if (svd.ShouldComputeThinU)
       m_workspace.resize(svd.cols());
   }
   template <typename Xpr>
@@ -278,9 +278,9 @@ class qr_preconditioner_impl<MatrixType, Options, HouseholderQRPreconditioner, P
     if (matrix.rows() > matrix.cols()) {
       m_qr.compute(matrix);
       svd.m_workMatrix = m_qr.matrixQR().block(0, 0, matrix.cols(), matrix.cols()).template triangularView<Upper>();
-      if (svd.m_computeFullU)
+      if (svd.ShouldComputeFullU)
         m_qr.householderQ().evalTo(svd.m_matrixU, m_workspace);
-      else if (svd.m_computeThinU) {
+      else if (svd.ShouldComputeThinU) {
         svd.m_matrixU.setIdentity(matrix.rows(), matrix.cols());
         m_qr.householderQ().applyThisOnTheLeft(svd.m_matrixU, m_workspace);
       }
@@ -323,9 +323,9 @@ class qr_preconditioner_impl<MatrixType, Options, HouseholderQRPreconditioner, P
       internal::destroy_at(&m_qr);
       internal::construct_at(&m_qr, svd.cols(), svd.rows());
     }
-    if (svd.m_computeFullV)
+    if (svd.ShouldComputeFullV)
       m_workspace.resize(svd.cols());
-    else if (svd.m_computeThinV)
+    else if (svd.ShouldComputeThinV)
       m_workspace.resize(svd.rows());
   }
 
@@ -336,9 +336,9 @@ class qr_preconditioner_impl<MatrixType, Options, HouseholderQRPreconditioner, P
 
       svd.m_workMatrix =
           m_qr.matrixQR().block(0, 0, matrix.rows(), matrix.rows()).template triangularView<Upper>().adjoint();
-      if (svd.m_computeFullV)
+      if (svd.ShouldComputeFullV)
         m_qr.householderQ().evalTo(svd.m_matrixV, m_workspace);
-      else if (svd.m_computeThinV) {
+      else if (svd.ShouldComputeThinV) {
         svd.m_matrixV.setIdentity(matrix.cols(), matrix.rows());
         m_qr.householderQ().applyThisOnTheLeft(svd.m_matrixV, m_workspace);
       }
@@ -576,10 +576,6 @@ class JacobiSVD : public SVDBase<JacobiSVD<MatrixType_, Options_> > {
   JacobiSVD& compute_impl(const MatrixType& matrix);
 
  protected:
-  using Base::m_computeFullU;
-  using Base::m_computeFullV;
-  using Base::m_computeThinU;
-  using Base::m_computeThinV;
   using Base::m_info;
   using Base::m_isAllocated;
   using Base::m_isInitialized;
@@ -640,10 +636,10 @@ JacobiSVD<MatrixType, Options>& JacobiSVD<MatrixType, Options>::compute_impl(con
   } else {
     m_workMatrix =
         matrix.template topLeftCorner<DiagSizeAtCompileTime, DiagSizeAtCompileTime>(diagSize(), diagSize()) / scale;
-    if (m_computeFullU) m_matrixU.setIdentity(rows(), rows());
-    if (m_computeThinU) m_matrixU.setIdentity(rows(), diagSize());
-    if (m_computeFullV) m_matrixV.setIdentity(cols(), cols());
-    if (m_computeThinV) m_matrixV.setIdentity(cols(), diagSize());
+    if (ShouldComputeFullU) m_matrixU.setIdentity(rows(), rows());
+    if (ShouldComputeThinU) m_matrixU.setIdentity(rows(), diagSize());
+    if (ShouldComputeFullV) m_matrixV.setIdentity(cols(), cols());
+    if (ShouldComputeThinV) m_matrixV.setIdentity(cols(), diagSize());
   }
 
   /*** step 2. The main Jacobi SVD iteration. ***/

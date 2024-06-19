@@ -202,8 +202,6 @@ class BDCSVD : public SVDBase<BDCSVD<MatrixType_, Options_> > {
   MatrixX copyWorkspace;
   MatrixX reducedTriangle;
 
-  using Base::m_computeThinU;
-  using Base::m_computeThinV;
   using Base::m_info;
   using Base::m_isInitialized;
   using Base::m_matrixU;
@@ -358,7 +356,7 @@ void BDCSVD<MatrixType, Options>::copyUV(const HouseholderU& householderU, const
                                          const NaiveU& naiveU, const NaiveV& naiveV) {
   // Note exchange of U and V: m_matrixU is set from m_naiveV and vice versa
   if (computeU()) {
-    Index Ucols = m_computeThinU ? diagSize() : rows();
+    Index Ucols = ShouldComputeThinU ? diagSize() : rows();
     m_matrixU = MatrixX::Identity(rows(), Ucols);
     m_matrixU.topLeftCorner(diagSize(), diagSize()) =
         naiveV.template cast<Scalar>().topLeftCorner(diagSize(), diagSize());
@@ -369,7 +367,7 @@ void BDCSVD<MatrixType, Options>::copyUV(const HouseholderU& householderU, const
       m_matrixU.applyOnTheLeft(householderU);
   }
   if (computeV()) {
-    Index Vcols = m_computeThinV ? diagSize() : cols();
+    Index Vcols = ShouldComputeThinV ? diagSize() : cols();
     m_matrixV = MatrixX::Identity(cols(), Vcols);
     m_matrixV.topLeftCorner(diagSize(), diagSize()) =
         naiveU.template cast<Scalar>().topLeftCorner(diagSize(), diagSize());

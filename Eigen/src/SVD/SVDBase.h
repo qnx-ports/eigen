@@ -270,9 +270,9 @@ class SVDBase : public SolverBase<SVDBase<Derived> > {
   }
 
   /** \returns true if \a U (full or thin) is asked for in this SVD decomposition */
-  inline bool computeU() const { return m_computeFullU || m_computeThinU; }
+  inline constexpr bool computeU() const { return ShouldComputeFullU || ShouldComputeThinU; }
   /** \returns true if \a V (full or thin) is asked for in this SVD decomposition */
-  inline bool computeV() const { return m_computeFullV || m_computeThinV; }
+  inline constexpr bool computeV() const { return ShouldComputeFullV || ShouldComputeThinV; }
 
   inline Index rows() const { return m_rows.value(); }
   inline Index cols() const { return m_cols.value(); }
@@ -333,8 +333,6 @@ class SVDBase : public SolverBase<SVDBase<Derived> > {
   SingularValuesType m_singularValues;
   ComputationInfo m_info;
   bool m_isInitialized, m_isAllocated, m_usePrescribedThreshold;
-  bool m_computeFullU, m_computeThinU;
-  bool m_computeFullV, m_computeThinV;
   Index m_nonzeroSingularValues;
   internal::variable_if_dynamic<Index, RowsAtCompileTime> m_rows;
   internal::variable_if_dynamic<Index, ColsAtCompileTime> m_cols;
@@ -353,10 +351,6 @@ class SVDBase : public SolverBase<SVDBase<Derived> > {
         m_isInitialized(false),
         m_isAllocated(false),
         m_usePrescribedThreshold(false),
-        m_computeFullU(ShouldComputeFullU),
-        m_computeThinU(ShouldComputeThinU),
-        m_computeFullV(ShouldComputeFullV),
-        m_computeThinV(ShouldComputeThinV),
         m_nonzeroSingularValues(0),
         m_rows(RowsAtCompileTime),
         m_cols(ColsAtCompileTime),
@@ -410,20 +404,16 @@ bool SVDBase<Derived>::allocate(Index rows, Index cols) {
   m_info = Success;
   m_isInitialized = false;
   m_isAllocated = true;
-  m_computeFullU = ShouldComputeFullU;
-  m_computeThinU = ShouldComputeThinU;
-  m_computeFullV = ShouldComputeFullV;
-  m_computeThinV = ShouldComputeThinV;
 
-  eigen_assert(!(m_computeFullU && m_computeThinU) && "SVDBase: you can't ask for both full and thin U");
-  eigen_assert(!(m_computeFullV && m_computeThinV) && "SVDBase: you can't ask for both full and thin V");
+  eigen_assert(!(ShouldComputeFullU && ShouldComputeThinU) && "SVDBase: you can't ask for both full and thin U");
+  eigen_assert(!(ShouldComputeFullV && ShouldComputeThinV) && "SVDBase: you can't ask for both full and thin V");
 
   m_diagSize.setValue(numext::mini(m_rows.value(), m_cols.value()));
   m_singularValues.resize(m_diagSize.value());
   if (RowsAtCompileTime == Dynamic)
-    m_matrixU.resize(m_rows.value(), m_computeFullU ? m_rows.value() : m_computeThinU ? m_diagSize.value() : 0);
+    m_matrixU.resize(m_rows.value(), ShouldComputeFullU ? m_rows.value() : ShouldComputeThinU ? m_diagSize.value() : 0);
   if (ColsAtCompileTime == Dynamic)
-    m_matrixV.resize(m_cols.value(), m_computeFullV ? m_cols.value() : m_computeThinV ? m_diagSize.value() : 0);
+    m_matrixV.resize(m_cols.value(), ShouldComputeFullV ? m_cols.value() : ShouldComputeThinV ? m_diagSize.value() : 0);
 
   return false;
 }
