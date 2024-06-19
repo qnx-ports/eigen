@@ -93,6 +93,8 @@ class BDCSVD : public SVDBase<BDCSVD<MatrixType_, Options_> > {
   typedef SVDBase<BDCSVD> Base;
 
  public:
+  using Base::ShouldComputeThinU;
+  using Base::ShouldComputeThinV;
   using Base::cols;
   using Base::computeU;
   using Base::computeV;
