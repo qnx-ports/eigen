@@ -638,10 +638,14 @@ JacobiSVD<MatrixType, Options>& JacobiSVD<MatrixType, Options>::compute_impl(con
   } else {
     m_workMatrix =
         matrix.template topLeftCorner<DiagSizeAtCompileTime, DiagSizeAtCompileTime>(diagSize(), diagSize()) / scale;
-    if (ShouldComputeFullU) m_matrixU.setIdentity(rows(), rows());
-    else if (ShouldComputeThinU) m_matrixU.setIdentity(rows(), diagSize());
-    if (ShouldComputeFullV) m_matrixV.setIdentity(cols(), cols());
-    else if (ShouldComputeThinV) m_matrixV.setIdentity(cols(), diagSize());
+    if (ShouldComputeFullU)
+      m_matrixU.setIdentity(rows(), rows());
+    else if (ShouldComputeThinU)
+      m_matrixU.setIdentity(rows(), diagSize());
+    if (ShouldComputeFullV)
+      m_matrixV.setIdentity(cols(), cols());
+    else if (ShouldComputeThinV)
+      m_matrixV.setIdentity(cols(), diagSize());
   }
 
   /*** step 2. The main Jacobi SVD iteration. ***/
