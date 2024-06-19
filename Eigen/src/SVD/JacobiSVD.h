@@ -586,8 +586,8 @@ class JacobiSVD : public SVDBase<JacobiSVD<MatrixType_, Options_> > {
   using Base::m_singularValues;
   using Base::m_usePrescribedThreshold;
   using Base::ShouldComputeFullU;
-  using Base::ShouldComputeThinU;
   using Base::ShouldComputeFullV;
+  using Base::ShouldComputeThinU;
   using Base::ShouldComputeThinV;
 
   EIGEN_STATIC_ASSERT(!(ShouldComputeThinU && int(QRPreconditioner) == int(FullPivHouseholderQRPreconditioner)) &&
@@ -639,9 +639,9 @@ JacobiSVD<MatrixType, Options>& JacobiSVD<MatrixType, Options>::compute_impl(con
     m_workMatrix =
         matrix.template topLeftCorner<DiagSizeAtCompileTime, DiagSizeAtCompileTime>(diagSize(), diagSize()) / scale;
     if (ShouldComputeFullU) m_matrixU.setIdentity(rows(), rows());
-    if (ShouldComputeThinU) m_matrixU.setIdentity(rows(), diagSize());
+    else if (ShouldComputeThinU) m_matrixU.setIdentity(rows(), diagSize());
     if (ShouldComputeFullV) m_matrixV.setIdentity(cols(), cols());
-    if (ShouldComputeThinV) m_matrixV.setIdentity(cols(), diagSize());
+    else if (ShouldComputeThinV) m_matrixV.setIdentity(cols(), diagSize());
   }
 
   /*** step 2. The main Jacobi SVD iteration. ***/
