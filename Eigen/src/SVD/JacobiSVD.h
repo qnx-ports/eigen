@@ -585,7 +585,9 @@ class JacobiSVD : public SVDBase<JacobiSVD<MatrixType_, Options_> > {
   using Base::m_prescribedThreshold;
   using Base::m_singularValues;
   using Base::m_usePrescribedThreshold;
+  using Base::ShouldComputeFullU;
   using Base::ShouldComputeThinU;
+  using Base::ShouldComputeFullV;
   using Base::ShouldComputeThinV;
 
   EIGEN_STATIC_ASSERT(!(ShouldComputeThinU && int(QRPreconditioner) == int(FullPivHouseholderQRPreconditioner)) &&
