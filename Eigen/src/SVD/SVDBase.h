@@ -326,7 +326,7 @@ class SVDBase : public SolverBase<SVDBase<Derived> > {
   }
 
   // return true if already allocated
-  bool allocate(Index rows, Index cols, unsigned int computationOptions);
+  bool allocate(Index rows, Index cols);
 
   MatrixUType m_matrixU;
   MatrixVType m_matrixV;
@@ -335,7 +335,6 @@ class SVDBase : public SolverBase<SVDBase<Derived> > {
   bool m_isInitialized, m_isAllocated, m_usePrescribedThreshold;
   bool m_computeFullU, m_computeThinU;
   bool m_computeFullV, m_computeThinV;
-  unsigned int m_computationOptions;
   Index m_nonzeroSingularValues;
   internal::variable_if_dynamic<Index, RowsAtCompileTime> m_rows;
   internal::variable_if_dynamic<Index, ColsAtCompileTime> m_cols;
@@ -358,7 +357,6 @@ class SVDBase : public SolverBase<SVDBase<Derived> > {
         m_computeThinU(ShouldComputeThinU),
         m_computeFullV(ShouldComputeFullV),
         m_computeThinV(ShouldComputeThinV),
-        m_computationOptions(internal::traits<Derived>::Options),
         m_nonzeroSingularValues(0),
         m_rows(RowsAtCompileTime),
         m_cols(ColsAtCompileTime),
@@ -400,10 +398,10 @@ void SVDBase<Derived>::_solve_impl_transposed(const RhsType& rhs, DstType& dst) 
 #endif
 
 template <typename Derived>
-bool SVDBase<Derived>::allocate(Index rows, Index cols, unsigned int computationOptions) {
+bool SVDBase<Derived>::allocate(Index rows, Index cols) {
   eigen_assert(rows >= 0 && cols >= 0);
 
-  if (m_isAllocated && rows == m_rows.value() && cols == m_cols.value() && computationOptions == m_computationOptions) {
+  if (m_isAllocated && rows == m_rows.value() && cols == m_cols.value()) {
     return true;
   }
 
@@ -412,11 +410,10 @@ bool SVDBase<Derived>::allocate(Index rows, Index cols, unsigned int computation
   m_info = Success;
   m_isInitialized = false;
   m_isAllocated = true;
-  m_computationOptions = computationOptions;
-  m_computeFullU = ShouldComputeFullU || internal::should_svd_compute_full_u(computationOptions);
-  m_computeThinU = ShouldComputeThinU || internal::should_svd_compute_thin_u(computationOptions);
-  m_computeFullV = ShouldComputeFullV || internal::should_svd_compute_full_v(computationOptions);
-  m_computeThinV = ShouldComputeThinV || internal::should_svd_compute_thin_v(computationOptions);
+  m_computeFullU = ShouldComputeFullU;
+  m_computeThinU = ShouldComputeThinU;
+  m_computeFullV = ShouldComputeFullV;
+  m_computeThinV = ShouldComputeThinV;
 
   eigen_assert(!(m_computeFullU && m_computeThinU) && "SVDBase: you can't ask for both full and thin U");
   eigen_assert(!(m_computeFullV && m_computeThinV) && "SVDBase: you can't ask for both full and thin V");

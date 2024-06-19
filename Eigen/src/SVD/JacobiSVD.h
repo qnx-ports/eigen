@@ -537,72 +537,21 @@ class JacobiSVD : public SVDBase<JacobiSVD<MatrixType_, Options_> > {
    *
    * \sa JacobiSVD()
    */
-  JacobiSVD(Index rows, Index cols) { allocate(rows, cols, internal::get_computation_options(Options)); }
-
-  /** \brief Default Constructor with memory preallocation
-   *
-   * Like the default constructor but with preallocation of the internal data
-   * according to the specified problem size.
-   *
-   * One \b cannot request unitaries using both the \a Options template parameter
-   * and the constructor. If possible, prefer using the \a Options template parameter.
-   *
-   * \param computationOptions specify whether to compute Thin/Full unitaries U/V
-   * \sa JacobiSVD()
-   *
-   * \deprecated Will be removed in the next major Eigen version. Options should
-   * be specified in the \a Options template parameter.
-   */
-  EIGEN_DEPRECATED JacobiSVD(Index rows, Index cols, unsigned int computationOptions) {
-    internal::check_svd_options_assertions<MatrixType, Options>(computationOptions, rows, cols);
-    allocate(rows, cols, computationOptions);
-  }
+  JacobiSVD(Index rows, Index cols) { allocate(rows, cols); }
 
   /** \brief Constructor performing the decomposition of given matrix, using the custom options specified
    *         with the \a Options template paramter.
    *
    * \param matrix the matrix to decompose
    */
-  explicit JacobiSVD(const MatrixType& matrix) { compute_impl(matrix, internal::get_computation_options(Options)); }
-
-  /** \brief Constructor performing the decomposition of given matrix using specified options
-   *         for computing unitaries.
-   *
-   *  One \b cannot request unitiaries using both the \a Options template parameter
-   *  and the constructor. If possible, prefer using the \a Options template parameter.
-   *
-   * \param matrix the matrix to decompose
-   * \param computationOptions specify whether to compute Thin/Full unitaries U/V
-   *
-   * \deprecated Will be removed in the next major Eigen version. Options should
-   * be specified in the \a Options template parameter.
-   */
-  // EIGEN_DEPRECATED // TODO(cantonios): re-enable after fixing a few 3p libraries that error on deprecation warnings.
-  JacobiSVD(const MatrixType& matrix, unsigned int computationOptions) {
-    internal::check_svd_options_assertions<MatrixType, Options>(computationOptions, matrix.rows(), matrix.cols());
-    compute_impl(matrix, computationOptions);
-  }
+  explicit JacobiSVD(const MatrixType& matrix) { compute_impl(matrix); }
 
   /** \brief Method performing the decomposition of given matrix. Computes Thin/Full unitaries U/V if specified
    *         using the \a Options template parameter or the class constructor.
    *
    * \param matrix the matrix to decompose
    */
-  JacobiSVD& compute(const MatrixType& matrix) { return compute_impl(matrix, m_computationOptions); }
-
-  /** \brief Method performing the decomposition of given matrix, as specified by
-   *         the `computationOptions` parameter.
-   *
-   * \param matrix the matrix to decompose
-   * \param computationOptions specify whether to compute Thin/Full unitaries U/V
-   *
-   * \deprecated Will be removed in the next major Eigen version. Options should
-   * be specified in the \a Options template parameter.
-   */
-  EIGEN_DEPRECATED JacobiSVD& compute(const MatrixType& matrix, unsigned int computationOptions) {
-    internal::check_svd_options_assertions<MatrixType, Options>(m_computationOptions, matrix.rows(), matrix.cols());
-    return compute_impl(matrix, computationOptions);
-  }
+  JacobiSVD& compute(const MatrixType& matrix) { return compute_impl(matrix); }
 
   using Base::cols;
   using Base::computeU;
@@ -612,8 +561,8 @@ class JacobiSVD : public SVDBase<JacobiSVD<MatrixType_, Options_> > {
   using Base::rows;
 
  private:
-  void allocate(Index rows_, Index cols_, unsigned int computationOptions) {
-    if (Base::allocate(rows_, cols_, computationOptions)) return;
+  void allocate(Index rows_, Index cols_) {
+    if (Base::allocate(rows_, cols_)) return;
     eigen_assert(!(ShouldComputeThinU && int(QRPreconditioner) == int(FullPivHouseholderQRPreconditioner)) &&
                  !(ShouldComputeThinU && int(QRPreconditioner) == int(FullPivHouseholderQRPreconditioner)) &&
                  "JacobiSVD: can't compute thin U or thin V with the FullPivHouseholderQR preconditioner. "
@@ -624,10 +573,9 @@ class JacobiSVD : public SVDBase<JacobiSVD<MatrixType_, Options_> > {
     if (rows() > cols()) m_qr_precond_morerows.allocate(*this);
   }
 
-  JacobiSVD& compute_impl(const MatrixType& matrix, unsigned int computationOptions);
+  JacobiSVD& compute_impl(const MatrixType& matrix);
 
  protected:
-  using Base::m_computationOptions;
   using Base::m_computeFullU;
   using Base::m_computeFullV;
   using Base::m_computeThinU;
@@ -662,11 +610,10 @@ class JacobiSVD : public SVDBase<JacobiSVD<MatrixType_, Options_> > {
 };
 
 template <typename MatrixType, int Options>
-JacobiSVD<MatrixType, Options>& JacobiSVD<MatrixType, Options>::compute_impl(const MatrixType& matrix,
-                                                                             unsigned int computationOptions) {
+JacobiSVD<MatrixType, Options>& JacobiSVD<MatrixType, Options>::compute_impl(const MatrixType& matrix) {
   using std::abs;
 
-  allocate(matrix.rows(), matrix.cols(), computationOptions);
+  allocate(matrix.rows(), matrix.cols());
 
   // currently we stop when we reach precision 2*epsilon as the last bit of precision can require an unreasonable number
   // of iterations, only worsening the precision of U and V as we accumulate more rotations
@@ -793,13 +740,6 @@ template <typename Derived>
 template <int Options>
 JacobiSVD<typename MatrixBase<Derived>::PlainObject, Options> MatrixBase<Derived>::jacobiSvd() const {
   return JacobiSVD<PlainObject, Options>(*this);
-}
-
-template <typename Derived>
-template <int Options>
-JacobiSVD<typename MatrixBase<Derived>::PlainObject, Options> MatrixBase<Derived>::jacobiSvd(
-    unsigned int computationOptions) const {
-  return JacobiSVD<PlainObject, Options>(*this, computationOptions);
 }
 
 }  // end namespace Eigen
