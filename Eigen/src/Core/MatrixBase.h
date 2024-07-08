@@ -372,13 +372,9 @@ class MatrixBase : public DenseBase<Derived> {
 
   template <int Options = 0>
   inline JacobiSVD<PlainObject, Options> jacobiSvd() const;
-  template <int Options = 0>
-  EIGEN_DEPRECATED inline JacobiSVD<PlainObject, Options> jacobiSvd(unsigned int computationOptions) const;
 
   template <int Options = 0>
   inline BDCSVD<PlainObject, Options> bdcSvd() const;
-  template <int Options = 0>
-  EIGEN_DEPRECATED inline BDCSVD<PlainObject, Options> bdcSvd(unsigned int computationOptions) const;
 
   /////////// Geometry module ///////////
 
