@@ -358,7 +358,7 @@ endif()
 
 # boost MP unit test
 find_package(Boost 1.53.0)
-if(Boost_FOUND)
+if(Boost_FOUND AND NOT QNX)
   include_directories(${Boost_INCLUDE_DIRS})
   ei_add_test(boostmultiprec "" "${Boost_LIBRARIES}")
   ei_add_property(EIGEN_TESTED_BACKENDS "Boost.Multiprecision, ")
