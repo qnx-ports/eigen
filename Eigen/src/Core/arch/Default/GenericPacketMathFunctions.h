@@ -1097,12 +1097,11 @@ EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS Packet patan_double(const Pa
 }
 
 /** \internal \returns the hyperbolic tan of \a a (coeff-wise)
-    Doesn't do anything fancy, just a 13/6-degree rational interpolant which
+    Doesn't do anything fancy, just a 9/8-degree rational interpolant which
     is accurate up to a couple of ulps in the (approximate) range [-8, 8],
     outside of which tanh(x) = +/-1 in single precision. The input is clamped
     to the range [-c, c]. The value c is chosen as the smallest value where
-    the approximation evaluates to exactly 1. In the reange [-0.0004, 0.0004]
-    the approximation tanh(x) ~= x is used for better accuracy as x tends to zero.
+    the approximation evaluates to exactly 1.
 
     This implementation works on both scalars and packets.
 */
@@ -1129,7 +1128,6 @@ EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS T ptanh_float(const T& a_x) 
   //   --output=tanhf.sollya --dispCoeff="dec"
 
   // The monomial coefficients of the numerator polynomial (odd).
-  const T alpha_1 = pset1<T>(1.0f);
   const T alpha_3 = pset1<T>(1.340216100215911865234375e-1f);
   const T alpha_5 = pset1<T>(3.52075672708451747894287109375e-3f);
   const T alpha_7 = pset1<T>(2.10273356060497462749481201171875e-5f);
@@ -1144,6 +1142,7 @@ EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS T ptanh_float(const T& a_x) 
 
   // Since the polynomials are odd/even, we need x^2.
   const T x2 = pmul(x, x);
+  const T x3 = pmul(x2, x);
 
   // Interleave the evaluation of the numerator polynomial p and
   // denominator polynomial q.
@@ -1153,9 +1152,10 @@ EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS T ptanh_float(const T& a_x) 
   q = pmadd(x2, q, beta_4);
   p = pmadd(x2, p, alpha_3);
   q = pmadd(x2, q, beta_2);
-  p = pmadd(x2, p, alpha_1);
+  // Take advantage of the fact that alpha_1 = 1 to compute
+  // x*(x^2*p + alpha_1) = x^3 * p + x.
+  p = pmadd(x3, p, x);
   q = pmadd(x2, q, beta_0);
-  p = pmul(x, p);
 
   // Divide the numerator by the denominator.
   return pdiv(p, q);
