@@ -55,7 +55,6 @@ struct squared_norm_impl<Derived, bool> {
   static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE bool run(const Derived& a) { return a.any(); }
 };
 
-
 }  // end namespace internal
 
 /** \fn MatrixBase::dot
