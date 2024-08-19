@@ -99,7 +99,7 @@ EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
 template <typename Derived>
 EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE typename NumTraits<typename internal::traits<Derived>::Scalar>::Real
 MatrixBase<Derived>::squaredNorm() const {
-  return internal::squared_norm_impl<Derived>::run(*this);
+  return internal::squared_norm_impl<Derived>::run(derived());
 }
 
 /** \returns, for vectors, the \em l2 norm of \c *this, and for matrices the Frobenius norm.
