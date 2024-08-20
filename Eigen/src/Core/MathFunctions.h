@@ -804,10 +804,11 @@ isnan_impl(const T&) {
 }
 
 template <typename T>
-EIGEN_DEVICE_FUNC std::enable_if_t<
+EIGEN_DEVICE_FUNC
+    std::enable_if_t<
     (std::numeric_limits<T>::has_quiet_NaN || std::numeric_limits<T>::has_signaling_NaN) && (!NumTraits<T>::IsComplex),
     bool>
-isnan_impl(const T& x) {
+    isnan_impl(const T& x) {
   EIGEN_USING_STD(isnan);
   return isnan EIGEN_NOT_A_MACRO(x);
 }
@@ -1350,17 +1351,17 @@ EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE double log(const double& x) {
 #endif
 
 template <typename T>
-EIGEN_DEVICE_FUNC
-EIGEN_ALWAYS_INLINE std::enable_if_t<NumTraits<T>::IsSigned || NumTraits<T>::IsComplex, typename NumTraits<T>::Real>
-abs(const T& x) {
+EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+    std::enable_if_t<NumTraits<T>::IsSigned || NumTraits<T>::IsComplex, typename NumTraits<T>::Real>
+    abs(const T& x) {
   EIGEN_USING_STD(abs);
   return abs(x);
 }
 
 template <typename T>
-EIGEN_DEVICE_FUNC
-EIGEN_ALWAYS_INLINE std::enable_if_t<!(NumTraits<T>::IsSigned || NumTraits<T>::IsComplex), typename NumTraits<T>::Real>
-abs(const T& x) {
+EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+    std::enable_if_t<!(NumTraits<T>::IsSigned || NumTraits<T>::IsComplex), typename NumTraits<T>::Real>
+    abs(const T& x) {
   return x;
 }
 
