@@ -1161,7 +1161,6 @@ EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS T ptanh_float(const T& a_x) 
   return pdiv(p, q);
 }
 
-
 /** \internal \returns the hyperbolic tan of \a a (coeff-wise)
     This uses a 19/18-degree rational interpolant which
     is accurate up to a couple of ulps in the (approximate) range [-18.7, 18.7],
@@ -1194,10 +1193,10 @@ EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS T ptanh_double(const T& a_x)
   //   --denF="[D]" --log --output=tanh.sollya --dispCoeff="dec"
 
   // The monomial coefficients of the numerator polynomial (odd).
-  const T alpha_3  = pset1<T>(1.5184719640284322e-01);
-  const T alpha_5  = pset1<T>(5.9809711724441161e-03);
-  const T alpha_7  = pset1<T>(9.3839087674268880e-05);
-  const T alpha_9  = pset1<T>(6.8644367682497074e-07);
+  const T alpha_3 = pset1<T>(1.5184719640284322e-01);
+  const T alpha_5 = pset1<T>(5.9809711724441161e-03);
+  const T alpha_7 = pset1<T>(9.3839087674268880e-05);
+  const T alpha_9 = pset1<T>(6.8644367682497074e-07);
   const T alpha_11 = pset1<T>(2.4618379131293676e-09);
   const T alpha_13 = pset1<T>(4.2303918148209176e-12);
   const T alpha_15 = pset1<T>(3.1309488231386680e-15);
@@ -1205,11 +1204,11 @@ EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS T ptanh_double(const T& a_x)
   const T alpha_19 = pset1<T>(2.6158007860482230e-23);
 
   // The monomial coefficients of the denominator polynomial (even).
-  const T beta_0 =  pset1<T>(1.0);
-  const T beta_2 =  pset1<T>(4.851805297361760360e-01);
-  const T beta_4 =  pset1<T>(3.437448108450402717e-02);
-  const T beta_6 =  pset1<T>(8.295161192716231542e-04);
-  const T beta_8 =  pset1<T>(8.785185266237658698e-06);
+  const T beta_0 = pset1<T>(1.0);
+  const T beta_2 = pset1<T>(4.851805297361760360e-01);
+  const T beta_4 = pset1<T>(3.437448108450402717e-02);
+  const T beta_6 = pset1<T>(8.295161192716231542e-04);
+  const T beta_8 = pset1<T>(8.785185266237658698e-06);
   const T beta_10 = pset1<T>(4.492975677839633985e-08);
   const T beta_12 = pset1<T>(1.123643448069621992e-10);
   const T beta_14 = pset1<T>(1.293019623712687916e-13);
@@ -1246,7 +1245,6 @@ EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS T ptanh_double(const T& a_x)
   // Divide the numerator by the denominator.
   return pdiv(p, q);
 }
-
 
 template <typename Packet>
 EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS Packet patanh_float(const Packet& x) {
