@@ -798,17 +798,16 @@ EIGEN_DEVICE_FUNC std::enable_if_t<(std::numeric_limits<T>::has_infinity && !Num
 
 template <typename T>
 EIGEN_DEVICE_FUNC
-std::enable_if_t<!(std::numeric_limits<T>::has_quiet_NaN || std::numeric_limits<T>::has_signaling_NaN), bool>
-isnan_impl(const T&) {
+    std::enable_if_t<!(std::numeric_limits<T>::has_quiet_NaN || std::numeric_limits<T>::has_signaling_NaN), bool>
+    isnan_impl(const T&) {
   return false;
 }
 
 template <typename T>
-EIGEN_DEVICE_FUNC
-    std::enable_if_t<
+EIGEN_DEVICE_FUNC std::enable_if_t<
     (std::numeric_limits<T>::has_quiet_NaN || std::numeric_limits<T>::has_signaling_NaN) && (!NumTraits<T>::IsComplex),
     bool>
-    isnan_impl(const T& x) {
+isnan_impl(const T& x) {
   EIGEN_USING_STD(isnan);
   return isnan EIGEN_NOT_A_MACRO(x);
 }
