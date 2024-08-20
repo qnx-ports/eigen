@@ -159,7 +159,7 @@ EIGEN_STRONG_INLINE Packet2cf pconj(const Packet2cf& a) {
 #ifdef __ARM_FEATURE_COMPLEX
 template <>
 EIGEN_STRONG_INLINE Packet1cf pmul<Packet1cf>(const Packet1cf& a, const Packet1cf& b) {
-  Packet1cf result{};
+  Packet1cf result(Packet2f{0.f, 0.f});
   result.v = vcmla_f32(result.v, a.v, b.v);
   result.v = vcmla_rot90_f32(result.v, a.v, b.v);
   return result;
@@ -199,10 +199,10 @@ EIGEN_STRONG_INLINE Packet1cf pmul<Packet1cf>(const Packet1cf& a, const Packet1c
 #ifdef __ARM_FEATURE_COMPLEX
 template <>
 EIGEN_STRONG_INLINE Packet2cf pmul<Packet2cf>(const Packet2cf& a, const Packet2cf& b) {
-  Packet2cf result{};
-  result.v = vcmlaq_f32(result.v, a.v, b.v);
-  result.v = vcmlaq_rot90_f32(result.v, a.v, b.v);
-  return result;
+  Packet2cf r(Packet4f{0.f, 0.f, 0.f, 0.f});
+  r.v = vcmlaq_f32(r.v, a.v, b.v);
+  r.v = vcmlaq_rot90_f32(r.v, a.v, b.v);
+  return r;
 }
 
 #ifdef EIGEN_VECTORIZE_FMA
@@ -593,7 +593,7 @@ EIGEN_STRONG_INLINE Packet1cd pconj(const Packet1cd& a) {
 #ifdef __ARM_FEATURE_COMPLEX
 template <>
 EIGEN_STRONG_INLINE Packet1cd pmul<Packet1cd>(const Packet1cd& a, const Packet1cd& b) {
-  Packet1cd result{};
+  Packet1cd result(Packet2d{0., 0.});
   result.v = vcmlaq_f64(result.v, a.v, b.v);
   result.v = vcmlaq_rot90_f64(result.v, a.v, b.v);
   return result;
