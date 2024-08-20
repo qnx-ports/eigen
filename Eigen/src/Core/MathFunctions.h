@@ -822,6 +822,7 @@ EIGEN_DEVICE_FUNC bool isinf_impl(const std::complex<T>& x);
 template <typename T>
 EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS T ptanh_float(const T& a_x);
 
+
 /****************************************************************************
  * Implementation of sign                                                 *
  ****************************************************************************/
