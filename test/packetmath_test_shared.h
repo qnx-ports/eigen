@@ -50,8 +50,8 @@ EIGEN_DONT_INLINE bool isApproxAbs(const Scalar& a, const Scalar& b, const typen
 
 template <typename Scalar>
 inline void print_mismatch(const Scalar* ref, const Scalar* vec, int size) {
-  std::cout << "ref: [" << Map<const Matrix<Scalar, 1, Dynamic> >(ref, size) << "]" << " != vec: ["
-            << Map<const Matrix<Scalar, 1, Dynamic> >(vec, size) << "]\n";
+  std::cout << "ref: [" << Map<const Matrix<Scalar, 1, Dynamic> >(ref, size) << "]"
+            << " != vec: [" << Map<const Matrix<Scalar, 1, Dynamic> >(vec, size) << "]\n";
 }
 
 template <typename Scalar>
