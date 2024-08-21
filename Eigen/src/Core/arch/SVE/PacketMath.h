@@ -136,17 +136,17 @@ EIGEN_STRONG_INLINE PacketXi pmax<PacketXi>(const PacketXi& a, const PacketXi& b
 
 template <>
 EIGEN_STRONG_INLINE PacketXi pcmp_le<PacketXi>(const PacketXi& a, const PacketXi& b) {
-  return svdup_n_s32_x(svcmple_s32(svptrue_b32(), a, b), 0xffffffffu);
+  return svdup_n_s32_z(svcmple_s32(svptrue_b32(), a, b), 0xffffffffu);
 }
 
 template <>
 EIGEN_STRONG_INLINE PacketXi pcmp_lt<PacketXi>(const PacketXi& a, const PacketXi& b) {
-  return svdup_n_s32_x(svcmplt_s32(svptrue_b32(), a, b), 0xffffffffu);
+  return svdup_n_s32_z(svcmplt_s32(svptrue_b32(), a, b), 0xffffffffu);
 }
 
 template <>
 EIGEN_STRONG_INLINE PacketXi pcmp_eq<PacketXi>(const PacketXi& a, const PacketXi& b) {
-  return svdup_n_s32_x(svcmpeq_s32(svptrue_b32(), a, b), 0xffffffffu);
+  return svdup_n_s32_z(svcmpeq_s32(svptrue_b32(), a, b), 0xffffffffu);
 }
 
 template <>
@@ -465,17 +465,17 @@ EIGEN_STRONG_INLINE PacketXf pmax<PropagateNumbers, PacketXf>(const PacketXf& a,
 // lanes to 1 (0xffffffffu) and inactive lanes to 0.
 template <>
 EIGEN_STRONG_INLINE PacketXf pcmp_le<PacketXf>(const PacketXf& a, const PacketXf& b) {
-  return svreinterpret_f32_u32(svdup_n_u32_x(svcmple_f32(svptrue_b32(), a, b), 0xffffffffu));
+  return svreinterpret_f32_u32(svdup_n_u32_z(svcmple_f32(svptrue_b32(), a, b), 0xffffffffu));
 }
 
 template <>
 EIGEN_STRONG_INLINE PacketXf pcmp_lt<PacketXf>(const PacketXf& a, const PacketXf& b) {
-  return svreinterpret_f32_u32(svdup_n_u32_x(svcmplt_f32(svptrue_b32(), a, b), 0xffffffffu));
+  return svreinterpret_f32_u32(svdup_n_u32_z(svcmplt_f32(svptrue_b32(), a, b), 0xffffffffu));
 }
 
 template <>
 EIGEN_STRONG_INLINE PacketXf pcmp_eq<PacketXf>(const PacketXf& a, const PacketXf& b) {
-  return svreinterpret_f32_u32(svdup_n_u32_x(svcmpeq_f32(svptrue_b32(), a, b), 0xffffffffu));
+  return svreinterpret_f32_u32(svdup_n_u32_z(svcmpeq_f32(svptrue_b32(), a, b), 0xffffffffu));
 }
 
 // Do a predicate inverse (svnot_b_x) on the predicate resulted from the
@@ -483,7 +483,7 @@ EIGEN_STRONG_INLINE PacketXf pcmp_eq<PacketXf>(const PacketXf& a, const PacketXf
 // active elements.
 template <>
 EIGEN_STRONG_INLINE PacketXf pcmp_lt_or_nan<PacketXf>(const PacketXf& a, const PacketXf& b) {
-  return svreinterpret_f32_u32(svdup_n_u32_x(svnot_b_x(svptrue_b32(), svcmpge_f32(svptrue_b32(), a, b)), 0xffffffffu));
+  return svreinterpret_f32_u32(svdup_n_u32_z(svnot_b_x(svptrue_b32(), svcmpge_f32(svptrue_b32(), a, b)), 0xffffffffu));
 }
 
 template <>
