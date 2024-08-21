@@ -37,7 +37,6 @@ EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC EIGEN_UNUSED Packet4d patan<Packet4d>(cons
   return generic_patan(_x);
 }
 
-
 // Notice that for newer processors, it is counterproductive to use Newton
 // iteration for square root. In particular, Skylake and Zen2 processors
 // have approximately doubled throughput of the _mm_sqrt_ps instruction
