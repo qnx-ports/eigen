@@ -45,7 +45,7 @@ template <typename Derived, typename Scalar = typename traits<Derived>::Scalar>
 struct squared_norm_impl {
   using Real = typename NumTraits<Scalar>::Real;
   static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Real run(const Derived& a) {
-    Scalar result = a.unaryExpr(scalar_squared_norm_op<Scalar>()).sum();
+    Scalar result = a.unaryExpr(squared_norm_functor<Scalar>()).sum();
     return numext::real(result) + numext::imag(result);
   }
 };
