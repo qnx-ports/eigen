@@ -109,6 +109,16 @@ EIGEN_STRONG_INLINE Packet2cf pcast<Packet2f, Packet2cf>(const Packet2f& a) {
 }
 
 template <>
+EIGEN_STRONG_INLINE Packet1cf pzero(const Packet1cf& /*a*/) {
+  return Packet1cf(vdup_n_f32(0.0f));
+}
+
+template <>
+EIGEN_STRONG_INLINE Packet2cf pzero(const Packet2cf& /*a*/) {
+  return Packet2cf(vdupq_n_f32(0.0f));
+}
+
+template <>
 EIGEN_STRONG_INLINE Packet1cf pset1<Packet1cf>(const std::complex<float>& from) {
   return Packet1cf(vld1_f32(reinterpret_cast<const float*>(&from)));
 }
@@ -552,6 +562,11 @@ EIGEN_STRONG_INLINE Packet1cd pload<Packet1cd>(const std::complex<double>* from)
 template <>
 EIGEN_STRONG_INLINE Packet1cd ploadu<Packet1cd>(const std::complex<double>* from) {
   EIGEN_DEBUG_UNALIGNED_LOAD return Packet1cd(ploadu<Packet2d>(reinterpret_cast<const double*>(from)));
+}
+
+template <>
+EIGEN_STRONG_INLINE Packet1cd pzero<Packet1cd>(const Packet1cd& /*a*/) {
+  return Packet1cd(vdupq_n_f64(0.0));
 }
 
 template <>

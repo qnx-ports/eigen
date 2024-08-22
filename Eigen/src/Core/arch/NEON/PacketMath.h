@@ -658,6 +658,7 @@ template <>
 EIGEN_STRONG_INLINE Packet2f pzero(const Packet2f& /*a*/) {
   return vdup_n_f32(0.0f);
 }
+
 template <>
 EIGEN_STRONG_INLINE Packet4f pzero(const Packet4f& /*a*/) {
   return vdupq_n_f32(0.0f);
