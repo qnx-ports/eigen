@@ -659,6 +659,7 @@ class JacobiSVD : public SVDBase<JacobiSVD<MatrixType_, Options_> > {
   internal::qr_preconditioner_impl<MatrixType, Options, QRPreconditioner, internal::PreconditionIfMoreRowsThanCols>
       m_qr_precond_morerows;
   WorkMatrixType m_workMatrix;
+  friend class BDCSVD<MatrixType, Options>;
 };
 
 template <typename MatrixType, int Options>
