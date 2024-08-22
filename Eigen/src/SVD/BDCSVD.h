@@ -268,7 +268,7 @@ template <typename MatrixType, int Options>
 void BDCSVD<MatrixType, Options>::allocateSmallSVD(Index rows, Index cols, unsigned int computationOptions) {
   smallSvd.allocate(rows, cols, Options == 0 ? computationOptions : internal::get_computation_options(Options));
 }
-    // Method to allocate and initialize matrix and attributes
+// Method to allocate and initialize matrix and attributes
 template <typename MatrixType, int Options>
 void BDCSVD<MatrixType, Options>::allocate(Index rows, Index cols, unsigned int computationOptions) {
   if (Base::allocate(rows, cols, computationOptions)) return;
