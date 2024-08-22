@@ -158,22 +158,17 @@ EIGEN_STRONG_INLINE Packet2cf pconj(const Packet2cf& a) {
 
 #ifdef __ARM_FEATURE_COMPLEX
 template <>
-EIGEN_STRONG_INLINE Packet1cf pmul<Packet1cf>(const Packet1cf& a, const Packet1cf& b) {
-  Packet1cf result = pzero(a);
-  result.v = vcmla_f32(result.v, a.v, b.v);
-  result.v = vcmla_rot90_f32(result.v, a.v, b.v);
-  return result;
-}
-
-#ifdef EIGEN_VECTORIZE_FMA
-template <>
 EIGEN_STRONG_INLINE Packet1cf pmadd<Packet1cf>(const Packet1cf& a, const Packet1cf& b, const Packet1cf& c) {
   Packet1cf result;
   result.v = vcmla_f32(c.v, a.v, b.v);
   result.v = vcmla_rot90_f32(result.v, a.v, b.v);
   return result;
 }
-#endif
+
+template <>
+EIGEN_STRONG_INLINE Packet1cf pmul<Packet1cf>(const Packet1cf& a, const Packet1cf& b) {
+  return pmadd(a, b, pzero(a));
+}
 #else
 template <>
 EIGEN_STRONG_INLINE Packet1cf pmul<Packet1cf>(const Packet1cf& a, const Packet1cf& b) {
@@ -198,22 +193,17 @@ EIGEN_STRONG_INLINE Packet1cf pmul<Packet1cf>(const Packet1cf& a, const Packet1c
 
 #ifdef __ARM_FEATURE_COMPLEX
 template <>
-EIGEN_STRONG_INLINE Packet2cf pmul<Packet2cf>(const Packet2cf& a, const Packet2cf& b) {
-  Packet2cf r = pzero(a);
-  r.v = vcmlaq_f32(r.v, a.v, b.v);
-  r.v = vcmlaq_rot90_f32(r.v, a.v, b.v);
-  return r;
-}
-
-#ifdef EIGEN_VECTORIZE_FMA
-template <>
 EIGEN_STRONG_INLINE Packet2cf pmadd<Packet2cf>(const Packet2cf& a, const Packet2cf& b, const Packet2cf& c) {
   Packet2cf result;
   result.v = vcmlaq_f32(c.v, a.v, b.v);
   result.v = vcmlaq_rot90_f32(result.v, a.v, b.v);
   return result;
 }
-#endif
+
+template <>
+EIGEN_STRONG_INLINE Packet2cf pmul<Packet2cf>(const Packet2cf& a, const Packet2cf& b) {
+  return pmadd(a, b, pzero(a));
+}
 #else
 template <>
 EIGEN_STRONG_INLINE Packet2cf pmul<Packet2cf>(const Packet2cf& a, const Packet2cf& b) {
@@ -592,22 +582,17 @@ EIGEN_STRONG_INLINE Packet1cd pconj(const Packet1cd& a) {
 
 #ifdef __ARM_FEATURE_COMPLEX
 template <>
-EIGEN_STRONG_INLINE Packet1cd pmul<Packet1cd>(const Packet1cd& a, const Packet1cd& b) {
-  Packet1cd result = pzero(a);
-  result.v = vcmlaq_f64(result.v, a.v, b.v);
-  result.v = vcmlaq_rot90_f64(result.v, a.v, b.v);
-  return result;
-}
-
-#ifdef EIGEN_VECTORIZE_FMA
-template <>
 EIGEN_STRONG_INLINE Packet1cd pmadd<Packet1cd>(const Packet1cd& a, const Packet1cd& b, const Packet1cd& c) {
   Packet1cd result;
   result.v = vcmlaq_f64(c.v, a.v, b.v);
   result.v = vcmlaq_rot90_f64(result.v, a.v, b.v);
   return result;
 }
-#endif
+
+template <>
+EIGEN_STRONG_INLINE Packet1cd pmul<Packet1cd>(const Packet1cd& a, const Packet1cd& b) {
+  return pmadd(a, b, pzero(a));
+}
 #else
 template <>
 EIGEN_STRONG_INLINE Packet1cd pmul<Packet1cd>(const Packet1cd& a, const Packet1cd& b) {
