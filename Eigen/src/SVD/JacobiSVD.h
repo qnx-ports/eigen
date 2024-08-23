@@ -611,7 +611,6 @@ class JacobiSVD : public SVDBase<JacobiSVD<MatrixType_, Options_> > {
   using Base::rank;
   using Base::rows;
 
- private:
   void allocate(Index rows_, Index cols_, unsigned int computationOptions) {
     if (Base::allocate(rows_, cols_, computationOptions)) return;
     eigen_assert(!(ShouldComputeThinU && int(QRPreconditioner) == int(FullPivHouseholderQRPreconditioner)) &&
@@ -624,6 +623,7 @@ class JacobiSVD : public SVDBase<JacobiSVD<MatrixType_, Options_> > {
     if (rows() > cols()) m_qr_precond_morerows.allocate(*this);
   }
 
+ private:
   JacobiSVD& compute_impl(const MatrixType& matrix, unsigned int computationOptions);
 
  protected:
@@ -659,7 +659,6 @@ class JacobiSVD : public SVDBase<JacobiSVD<MatrixType_, Options_> > {
   internal::qr_preconditioner_impl<MatrixType, Options, QRPreconditioner, internal::PreconditionIfMoreRowsThanCols>
       m_qr_precond_morerows;
   WorkMatrixType m_workMatrix;
-  friend class BDCSVD<MatrixType, Options>;
 };
 
 template <typename MatrixType, int Options>
