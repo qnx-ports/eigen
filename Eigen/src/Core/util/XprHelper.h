@@ -314,6 +314,16 @@ struct find_packet_by_size<T, 1> {
   static constexpr bool value = (unpacket_traits<type>::size == 1);
 };
 
+template <typename PacketType, typename NextPacketType = typename unpacket_traits<PacketType>::half>
+struct find_next_packet : std::true_type {
+  using type = NextPacketType;
+};
+
+template <typename PacketType>
+struct find_next_packet<PacketType, PacketType> : false_type {
+  using type = typename unpacket_traits<PacketType>::type;
+};
+
 #if EIGEN_MAX_STATIC_ALIGN_BYTES > 0
 constexpr inline int compute_default_alignment_helper(int ArrayBytes, int AlignmentBytes) {
   if ((ArrayBytes % AlignmentBytes) == 0) {
