@@ -17,7 +17,7 @@ namespace Eigen {
 
 namespace internal {
 
-// recursively searches for the largest simd type that does not exceed Size, or Scalar if no such type exists
+// recursively searches for the largest simd type that does not exceed Size, or the smallest if no such type exists
 template <typename Scalar, int Size, typename Packet = typename packet_traits<Scalar>::type,
           bool Stop =
               (unpacket_traits<Packet>::size <= Size) || is_same<Packet, typename unpacket_traits<Packet>::half>::value>
@@ -30,7 +30,7 @@ struct find_inner_product_packet_helper<Scalar, Size, Packet, false> {
 
 template <typename Scalar, int Size, typename Packet>
 struct find_inner_product_packet_helper<Scalar, Size, Packet, true> {
-  using type = std::conditional_t<unpacket_traits<Packet>::size <= Size, Packet, Scalar>;
+  using type = Packet;
 };
 
 template <typename Scalar, int Size>
@@ -57,13 +57,15 @@ struct inner_product_assert {
 
 template <typename Func, typename Lhs, typename Rhs>
 struct inner_product_evaluator {
-  using Scalar = typename Func::result_type;
-
   static constexpr int LhsFlags = evaluator<Lhs>::Flags, RhsFlags = evaluator<Rhs>::Flags,
                        SizeAtCompileTime = min_size_prefer_fixed(Lhs::SizeAtCompileTime, Rhs::SizeAtCompileTime),
                        LhsAlignment = evaluator<Lhs>::Alignment, RhsAlignment = evaluator<Rhs>::Alignment;
 
-  static constexpr bool Vectorize = bool(LhsFlags & RhsFlags & PacketAccessBit) && Func::PacketAccess;
+  using Scalar = typename Func::result_type;
+  using Packet = typename find_inner_product_packet<Scalar, SizeAtCompileTime>::type;
+
+  static constexpr bool Vectorize = bool(LhsFlags & RhsFlags & PacketAccessBit) && Func::PacketAccess &&
+                                    (unpacket_traits<Packet>::size <= SizeAtCompileTime);
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE explicit inner_product_evaluator(const Lhs& lhs, const Rhs& rhs,
                                                                          Func func = Func())
@@ -151,9 +153,9 @@ struct inner_product_impl<Evaluator, true, false> {
 template <typename Evaluator>
 struct inner_product_impl<Evaluator, true, true> {
   using Scalar = typename Evaluator::Scalar;
-  static constexpr int Size = Evaluator::SizeAtCompileTime;
-  using Packet = typename find_inner_product_packet<Scalar, Size>::type;
-  static constexpr int PacketSize = unpacket_traits<Packet>::size, PacketEnd = numext::round_down(Size, PacketSize);
+  using Packet = typename Evaluator::Packet;
+  static constexpr int Size = Evaluator::SizeAtCompileTime, PacketSize = unpacket_traits<Packet>::size,
+                       PacketEnd = numext::round_down(Size, PacketSize);
   static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Scalar run(const Evaluator& eval) {
     Packet packetAccum = pzero(Packet());
     return inner_product_vector_unroller<Evaluator, Packet, 0, PacketEnd, Size>::run(eval, packetAccum);
@@ -174,7 +176,7 @@ struct inner_product_impl<Evaluator, false, false> {
 template <typename Evaluator>
 struct inner_product_impl<Evaluator, false, true> {
   using Scalar = typename Evaluator::Scalar;
-  using Packet = typename find_inner_product_packet<Scalar, Dynamic>::type;
+  using Packet = typename Evaluator::Packet;
   static constexpr int PacketSize = unpacket_traits<Packet>::size;
   static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Scalar run(const Evaluator& eval) {
     const Index size = eval.size();
