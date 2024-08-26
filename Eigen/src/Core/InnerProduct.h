@@ -64,8 +64,10 @@ struct inner_product_evaluator {
   using Scalar = typename Func::result_type;
   using Packet = typename find_inner_product_packet<Scalar, SizeAtCompileTime>::type;
 
-  static constexpr bool Vectorize = bool(LhsFlags & RhsFlags & PacketAccessBit) && Func::PacketAccess &&
-                                    (unpacket_traits<Packet>::size <= SizeAtCompileTime);
+  static constexpr bool Vectorize =
+                            bool(LhsFlags & RhsFlags & PacketAccessBit) && Func::PacketAccess &&
+                            ((SizeAtCompileTime == Dynamic) || (unpacket_traits<Packet>::size <= SizeAtCompileTime)),
+                        Unroll = (SizeAtCompileTime != Dynamic) && (SizeAtCompileTime <= 32);
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE explicit inner_product_evaluator(const Lhs& lhs, const Rhs& rhs,
                                                                          Func func = Func())
@@ -136,7 +138,7 @@ struct inner_product_vector_unroller<Evaluator, Packet, End, End, Size> {
   }
 };
 
-template <typename Evaluator, bool Unroll = (Evaluator::SizeAtCompileTime <= 32), bool Vectorize = Evaluator::Vectorize>
+template <typename Evaluator, bool Unroll = Evaluator::Unroll, bool Vectorize = Evaluator::Vectorize>
 struct inner_product_impl;
 
 // unrolled scalar
