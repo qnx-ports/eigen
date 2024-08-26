@@ -17,6 +17,30 @@ namespace Eigen {
 
 namespace internal {
 
+// recursively searches for the largest simd type that does not exceed Size, or Scalar if no such type exists
+template <typename Scalar, int Size, typename Packet = typename packet_traits<Scalar>::type,
+          bool Stop =
+              (unpacket_traits<Packet>::size <= Size) || is_same<Packet, typename unpacket_traits<Packet>::half>::value>
+struct find_inner_product_packet_helper;
+
+template <typename Scalar, int Size, typename Packet>
+struct find_inner_product_packet_helper<Scalar, Size, Packet, false> {
+  using type = typename find_inner_product_packet_helper<Scalar, Size, typename unpacket_traits<Packet>::half>::type;
+};
+
+template <typename Scalar, int Size, typename Packet>
+struct find_inner_product_packet_helper<Scalar, Size, Packet, true> {
+  using type = std::conditional_t<unpacket_traits<Packet>::size <= Size, Packet, Scalar>;
+};
+
+template <typename Scalar, int Size>
+struct find_inner_product_packet : find_inner_product_packet_helper<Scalar, Size> {};
+
+template <typename Scalar>
+struct find_inner_product_packet<Scalar, Dynamic> {
+  using type = typename packet_traits<Scalar>::type;
+};
+
 template <typename Lhs, typename Rhs>
 struct inner_product_assert {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Lhs)
@@ -33,13 +57,13 @@ struct inner_product_assert {
 
 template <typename Func, typename Lhs, typename Rhs>
 struct inner_product_evaluator {
+  using Scalar = typename Func::result_type;
+
   static constexpr int LhsFlags = evaluator<Lhs>::Flags, RhsFlags = evaluator<Rhs>::Flags,
                        SizeAtCompileTime = min_size_prefer_fixed(Lhs::SizeAtCompileTime, Rhs::SizeAtCompileTime),
                        LhsAlignment = evaluator<Lhs>::Alignment, RhsAlignment = evaluator<Rhs>::Alignment;
 
   static constexpr bool Vectorize = bool(LhsFlags & RhsFlags & PacketAccessBit) && Func::PacketAccess;
-
-  using Scalar = typename Func::result_type;
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE explicit inner_product_evaluator(const Lhs& lhs, const Rhs& rhs,
                                                                          Func func = Func())
@@ -67,40 +91,99 @@ struct inner_product_evaluator {
   const variable_if_dynamic<Index, SizeAtCompileTime> m_size;
 };
 
-template <typename Evaluator, bool Vectorize = Evaluator::Vectorize>
-struct binary_redux_impl;
-
-template <typename Evaluator>
-struct binary_redux_impl<Evaluator, false> {
+// scalar loop
+template <typename Evaluator, int Index, int Size>
+struct inner_product_scalar_unroller {
   using Scalar = typename Evaluator::Scalar;
-  static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Scalar run(const Evaluator& eval) {
-    const Index size = eval.size();
-    Scalar result = Scalar(0);
-    for (Index k = 0; k < size; k++) {
-      result = eval.coeff(result, k);
-    }
-    return result;
+  static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Scalar run(const Evaluator& eval, Scalar& accum) {
+    accum = eval.coeff(accum, Index);
+    return inner_product_scalar_unroller<Evaluator, Index + 1, Size>::run(eval, accum);
+  }
+};
+// scalar loop finalization
+template <typename Evaluator, int Size>
+struct inner_product_scalar_unroller<Evaluator, Size, Size> {
+  using Scalar = typename Evaluator::Scalar;
+  static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Scalar run(const Evaluator&, const Scalar& accum) { return accum; }
+};
+// vector loop
+template <typename Evaluator, typename Packet, int Index, int End, int Size>
+struct inner_product_vector_unroller {
+  using Scalar = typename Evaluator::Scalar;
+  static constexpr int PacketSize = unpacket_traits<Packet>::size;
+  static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Scalar run(const Evaluator& eval, Packet& accum) {
+    accum = eval.packet(accum, Index);
+    return inner_product_vector_unroller<Evaluator, Packet, Index + PacketSize, End, Size>::run(eval, accum);
+  }
+};
+// vector loop finalization
+template <typename Evaluator, typename Packet, int Size>
+struct inner_product_vector_unroller<Evaluator, Packet, Size, Size, Size> {
+  using Scalar = typename Evaluator::Scalar;
+  static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Scalar run(const Evaluator&, const Packet& accum) {
+    return predux(accum);
+  }
+};
+// transition from vector to scalar loop
+template <typename Evaluator, typename Packet, int End, int Size>
+struct inner_product_vector_unroller<Evaluator, Packet, End, End, Size> {
+  using Scalar = typename Evaluator::Scalar;
+  static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Scalar run(const Evaluator& eval, const Packet& accum) {
+    Scalar scalarAccum = predux(accum);
+    return inner_product_scalar_unroller<Evaluator, End, Size>::run(eval, scalarAccum);
   }
 };
 
+template <typename Evaluator, bool Unroll = (Evaluator::SizeAtCompileTime <= 32), bool Vectorize = Evaluator::Vectorize>
+struct inner_product_impl;
+
+// unrolled scalar
 template <typename Evaluator>
-struct binary_redux_impl<Evaluator, true> {
+struct inner_product_impl<Evaluator, true, false> {
   using Scalar = typename Evaluator::Scalar;
-  using Packet = typename packet_traits<Scalar>::type;
-  static constexpr int kPacketSize = unpacket_traits<Packet>::size;
+  static constexpr int Size = Evaluator::SizeAtCompileTime;
+  static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Scalar run(const Evaluator& eval) {
+    Scalar scalarAccum = Scalar(0);
+    return inner_product_scalar_unroller<Evaluator, 0, Size>::run(eval, scalarAccum);
+  }
+};
+// unrolled simd
+template <typename Evaluator>
+struct inner_product_impl<Evaluator, true, true> {
+  using Scalar = typename Evaluator::Scalar;
+  static constexpr int Size = Evaluator::SizeAtCompileTime;
+  using Packet = typename find_inner_product_packet<Scalar, Size>::type;
+  static constexpr int PacketSize = unpacket_traits<Packet>::size, PacketEnd = numext::round_down(Size, PacketSize);
+  static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Scalar run(const Evaluator& eval) {
+    Packet packetAccum = pzero(Packet());
+    return inner_product_vector_unroller<Evaluator, Packet, 0, PacketEnd, Size>::run(eval, packetAccum);
+  }
+};
+// dynamic scalar
+template <typename Evaluator>
+struct inner_product_impl<Evaluator, false, false> {
+  using Scalar = typename Evaluator::Scalar;
   static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Scalar run(const Evaluator& eval) {
     const Index size = eval.size();
-    const Index packetEnd = numext::round_down(size, kPacketSize);
-    Packet tmp;
-    tmp = pzero(tmp);
-    for (Index k = 0; k < packetEnd; k += kPacketSize) {
-      tmp = eval.packet(tmp, k);
-    }
-    Scalar result = predux(tmp);
-    for (Index k = packetEnd; k < size; k++) {
-      result = eval.coeff(result, k);
-    }
-    return result;
+    Scalar scalarAccum = Scalar(0);
+    for (Index k = 0; k < size; k++) scalarAccum = eval.coeff(scalarAccum, k);
+    return scalarAccum;
+  }
+};
+// dynamic simd
+template <typename Evaluator>
+struct inner_product_impl<Evaluator, false, true> {
+  using Scalar = typename Evaluator::Scalar;
+  using Packet = typename find_inner_product_packet<Scalar, Dynamic>::type;
+  static constexpr int PacketSize = unpacket_traits<Packet>::size;
+  static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Scalar run(const Evaluator& eval) {
+    const Index size = eval.size();
+    const Index packetEnd = numext::round_down(size, PacketSize);
+    Packet packetAccum = pzero(Packet());
+    for (Index k = 0; k < packetEnd; k += PacketSize) packetAccum = eval.packet(packetAccum, k);
+    Scalar scalarAccum = predux(packetAccum);
+    for (Index k = packetEnd; k < size; k++) scalarAccum = eval.coeff(scalarAccum, k);
+    return scalarAccum;
   }
 };
 
@@ -151,7 +234,7 @@ struct scalar_inner_product_op<Scalar, Scalar, Conj> {
 };
 
 template <typename Lhs, typename Rhs, bool Conj>
-struct inner_product_impl {
+struct default_inner_product_impl {
   using LhsScalar = typename traits<Lhs>::Scalar;
   using RhsScalar = typename traits<Rhs>::Scalar;
   using Op = scalar_inner_product_op<LhsScalar, RhsScalar, Conj>;
@@ -159,12 +242,12 @@ struct inner_product_impl {
   using result_type = typename Evaluator::Scalar;
   static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE result_type run(const MatrixBase<Lhs>& a, const MatrixBase<Rhs>& b) {
     Evaluator eval(a.derived(), b.derived(), Op());
-    return binary_redux_impl<Evaluator>::run(eval);
+    return inner_product_impl<Evaluator>::run(eval);
   }
 };
 
 template <typename Lhs, typename Rhs>
-struct dot_impl : inner_product_impl<Lhs, Rhs, true> {};
+struct dot_impl : default_inner_product_impl<Lhs, Rhs, true> {};
 
 }  // namespace internal
 }  // namespace Eigen
