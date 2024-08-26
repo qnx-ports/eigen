@@ -235,7 +235,6 @@ class BDCSVD : public SVDBase<BDCSVD<MatrixType_, Options_> > {
   void computeBaseCase(SVDType& svd, Index n, Index firstCol, Index firstRowW, Index firstColW, Index shift);
 
  protected:
-  void allocateSmallSVD(Index rows, Index cols, unsigned int computationOptions);
   void allocate(Index rows, Index cols, unsigned int computationOptions);
   MatrixXr m_naiveU, m_naiveV;
   MatrixXr m_computed;
@@ -264,16 +263,13 @@ class BDCSVD : public SVDBase<BDCSVD<MatrixType_, Options_> > {
   int m_numIters;
 };  // end class BDCSVD
 
-template <typename MatrixType, int Options>
-void BDCSVD<MatrixType, Options>::allocateSmallSVD(Index rows, Index cols, unsigned int computationOptions) {
-  smallSvd.allocate(rows, cols, Options == 0 ? computationOptions : internal::get_computation_options(Options));
-}
 // Method to allocate and initialize matrix and attributes
 template <typename MatrixType, int Options>
 void BDCSVD<MatrixType, Options>::allocate(Index rows, Index cols, unsigned int computationOptions) {
   if (Base::allocate(rows, cols, computationOptions)) return;
 
-  if (cols < m_algoswap) allocateSmallSVD(rows, cols, computationOptions);
+  if (cols < m_algoswap)
+    smallSvd.allocate(rows, cols, Options == 0 ? computationOptions : internal::get_computation_options(Options));
 
   m_computed = MatrixXr::Zero(diagSize() + 1, diagSize());
   m_compU = computeV();
