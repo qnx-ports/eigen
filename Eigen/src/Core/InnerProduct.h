@@ -51,7 +51,7 @@ struct inner_product_assert {
     eigen_assert((lhs.size() == rhs.size()) && "Inner product: lhs and rhs vectors must have same size");
   }
 #else
-  static void run(const Lhs&, const Rhs&) {}
+  static EIGEN_DEVICE_FUNC void run(const Lhs&, const Rhs&) {}
 #endif
 };
 
@@ -59,7 +59,8 @@ template <typename Func, typename Lhs, typename Rhs>
 struct inner_product_evaluator {
   static constexpr int LhsFlags = evaluator<Lhs>::Flags, RhsFlags = evaluator<Rhs>::Flags,
                        SizeAtCompileTime = min_size_prefer_fixed(Lhs::SizeAtCompileTime, Rhs::SizeAtCompileTime),
-                       LhsAlignment = evaluator<Lhs>::Alignment, RhsAlignment = evaluator<Rhs>::Alignment;
+                       LhsAlignment = evaluator<Lhs>::Alignment, RhsAlignment = evaluator<Rhs>::Alignment,
+                       UnrollThreshold = 32;
 
   using Scalar = typename Func::result_type;
   using Packet = typename find_inner_product_packet<Scalar, SizeAtCompileTime>::type;
@@ -67,7 +68,7 @@ struct inner_product_evaluator {
   static constexpr bool Vectorize =
                             bool(LhsFlags & RhsFlags & PacketAccessBit) && Func::PacketAccess &&
                             ((SizeAtCompileTime == Dynamic) || (unpacket_traits<Packet>::size <= SizeAtCompileTime)),
-                        Unroll = (SizeAtCompileTime != Dynamic) && (SizeAtCompileTime <= 32);
+                        Unroll = (SizeAtCompileTime != Dynamic) && (SizeAtCompileTime <= UnrollThreshold);
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE explicit inner_product_evaluator(const Lhs& lhs, const Rhs& rhs,
                                                                          Func func = Func())
