@@ -78,8 +78,6 @@ struct inner_product_evaluator {
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Index size() const { return m_size.value(); }
 
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Scalar initialize() const { return m_func.initialize(); }
-
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Scalar coeff(const Scalar& value, Index index) const {
     return m_func.coeff(value, m_lhs.coeff(index), m_rhs.coeff(index));
   }
@@ -129,13 +127,22 @@ struct inner_product_vector_unroller<Evaluator, Packet, Size, Size, Size> {
     return predux(accum);
   }
 };
-// transition from vector to scalar loop
+// transition from vector to smaller vector or scalar
 template <typename Evaluator, typename Packet, int End, int Size>
 struct inner_product_vector_unroller<Evaluator, Packet, End, End, Size> {
   using Scalar = typename Evaluator::Scalar;
+  using NextPacket = typename find_inner_product_packet<Scalar, Size - End>::type;
+  static constexpr int NextPacketSize = unpacket_traits<NextPacket>::size,
+                       NextPacketEnd = End + numext::round_down(Size - End, NextPacketSize);
+  using NextUnroller =
+      std::conditional_t<NextPacketEnd != End,
+                         inner_product_vector_unroller<Evaluator, NextPacket, End, NextPacketEnd, Size>,
+                         inner_product_scalar_unroller<Evaluator, End, Size>>;
+  using NextAccumulator = std::conditional_t<NextPacketEnd != End, NextPacket, Scalar>;
+
   static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Scalar run(const Evaluator& eval, const Packet& accum) {
-    Scalar scalarAccum = predux(accum);
-    return inner_product_scalar_unroller<Evaluator, End, Size>::run(eval, scalarAccum);
+    NextAccumulator nextAccum = pzero(NextAccumulator());
+    return predux(accum) + NextUnroller::run(eval, nextAccum);
   }
 };
 
