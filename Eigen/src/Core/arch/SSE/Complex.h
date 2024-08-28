@@ -446,6 +446,7 @@ EIGEN_STRONG_INLINE Packet2cf pexp<Packet2cf>(const Packet2cf& a) {
 }
 
 #ifdef EIGEN_VECTORIZE_FMA
+// std::complex<float>
 template <>
 EIGEN_STRONG_INLINE Packet2cf pmadd(const Packet2cf& a, const Packet2cf& b, const Packet2cf& c) {
   __m128 a_odd = _mm_movehdup_ps(a.v);
@@ -478,7 +479,7 @@ EIGEN_STRONG_INLINE Packet2cf pnmsub(const Packet2cf& a, const Packet2cf& b, con
   __m128 result = _mm_fmaddsub_ps(a_odd, b_swap, _mm_fmsubadd_ps(a_even, b.v, c.v));
   return Packet2cf(result);
 }
-
+// std::complex<double>
 template <>
 EIGEN_STRONG_INLINE Packet1cd pmadd(const Packet1cd& a, const Packet1cd& b, const Packet1cd& c) {
   __m128d a_odd = _mm_permute_pd(a.v, 0xF);

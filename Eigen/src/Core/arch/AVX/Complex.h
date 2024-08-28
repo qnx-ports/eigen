@@ -523,7 +523,6 @@ EIGEN_STRONG_INLINE Packet2cd pnmsub(const Packet2cd& a, const Packet2cd& b, con
   return Packet2cd(result);
 }
 #endif
-
 }  // end namespace internal
 
 }  // end namespace Eigen
