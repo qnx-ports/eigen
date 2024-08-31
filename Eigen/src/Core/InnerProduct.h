@@ -59,16 +59,14 @@ template <typename Func, typename Lhs, typename Rhs>
 struct inner_product_evaluator {
   static constexpr int LhsFlags = evaluator<Lhs>::Flags, RhsFlags = evaluator<Rhs>::Flags,
                        SizeAtCompileTime = min_size_prefer_fixed(Lhs::SizeAtCompileTime, Rhs::SizeAtCompileTime),
-                       LhsAlignment = evaluator<Lhs>::Alignment, RhsAlignment = evaluator<Rhs>::Alignment,
-                       UnrollThreshold = 32;
+                       LhsAlignment = evaluator<Lhs>::Alignment, RhsAlignment = evaluator<Rhs>::Alignment;
 
   using Scalar = typename Func::result_type;
   using Packet = typename find_inner_product_packet<Scalar, SizeAtCompileTime>::type;
 
   static constexpr bool Vectorize =
-                            bool(LhsFlags & RhsFlags & PacketAccessBit) && Func::PacketAccess &&
-                            ((SizeAtCompileTime == Dynamic) || (unpacket_traits<Packet>::size <= SizeAtCompileTime)),
-                        Unroll = (SizeAtCompileTime != Dynamic) && (SizeAtCompileTime <= UnrollThreshold);
+      bool(LhsFlags & RhsFlags & PacketAccessBit) && Func::PacketAccess &&
+      ((SizeAtCompileTime == Dynamic) || (unpacket_traits<Packet>::size <= SizeAtCompileTime));
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE explicit inner_product_evaluator(const Lhs& lhs, const Rhs& rhs,
                                                                          Func func = Func())
@@ -94,108 +92,58 @@ struct inner_product_evaluator {
   const variable_if_dynamic<Index, SizeAtCompileTime> m_size;
 };
 
-// scalar loop
-template <typename Evaluator, int Index, int Size>
-struct inner_product_scalar_unroller {
-  using Scalar = typename Evaluator::Scalar;
-  static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Scalar run(const Evaluator& eval, Scalar& accum) {
-    accum = eval.coeff(accum, Index);
-    return inner_product_scalar_unroller<Evaluator, Index + 1, Size>::run(eval, accum);
-  }
-};
-// scalar loop finalization
-template <typename Evaluator, int Size>
-struct inner_product_scalar_unroller<Evaluator, Size, Size> {
-  using Scalar = typename Evaluator::Scalar;
-  static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Scalar run(const Evaluator&, const Scalar& accum) { return accum; }
-};
-// vector loop
-template <typename Evaluator, typename Packet, int Index, int End, int Size>
-struct inner_product_vector_unroller {
-  using Scalar = typename Evaluator::Scalar;
-  static constexpr int PacketSize = unpacket_traits<Packet>::size;
-  static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Scalar run(const Evaluator& eval, Packet& accum) {
-    accum = eval.packet(accum, Index);
-    return inner_product_vector_unroller<Evaluator, Packet, Index + PacketSize, End, Size>::run(eval, accum);
-  }
-};
-// vector loop finalization
-template <typename Evaluator, typename Packet, int Size>
-struct inner_product_vector_unroller<Evaluator, Packet, Size, Size, Size> {
-  using Scalar = typename Evaluator::Scalar;
-  static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Scalar run(const Evaluator&, const Packet& accum) {
-    return predux(accum);
-  }
-};
-// transition from vector to smaller vector or scalar
-template <typename Evaluator, typename Packet, int End, int Size>
-struct inner_product_vector_unroller<Evaluator, Packet, End, End, Size> {
-  using Scalar = typename Evaluator::Scalar;
-  using NextPacket = typename find_inner_product_packet<Scalar, Size - End>::type;
-  static constexpr int NextPacketSize = unpacket_traits<NextPacket>::size,
-                       NextPacketEnd = End + numext::round_down(Size - End, NextPacketSize);
-  using NextUnroller =
-      std::conditional_t<NextPacketEnd != End,
-                         inner_product_vector_unroller<Evaluator, NextPacket, End, NextPacketEnd, Size>,
-                         inner_product_scalar_unroller<Evaluator, End, Size>>;
-  using NextAccumulator = std::conditional_t<NextPacketEnd != End, NextPacket, Scalar>;
-
-  static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Scalar run(const Evaluator& eval, const Packet& accum) {
-    NextAccumulator nextAccum = pzero(NextAccumulator());
-    return predux(accum) + NextUnroller::run(eval, nextAccum);
-  }
-};
-
-template <typename Evaluator, bool Unroll = Evaluator::Unroll, bool Vectorize = Evaluator::Vectorize>
+template <typename Evaluator, bool Vectorize = Evaluator::Vectorize>
 struct inner_product_impl;
 
-// unrolled scalar
+// scalar loop
 template <typename Evaluator>
-struct inner_product_impl<Evaluator, true, false> {
-  using Scalar = typename Evaluator::Scalar;
-  static constexpr int Size = Evaluator::SizeAtCompileTime;
-  static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Scalar run(const Evaluator& eval) {
-    Scalar scalarAccum = Scalar(0);
-    return inner_product_scalar_unroller<Evaluator, 0, Size>::run(eval, scalarAccum);
-  }
-};
-// unrolled simd
-template <typename Evaluator>
-struct inner_product_impl<Evaluator, true, true> {
-  using Scalar = typename Evaluator::Scalar;
-  using Packet = typename Evaluator::Packet;
-  static constexpr int Size = Evaluator::SizeAtCompileTime, PacketSize = unpacket_traits<Packet>::size,
-                       PacketEnd = numext::round_down(Size, PacketSize);
-  static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Scalar run(const Evaluator& eval) {
-    Packet packetAccum = pzero(Packet());
-    return inner_product_vector_unroller<Evaluator, Packet, 0, PacketEnd, Size>::run(eval, packetAccum);
-  }
-};
-// dynamic scalar
-template <typename Evaluator>
-struct inner_product_impl<Evaluator, false, false> {
+struct inner_product_impl<Evaluator, false> {
   using Scalar = typename Evaluator::Scalar;
   static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Scalar run(const Evaluator& eval) {
     const Index size = eval.size();
-    Scalar scalarAccum = Scalar(0);
-    for (Index k = 0; k < size; k++) scalarAccum = eval.coeff(scalarAccum, k);
-    return scalarAccum;
+    const Index size2 = numext::round_down(size, 2);
+    Scalar result = Scalar(0);
+    if (size2 > 0) {
+      Scalar result2 = Scalar(0);
+      for (Index k = 0; k < size2; k += 2) {
+        result = eval.coeff(result, k);
+        result2 = eval.coeff(result2, k + 1);
+      }
+      result += result2;
+    }
+    if (size > size2) result = eval.coeff(result, size2);
+    return result;
   }
 };
-// dynamic simd
+
+// vector loop
 template <typename Evaluator>
-struct inner_product_impl<Evaluator, false, true> {
+struct inner_product_impl<Evaluator, true> {
   using Scalar = typename Evaluator::Scalar;
   using Packet = typename Evaluator::Packet;
   static constexpr int PacketSize = unpacket_traits<Packet>::size;
   static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Scalar run(const Evaluator& eval) {
     const Index size = eval.size();
     const Index packetEnd = numext::round_down(size, PacketSize);
-    Packet packetAccum = pzero(Packet());
-    for (Index k = 0; k < packetEnd; k += PacketSize) packetAccum = eval.packet(packetAccum, k);
-    Scalar scalarAccum = predux(packetAccum);
-    for (Index k = packetEnd; k < size; k++) scalarAccum = eval.coeff(scalarAccum, k);
-    return scalarAccum;
+    const Index packetEnd2 = numext::round_down(size, 2 * PacketSize);
+    Scalar result = Scalar(0);
+    if (packetEnd > 0) {
+      Packet presult = pzero(Packet());
+      if (packetEnd2 > 0) {
+        Packet presult2 = pzero(Packet());
+        for (Index k = 0; k < packetEnd2; k += 2 * PacketSize) {
+          presult = eval.packet(presult, k);
+          presult2 = eval.packet(presult2, k + PacketSize);
+        }
+        presult = padd(presult, presult2);
+      }
+      if (packetEnd > packetEnd2) {
+        presult = eval.packet(presult, packetEnd2);
+      }
+      result = predux(presult);
+    }
+    for (Index k = packetEnd; k < size; k++) result = eval.coeff(result, k);
+    return result;
   }
 };
 
